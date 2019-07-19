@@ -41,34 +41,13 @@ public class TablesHandler {
         singleTablesOutput.get(tableName).completeRow();
     }
 
-
    public void appendColumnValue(String columnName, Object value){
        this.appendColumnValue(columnName, String.valueOf(value) );
    }
 
     public void appendColumnValue(String columnName, String value) {
-        switch (scopeTracker.getScopeLevel()) {
-            case PACKET_HEADER:
-                this.currentTable = "packetheaders";
-                this.appendToTable(columnName, value);
-                break;
-            case MESSAGE_HEADER:
-                this.currentTable = "messageheaders";
-                this.appendToTable(columnName, value);
-                break;
-            case GROUP_HEADER:
-                this.currentTable = "groupheaders";
-                this.appendToTable(columnName, value);
-                break;
-            case GROUP_ENTRIES:
-                //todo: see if there is more efficent way to keep track of tables than strings
-                this.currentTable = scopeTracker.getNonTerminalScope();
-                //            this.appendToResidual("GroupEntry\n");
-                this.appendToTable(columnName, value);
-                break;
-            case UNKNOWN:
-                break;
-        }
+        this.currentTable=scopeTracker.getCurrentTable();
+        this.appendToTable(columnName, value);
     }
 
     public void close() throws IOException {

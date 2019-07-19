@@ -34,9 +34,6 @@ public class ScopeTracker {
 
         return sb.toString();
     }
-    public ScopeLevel getScopeLevel(){
-        return scopeLevel;
-    }
 
     public void clearAllButID(){
         while(nonTerminalScope.size()>1){
@@ -47,5 +44,27 @@ public class ScopeTracker {
     public void clear() {
 
         nonTerminalScope.clear();
+    }
+
+    String getCurrentTable() {
+        String currentTable = null;
+        switch (this.scopeLevel) {
+            case PACKET_HEADER:
+                currentTable = "packetheaders";
+            case MESSAGE_HEADER:
+                currentTable = "messageheaders";
+                break;
+            case GROUP_HEADER:
+                currentTable = "groupheaders";
+                break;
+            case GROUP_ENTRIES:
+                //todo: see if there is more efficent way to keep track of tables than strings
+                currentTable = this.getNonTerminalScope();
+                //            this.appendToResidual("GroupEntry\n");
+                break;
+            case UNKNOWN:
+                break;
+        }
+        return currentTable;
     }
 }

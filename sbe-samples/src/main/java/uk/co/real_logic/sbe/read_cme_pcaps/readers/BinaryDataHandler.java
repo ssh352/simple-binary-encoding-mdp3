@@ -16,19 +16,16 @@ public class BinaryDataHandler {
 
     private static final int SCHEMA_BUFFER_CAPACITY = 50000 * 1024;
 
-    private ReadPcapProperties prop;
-    private FileChannel inChannel;
-    private Ir ir;
-    private OtfHeaderDecoder headerDecoder;
-    private UnsafeBuffer buffer;
+    private final Ir ir;
+    private final OtfHeaderDecoder headerDecoder;
+    private final UnsafeBuffer buffer;
 
     public BinaryDataHandler(ReadPcapProperties prop, String in_file) throws Exception {
 
-        this.prop = prop;
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
         EncoderDecoders.encodeSchema(encodedSchemaBuffer, prop.schemaFile);
         RandomAccessFile aFile = new RandomAccessFile(in_file, "rw");
-        inChannel = aFile.getChannel();
+        FileChannel inChannel = aFile.getChannel();
 
 
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());

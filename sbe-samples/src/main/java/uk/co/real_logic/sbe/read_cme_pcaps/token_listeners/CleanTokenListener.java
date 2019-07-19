@@ -21,7 +21,6 @@ import uk.co.real_logic.sbe.ir.Encoding;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.otf.Types;
-import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.ScopeTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 
 import java.io.IOException;

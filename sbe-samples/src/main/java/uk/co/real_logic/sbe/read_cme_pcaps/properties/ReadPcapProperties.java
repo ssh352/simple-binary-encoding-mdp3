@@ -1,7 +1,6 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.properties;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;

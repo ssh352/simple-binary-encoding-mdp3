@@ -1,6 +1,5 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers;
 
-import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 
 import java.io.FileWriter;
@@ -12,14 +11,12 @@ public class SingleTableOutput {
     private static final int STRINGBUILDER_CAPACITY = 10000 * 1024;
     private final Writer writer;
     private boolean first_row=true;
-    private boolean firstColumn=true;
+    private final boolean firstColumn=true;
     private final StringBuilder columnValues = new StringBuilder(STRINGBUILDER_CAPACITY);
     private final StringBuilder columnHeaders = new StringBuilder(STRINGBUILDER_CAPACITY);
-    private final RowCounter rowCounter;
 
     public SingleTableOutput(String path, String tableName, RowCounter rowCounter) throws IOException {
         this.writer=new FileWriter(path + tableName);
-        this.rowCounter = rowCounter;
     }
 
     public void append(String columnName, String columnValue)  {

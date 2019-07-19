@@ -21,7 +21,7 @@ public class PacketReader {
     private final Ir ir;
     private final OtfHeaderDecoder headerDecoder;
     private final UnsafeBuffer buffer;
-    private TablesHandler tablesHandler;
+    private final TablesHandler tablesHandler;
 
     public PacketReader(ReadPcapProperties prop, BinaryDataHandler binaryDataHandler, TablesHandler tablesHandler)  {
         this.ir = binaryDataHandler.getIr();

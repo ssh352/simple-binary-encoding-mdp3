@@ -8,17 +8,16 @@ import java.io.IOException;
 
 public class PacketDecoder {
     private final UnsafeBuffer buffer;
-    private DataOffsets offsets;
+    private final DataOffsets offsets;
     int packetStartPosition;
     private int headerStartOffset;
     private int messageStartPosition;
-    private TablesHandler tablesHandler;
+    private final TablesHandler tablesHandler;
     public int nextPacketStartPosition;
 
     int messageSize;
     long packetSequenceNumber;
     long sendingTime;
-    private int nextPacketOffset;
 
     public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer, TablesHandler tablesHandler) {
         this.offsets = offsets;
@@ -52,8 +51,8 @@ public class PacketDecoder {
     }
 
     public int getNextPacketOffset() {
-        this.nextPacketOffset = this.absoluteOffset(this.messageSize + this.offsets.packet_size_padding);
-        return this.nextPacketOffset;
+        int nextPacketOffset = this.absoluteOffset(this.messageSize + this.offsets.packet_size_padding);
+        return nextPacketOffset;
     }
 
     public int getMessageStartPosition() {

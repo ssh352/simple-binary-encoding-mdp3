@@ -17,6 +17,7 @@ package uk.co.real_logic.sbe.examples;
 
 import baseline.*;
 import baseline.CarDecoder.PerformanceFiguresDecoder.AccelerationDecoder;
+import org.agrona.DirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
 
 import java.io.UnsupportedEncodingException;
