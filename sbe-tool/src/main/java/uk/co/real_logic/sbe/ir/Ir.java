@@ -111,7 +111,7 @@ public class Ir
 
         captureTypes(messageTokens, 0, messageTokens.size() - 1);
         updateComponentTokenCounts(messageTokens);
-
+        System.out.println("messageId: " + messageId);
         messagesByIdMap.put(messageId, new ArrayList<>(messageTokens));
     }
 

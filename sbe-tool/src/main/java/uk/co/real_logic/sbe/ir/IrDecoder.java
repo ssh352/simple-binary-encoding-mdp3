@@ -126,6 +126,7 @@ public class IrDecoder implements AutoCloseable
 
         for (int size = tokens.size(); i < size; i++)
         {
+            System.out.println(tokens.get(i).toString());
             if (tokens.get(i).signal() == Signal.BEGIN_MESSAGE)
             {
                 i = captureMessage(tokens, i, ir);
@@ -166,9 +167,10 @@ public class IrDecoder implements AutoCloseable
         {
             token = tokens.get(++i);
             messageTokens.add(token);
+           System.out.println("token index: " + i + "token.signal(): " + token.signal()) ;
         }
-        while (Signal.END_MESSAGE != token.signal());
 
+        while (Signal.END_MESSAGE != token.signal());
         ir.addMessage(tokens.get(i).id(), messageTokens);
 
         return i;

@@ -147,6 +147,9 @@ subprojects {
         options.deprecation = true
     }
 
+
+
+
     compileTestJava {
         if (JavaVersion.current().ordinal() >= JavaVersion.VERSION_1_9.ordinal()) {
             options.compilerArgs.addAll(['--add-exports', 'java.base/java.lang.reflect=ALL-UNNAMED'])
@@ -223,7 +226,9 @@ project(':sbe-tool') {
         classpath += sourceSets.main.runtimeClasspath
     }
 
+
     compileTestJava.dependsOn 'compileGeneratedJava'
+
 
     task generateCodecs(dependsOn: 'compileJava', type: JavaExec) {
         main = 'uk.co.real_logic.sbe.SbeTool'
@@ -241,8 +246,7 @@ project(':sbe-tool') {
         repositories {
             mavenDeployer {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
                     authentication(userName: ossrhUsername, password: ossrhPassword)
                 }
 
@@ -384,6 +388,8 @@ project(':sbe-samples') {
         classpath += project(':sbe-all').sourceSets.main.runtimeClasspath
     }
 
+
+
     compileJava {
         dependsOn 'compileGeneratedJava'
     }
@@ -398,8 +404,13 @@ project(':sbe-samples') {
             'sbe.validation.stop.on.error': 'true',
             'sbe.xinclude.aware': 'true',
             'sbe.validation.xsd': validationXsdPath)
-        args = ['src/main/resources/example-schema.xml', 'src/main/resources/example-extension-schema.xml']
+/*        args = ['src/main/resources/example-schema.xml', 'src/main/resources/example-extension-schema.xml', 'c:/marketdata/templates_FixBinary.xml']
+*/
+        args = [ 'c:/marketdata/templates_FixBinary.xml']
     }
+
+
+
 
     task runExampleUsingGeneratedStub(dependsOn: 'compileJava', type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
@@ -419,8 +430,18 @@ project(':sbe-samples') {
         workingDir = 'src/main/resources'
     }
 
+    task MarketDataExample(dependsOn: 'compileJava', type: JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        main = 'uk.co.real_logic.sbe.examples.MarketDataExample'
+        workingDir = 'src/main/resources'
+    }
+
     task runJavaExamples {
         dependsOn 'runExampleUsingGeneratedStub', 'runExampleUsingGeneratedStubExtension', 'runOtfExample'
+    }
+
+    task runFromFile {
+        dependsOn 'runExampleUsingGeneratedStub', 'runExampleUsingGeneratedStubExtension', 'MarketDataExample'
     }
 
     uploadArchives {
@@ -481,6 +502,7 @@ project(':sbe-benchmarks') {
         options.deprecation = true
         classpath += project(':sbe-all').sourceSets.main.runtimeClasspath
     }
+
 
     compileJava {
         dependsOn 'compileGeneratedJava'
