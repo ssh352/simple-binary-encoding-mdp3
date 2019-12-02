@@ -31,16 +31,19 @@ import uk.co.real_logic.sbe.xml.XmlSchemaParser;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MarketDataExample {
     private static final MessageHeaderEncoder HEADER_ENCODER = new MessageHeaderEncoder();
     private static final CarEncoder CAR_ENCODER = new CarEncoder();
-    private static final int MSG_BUFFER_CAPACITY = 4 * 1024;
+    private static final int MSG_BUFFER_CAPACITY = 1000000 * 1024;
     private static final int SCHEMA_BUFFER_CAPACITY = 1000 * 1024;
 
     public static void main(final String[] args) throws Exception {
@@ -51,7 +54,6 @@ public class MarketDataExample {
         String schema_file = "c:/marketdata/templates_FixBinary.xml";
         encodeSchema(encodedSchemaBuffer, schema_file);
 
-
         String binary_file_path = "c:/marketdata/pcap_from_s3";
 
 
@@ -59,55 +61,93 @@ public class MarketDataExample {
         FileChannel inChannel = aFile.getChannel();
 
 //create buffer with capacity of 48 bytes
-        ByteBuffer encodedMsgBuffer = ByteBuffer.allocate(MSG_BUFFER_CAPACITY);
+//        ByteBuffer encodedMsgBuffer = ByteBuffer.allocate(MSG_BUFFER_CAPACITY);
+        MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
+//        System.out.println("inchannel size" + inChannel.size());
+//        int bytesRead = inChannel.read(encodedMsgBuffer); //read into buffer.
 
-        int bytesRead = inChannel.read(encodedMsgBuffer); //read into buffer.
-
-            encodedMsgBuffer.flip();  //make buffer ready for read
-
-
-            // Now lets decode the schema IR so we have IR objects.
-            encodedSchemaBuffer.flip();
-            final Ir ir = decodeIr(encodedSchemaBuffer);
+        encodedMsgBuffer.flip();  //make buffer ready for read
 
 
-            final OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure());
+        // Now lets decode the schema IR so we have IR objects.
+        encodedSchemaBuffer.flip();
+        final Ir ir = decodeIr(encodedSchemaBuffer);
 
-            // Now we have IR we can read the message header
-            int bufferOffset = 0;
+
+        final OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure());
 
 
-            final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
+        // Now we have IR we can read the message header
+        int bufferOffset = 0;
 
-            final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
-            final int schemaId = headerDecoder.getSchemaId(buffer, bufferOffset);
-            final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
-            final int blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
 
-            bufferOffset += headerDecoder.encodedLength();
+        final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
 
-            // Given the header information we can select the appropriate message template to do the decode.
-            // The OTF Java classes are thread safe so the same instances can be reused across multiple threads.
+
+        // Given the header information we can select the appropriate message template to do the decode.
+        // The OTF Java classes are thread safe so the same instances can be reused across multiple threads.
 /*
         for(int i=0; i<msgTokens.size(); i++){
             System.out.println(msgTokens.get(i).toString());
         }
 */
-        final List<Token> msgTokens = ir.getMessage(templateId);
+        Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
+        int blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
+        int bytes_to_skip=20;
 
 
-            bufferOffset = OtfMessageDecoder.decode(
-                    buffer,
-                    bufferOffset,
-                    actingVersion,
-                    blockLength,
-                    msgTokens,
-                    new ExampleTokenListener(new PrintWriter(System.out, true)));
-
-            if (bufferOffset != encodedMsgBuffer.position()) {
-                throw new IllegalStateException("Message not fully decoded");
-            }
+        while (bufferOffset < 500000000) { //todo fix running to exact end of file/
+        //print templates only
+            int size_int = buffer.getShort(bufferOffset + 2);
+            int next_offset =size_int + bufferOffset + 4;
+            bufferOffset = bufferOffset + bytes_to_skip;
+            int templateId=buffer.getShort(bufferOffset);
+            System.out.println("offset: " + bufferOffset + " templateID: " + templateId + " nextOffset: " + next_offset);
+            bufferOffset=next_offset;
         }
+        while (bufferOffset < 500000000) { //todo fix running to exact end of file
+//            System.out.println("buffer offset: " + bufferOffset);
+            for(int i = 0;i < headerDecoder.encodedLength(); i++) {
+//                System.out.println("byte " + i + ": " + buffer.getByte(i));
+            }
+            final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
+            final int schemaId = headerDecoder.getSchemaId(buffer, bufferOffset);
+            final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
+            blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
+
+            bufferOffset += headerDecoder.encodedLength();
+            // System.out.println("templateIdFromBuffer: " + templateId);
+            // System.out.println("bufferOffset: " + bufferOffset);
+            //System.out.println("blockLength: " + blockLength);
+            Integer count = messageTypeMap.getOrDefault(templateId, 0);
+            messageTypeMap.put(templateId, count + 1);
+            if (ir.checkForMessage(templateId)) {
+
+                final List<Token> msgTokens = ir.getMessage(templateId);
+                if (bufferOffset + blockLength < inChannel.size()){
+                bufferOffset = OtfMessageDecoder.decode(
+                        buffer,
+                        bufferOffset,
+                        actingVersion,
+                        blockLength,
+                        msgTokens,
+                        new ExampleTokenListener(new PrintWriter(System.out, true)));
+                    bufferOffset = bufferOffset + blockLength+ bytes_to_skip;
+                    blockLength = headerDecoder.getBlockLength(buffer, bufferOffset); //lookahead
+//                    System.out.println("buffer offset: " + bufferOffset);
+            }
+
+            }
+            //if (bufferOffset != encodedMsgBuffer.position()) {
+            //   throw new IllegalStateException("Message not fully decoded");
+            // }
+        }
+//        System.out.println("message frequency");
+        for(int key : messageTypeMap.keySet()){
+//            System.out.println (key + ": " + messageTypeMap.get(key));
+        }
+    }
+
 
         private static void encodeSchema ( final ByteBuffer byteBuffer, String schema_file) throws Exception
         {
