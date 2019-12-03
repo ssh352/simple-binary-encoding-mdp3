@@ -31,6 +31,7 @@ import uk.co.real_logic.sbe.xml.XmlSchemaParser;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -54,7 +55,8 @@ public class MarketDataExample {
         String schema_file = "c:/marketdata/templates_FixBinary.xml";
         encodeSchema(encodedSchemaBuffer, schema_file);
 
-        String binary_file_path = "c:/marketdata/pcap_from_s3";
+        String binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
+//     String binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191013";
 
 
         RandomAccessFile aFile = new RandomAccessFile(binary_file_path, "rw");
@@ -93,20 +95,34 @@ public class MarketDataExample {
 */
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
         int blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
-        int bytes_to_skip=20;
+        int bytes_to_skip=18;
+        int next_offset=0;
 
-
-        while (bufferOffset < 500000000) { //todo fix running to exact end of file/
+/*       while (bufferOffset < 500000000) { //todo fix running to exact end of file/
         //print templates only
-            int size_int = buffer.getShort(bufferOffset + 2);
-            int next_offset =size_int + bufferOffset + 4;
-            bufferOffset = bufferOffset + bytes_to_skip;
-            int templateId=buffer.getShort(bufferOffset);
-            System.out.println("offset: " + bufferOffset + " templateID: " + templateId + " nextOffset: " + next_offset);
-            bufferOffset=next_offset;
+           bufferOffset=next_offset;
+           int size_int = buffer.getShort(bufferOffset + 2);
+           next_offset =size_int + bufferOffset + 4;
+           bufferOffset = bufferOffset + bytes_to_skip;
+           int templateId=buffer.getShort(bufferOffset);
+           System.out.println("offset: " + bufferOffset + " templateID: " + templateId + " nextOffset: " + next_offset);
         }
-        while (bufferOffset < 500000000) { //todo fix running to exact end of file
+
+*/
+
+//        while (bufferOffset < 500000000) { //todo fix running to exact end of file
+        while (bufferOffset < 5000000) { //todo fix running to exact end of file
 //            System.out.println("buffer offset: " + bufferOffset);
+
+            bufferOffset=next_offset;
+            int size_int = buffer.getShort(bufferOffset + 2);
+            long sending_time = buffer.getLong(bufferOffset + 8, ByteOrder.LITTLE_ENDIAN);
+
+            next_offset =size_int + bufferOffset + 4;
+            bufferOffset = bufferOffset + bytes_to_skip;
+            int templateIdDirect=buffer.getShort(bufferOffset+2);
+            System.out.println("offset: " + bufferOffset + " templateIDDirect: " + templateIdDirect + " nextOffset: " + next_offset);
+            System.out.println("sending time: " + sending_time);
             for(int i = 0;i < headerDecoder.encodedLength(); i++) {
 //                System.out.println("byte " + i + ": " + buffer.getByte(i));
             }
@@ -132,7 +148,7 @@ public class MarketDataExample {
                         blockLength,
                         msgTokens,
                         new ExampleTokenListener(new PrintWriter(System.out, true)));
-                    bufferOffset = bufferOffset + blockLength+ bytes_to_skip;
+//                    bufferOffset = bufferOffset + blockLength+ bytes_to_skip;
                     blockLength = headerDecoder.getBlockLength(buffer, bufferOffset); //lookahead
 //                    System.out.println("buffer offset: " + bufferOffset);
             }
