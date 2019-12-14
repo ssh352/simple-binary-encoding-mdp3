@@ -37,6 +37,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class MarketDataExample {
 
     public static void main(final String[] args) throws Exception {
         System.out.println("\n*** OTF Example ***\n");
-
+        boolean verbose=false;
         // Encode up message and schema as if we just got them off the wire.
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
         String schema_file = "c:/marketdata/templates_FixBinary.xml";
@@ -108,10 +109,18 @@ public class MarketDataExample {
            System.out.println("offset: " + bufferOffset + " templateID: " + templateId + " nextOffset: " + next_offset);
         }
 
-*/
 
-//        while (bufferOffset < 500000000) { //todo fix running to exact end of file
-        while (bufferOffset < 5000000) { //todo fix running to exact end of file
+
+ */
+
+        boolean run_short=false;
+        int num_lines=50000000;
+        int num_lines_short = 500000; //only run through part of buffer for debugging purposes
+        if(run_short){num_lines=num_lines_short;}
+
+
+//        while (bufferOffset < 500000000) { //todo fix running to exact end of fil/e
+        while (bufferOffset < num_lines) { //todo fix running to exact end of file
 //            System.out.println("buffer offset: " + bufferOffset);
 
             bufferOffset=next_offset;
@@ -147,7 +156,7 @@ public class MarketDataExample {
                         actingVersion,
                         blockLength,
                         msgTokens,
-                        new ExampleTokenListener(new PrintWriter(System.out, true)));
+                        new ExampleTokenListener(new PrintWriter(System.out, true), verbose, sending_time));
 //                    bufferOffset = bufferOffset + blockLength+ bytes_to_skip;
                     blockLength = headerDecoder.getBlockLength(buffer, bufferOffset); //lookahead
 //                    System.out.println("buffer offset: " + bufferOffset);
