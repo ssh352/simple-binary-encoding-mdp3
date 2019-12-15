@@ -126,6 +126,18 @@ public class Ir
         return messagesByIdMap.get(messageId);
     }
 
+    public boolean checkForMessage(final long messageId)
+    {
+        return messagesByIdMap.containsKey(messageId);
+    }
+
+    /**
+     * Get the type representation for a given type name.
+     *
+     * @return the List of {@link Token}s representing the type or null if the name is not found.
+     */
+
+
     /**
      * Get the type representation for a given type name.
      *

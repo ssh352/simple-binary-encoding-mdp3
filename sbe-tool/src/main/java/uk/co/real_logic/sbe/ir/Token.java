@@ -256,7 +256,7 @@ public class Token
     /**
      * Match which approach to take based on the length of the token. If length is zero then an empty
      * {@link String} is returned.
-     *
+     *ii
      * @param one  to be used when length is one.
      * @param many to be used when length is greater than one.
      * @return the {@link CharSequence} representing the token depending on the length.

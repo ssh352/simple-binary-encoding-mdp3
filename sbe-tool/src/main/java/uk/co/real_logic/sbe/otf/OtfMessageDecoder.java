@@ -94,10 +94,16 @@ public class OtfMessageDecoder
         while (i < numTokens)
         {
             final Token fieldToken = tokens.get(i);
+            System.out.println("TokenName: " + fieldToken.name());
+            String token_name = fieldToken.name();
+            if(token_name.equals("TransactTime")){
+                System.out.println("found transact time");
+            };
             if (BEGIN_FIELD != fieldToken.signal())
             {
                 break;
             }
+
 
             final int nextFieldIdx = i + fieldToken.componentTokenCount();
             i++;
@@ -185,6 +191,7 @@ public class OtfMessageDecoder
 
             for (int i = 0; i < numInGroup; i++)
             {
+
                 listener.onBeginGroup(token, i, numInGroup);
 
                 final int afterFieldsIdx = decodeFields(

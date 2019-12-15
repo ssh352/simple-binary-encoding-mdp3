@@ -114,7 +114,7 @@ public class MarketDataExample {
  */
 
         boolean run_short=false;
-        int num_lines=50000000;
+        long num_lines=500000000;
         int num_lines_short = 500000; //only run through part of buffer for debugging purposes
         if(run_short){num_lines=num_lines_short;}
 
