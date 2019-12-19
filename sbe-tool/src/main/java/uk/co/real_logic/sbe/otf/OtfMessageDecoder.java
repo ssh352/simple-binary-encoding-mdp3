@@ -57,9 +57,14 @@ public class OtfMessageDecoder
         final TokenListener listener)
     {
         listener.onBeginMessage(msgTokens.get(0));
-
+        if(msgTokens.get(0).name().contains("radeSum")){
+            int abc=1;
+        }
         int i = offset;
         final int numTokens = msgTokens.size();
+
+        //200 on begin messate .. decode tokens
+
         final int tokenIdx = decodeFields(buffer, i, actingVersion, msgTokens, 1, numTokens, listener);
         i += blockLength;
 
@@ -90,20 +95,30 @@ public class OtfMessageDecoder
         final TokenListener listener)
     {
         int i = tokenIndex;
-
+        // position400 decode Fields
         while (i < numTokens)
+
+        //position100  loop through tokens
         {
             final Token fieldToken = tokens.get(i);
+            System.out.println("TokenName: " + fieldToken.name());
+            String token_name = fieldToken.name();
             if (BEGIN_FIELD != fieldToken.signal())
             {
                 break;
             }
+            //if begining of field, start decoding tokens
 
             final int nextFieldIdx = i + fieldToken.componentTokenCount();
             i++;
 
             final Token typeToken = tokens.get(i);
             final int offset = typeToken.offset();
+
+            //if((typeToken.name()=="MDEntryPx")){// & tokens.get((0)).name().contains("radeSum")) {
+            if(tokens.get((0)).name().contains("radeSum") & fieldToken.name().contains("Size")) {
+                int breaknow = 0;
+            }
 
             switch (typeToken.signal())
             {
@@ -129,6 +144,7 @@ public class OtfMessageDecoder
                     break;
 
                 case ENCODING:
+                    //position400 on encoding, after value is returned?
                     listener.onEncoding(fieldToken, buffer, bufferOffset + offset, typeToken, actingVersion);
                     break;
             }
@@ -148,6 +164,8 @@ public class OtfMessageDecoder
         final int numTokens,
         final TokenListener listener)
     {
+        //300 decode groups
+
         while (tokenIdx < numTokens)
         {
             final Token token = tokens.get(tokenIdx);
@@ -185,6 +203,7 @@ public class OtfMessageDecoder
 
             for (int i = 0; i < numInGroup; i++)
             {
+
                 listener.onBeginGroup(token, i, numInGroup);
 
                 final int afterFieldsIdx = decodeFields(
@@ -226,6 +245,7 @@ public class OtfMessageDecoder
 
         for (int i = tokenIdx + 1; i < toIndex; )
         {
+            //possibleprint
             final Token typeToken = tokens.get(i);
             final int nextFieldIdx = i + typeToken.componentTokenCount();
 
