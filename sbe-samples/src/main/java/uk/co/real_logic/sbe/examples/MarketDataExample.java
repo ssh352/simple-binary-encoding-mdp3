@@ -146,8 +146,13 @@ public class MarketDataExample {
             //System.out.println("blockLength: " + blockLength);
             Integer count = messageTypeMap.getOrDefault(templateId, 0);
             messageTypeMap.put(templateId, count + 1);
+//            System.out.println("TemplateId: " +  templateId);
             if (ir.checkForMessage(templateId)) {
-
+                System.out.println("TemplateId: " +  templateId);
+                if(templateId==48){
+                    int breakontradesummary=1;
+                    System.out.println("TemplateId: " +  templateId);
+                }
                 final List<Token> msgTokens = ir.getMessage(templateId);
                 if (bufferOffset + blockLength < inChannel.size()){
                 bufferOffset = OtfMessageDecoder.decode(

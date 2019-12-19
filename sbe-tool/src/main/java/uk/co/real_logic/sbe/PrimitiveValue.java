@@ -126,8 +126,8 @@ public class PrimitiveValue
     {
         representation = Representation.LONG;
         longValue = value;
-        doubleValue = 0.0;
-        byteArrayValue = null;
+        doubleValue = 0.0;TokenName:
+    byteArrayValue = null;
         this.characterEncoding = characterEncoding;
         this.size = 1;
     }

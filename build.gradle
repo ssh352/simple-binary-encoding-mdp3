@@ -436,6 +436,12 @@ project(':sbe-samples') {
         workingDir = 'src/main/resources'
     }
 
+    task CMEPcapReader(dependsOn: 'compileJava', type: JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        main = 'uk.co.real_logic.sbe.examples.MarketDataExample'
+        workingDir = 'src/main/resources'
+    }
+
     task runJavaExamples {
         dependsOn 'runExampleUsingGeneratedStub', 'runExampleUsingGeneratedStubExtension', 'runOtfExample'
     }
@@ -444,6 +450,9 @@ project(':sbe-samples') {
         dependsOn 'runExampleUsingGeneratedStub', 'runExampleUsingGeneratedStubExtension', 'MarketDataExample'
     }
 
+    task readCMEPcaps {
+        dependsOn  'CMEPcapReader'
+    }
     uploadArchives {
         repositories {
             mavenDeployer {

@@ -56,6 +56,7 @@ public class OtfMessageDecoder
         final List<Token> msgTokens,
         final TokenListener listener)
     {
+        //note: why do we start from first token? Is it a recursive algorithm?
         listener.onBeginMessage(msgTokens.get(0));
 
         int i = offset;
@@ -94,7 +95,7 @@ public class OtfMessageDecoder
         while (i < numTokens)
         {
             final Token fieldToken = tokens.get(i);
-            System.out.println("TokenName: " + fieldToken.name());
+//            System.out.println("TokenName: " + fieldToken.name());
             String token_name = fieldToken.name();
             if(token_name.equals("TransactTime")){
                 System.out.println("found transact time");

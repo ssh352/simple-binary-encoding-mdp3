@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.real_logic.sbe.examples;
+package uk.co.real_logic.sbe.read_cme_pcaps;
 
 import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.PrimitiveValue;
@@ -29,7 +29,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-public class ExampleTokenListener implements TokenListener
+public class CMEPcapListener implements TokenListener
 {
     private int compositeLevel = 0;
     private final PrintWriter out;
@@ -39,14 +39,14 @@ public class ExampleTokenListener implements TokenListener
     private long sending_time;
     CharSequence transact_time;
 
-    public ExampleTokenListener(final PrintWriter out)
+    public CMEPcapListener(final PrintWriter out)
     {
         this.verbose=true;
         this.out = out;
     }
 
 
-    public ExampleTokenListener(final PrintWriter out, boolean verbose, long sending_time)
+    public CMEPcapListener(final PrintWriter out, boolean verbose, long sending_time)
     {
         this.sending_time=sending_time;
         this.verbose=verbose;
