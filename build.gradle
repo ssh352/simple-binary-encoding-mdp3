@@ -419,6 +419,11 @@ project(':sbe-samples') {
         workingDir = 'src/main/resources'
     }
 
+    task runCMEPcaps(dependsOn: 'compileJava', type: JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        main = 'uk.co.real_logic.sbe.read_cme_pcaps.ReadPcaps'
+        workingDir = 'src/main/resources'
+    }
     task runJavaExamples {
         dependsOn 'runExampleUsingGeneratedStub', 'runExampleUsingGeneratedStubExtension', 'runOtfExample'
     }
