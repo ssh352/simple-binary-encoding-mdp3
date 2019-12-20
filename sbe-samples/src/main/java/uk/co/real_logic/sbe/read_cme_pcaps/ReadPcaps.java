@@ -50,6 +50,7 @@ public class ReadPcaps {
         public static void main(final String[] args) throws Exception {
             System.out.println("\n*** OTF Example ***\n");
             boolean verbose=false;
+            boolean run_short=true;
             // Encode up message and schema as if we just got them off the wire.
             final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
             String schema_file = "c:/marketdata/templates_FixBinary.xml";
@@ -91,7 +92,6 @@ public class ReadPcaps {
             int next_offset=0;
 
 
-            boolean run_short=false;
             long num_lines=500000000;
             int num_lines_short = 500000; //only run through part of buffer for debugging purposes
             if(run_short){num_lines=num_lines_short;}
