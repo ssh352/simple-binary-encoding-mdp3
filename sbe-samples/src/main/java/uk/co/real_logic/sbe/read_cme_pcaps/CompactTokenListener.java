@@ -22,7 +22,8 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.otf.Types;
 
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -32,8 +33,9 @@ import java.util.List;
 import static java.nio.charset.StandardCharsets.*;
 
 public class CompactTokenListener implements TokenListener {
+    private final int template_id;
     private int compositeLevel = 0;
-    private final PrintWriter out;
+    private final Writer out;
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
     private long sending_time;
@@ -44,34 +46,39 @@ public class CompactTokenListener implements TokenListener {
     long group_entry_index = 0;
     boolean include_value_labels = true;
     boolean transact_time_found = false;
-    boolean is_first_token = true;
+    boolean print_full_scope;
 
     enum RowType {
         messageheader, groupheader, group
     }
 
-    public CompactTokenListener(final PrintWriter out) {
-        this.out = out;
-    }
 
-    public CompactTokenListener(final PrintWriter out, long message_index, long sending_time, boolean include_value_labels) {
+    public CompactTokenListener(final Writer out, long message_index, long sending_time, int template_id, boolean include_value_labels) {
+        this.template_id = template_id;
         this.message_index = message_index;
         this.sending_time = sending_time;
         this.out = out;
         this.include_value_labels = include_value_labels;
+        this.print_full_scope = true;
     }
 
 
-    public void printTimestamps() {
-        out.print(", " + sending_time + ", " + transact_time);
+    public void printTemplateIDandTimestamps() {
+        writerOut(", " + template_id + ", " + sending_time + ", " + transact_time );
     }
 
     public void onBeginMessage(final Token token) {
-        nonTerminalScope.push(token.name() + ".");
+        writerOut(message_index);
+        nonTerminalScope.push(token.name());
     }
 
     public void onEndMessage(final Token token) {
         nonTerminalScope.pop();
+        try {
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void onEncoding(
@@ -84,6 +91,7 @@ public class CompactTokenListener implements TokenListener {
         final CharSequence terminalValue = readEncodingAsString(buffer, index, typeToken, actingVersion);
         if (!transact_time_found & fieldToken.name().equals("TransactTime")) {
             this.transact_time = terminalValue;
+            this.transact_time_found = true;
         }
         printValue(fieldToken, terminalValue);
     }
@@ -126,21 +134,32 @@ public class CompactTokenListener implements TokenListener {
             final int endIndex,
             final int actingVersion) {
         final Token typeToken = tokens.get(beginIndex + 1);
+
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
-        printValue(typeToken, encodedValue);
-   //     out.append(determineName(0, fieldToken, tokens, beginIndex)).append(':');
+        //     toWriter(determineName(0, fieldToken, tokens, beginIndex)).append(':');
 
+        //hold value of string for a bit, so we can get the transact time from the header
+        StringBuilder sb = new StringBuilder();
         for (int i = beginIndex + 1; i < endIndex; i++) {
-            out.append(' ').append(tokens.get(i).name()).append('=');
-
+            //don't display transact time.. it is special case on every row
+            if (!tokens.get(i).name().equals("TransactTime")) {
+                if (include_value_labels) {
+                    sb.append(tokens.get(i).name() + '=');
+                } else {
+                    sb.append(", ");
+                }
+            }
             final long bitPosition = tokens.get(i).encoding().constValue().longValue();
             final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
 
-            out.append(Boolean.toString(flag));
+            sb.append(Boolean.toString(flag));
         }
-
-        out.println();
+//        printTimestampsAndTemplateID();
+        printNewRow(RowType.messageheader);
+        printValue(typeToken, encodedValue);
+        writerOut(sb.toString());
+        writerOut("\n");
     }
 
     public void onBeginComposite(
@@ -157,17 +176,21 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) {
-        group_entry_index=0;
+        group_entry_index = 0;
         printNewRow(RowType.groupheader);
-        out.append(token.name())
-                .append(" Group Header : numInGroup=")
-                .append(Integer.toString(numInGroup))
-                .println();
+        writerOut(token.name());
+        if (include_value_labels) {
+            writerOut(", Group Header : numInGroup=");
+        } else {
+            writerOut(", ");
+        }
+        writerOut(Integer.toString(numInGroup));
+        writerOut("\n");
         group_type_index++;
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
-        nonTerminalScope.push(token.name() + ".");
+        nonTerminalScope.push( token.name());
         printNewRow(RowType.group);
     }
 
@@ -214,8 +237,8 @@ public class CompactTokenListener implements TokenListener {
         if (null != constOrNotPresentValue) {
             if (constOrNotPresentValue.size() == 1) {
                 final byte[] bytes = {(byte) constOrNotPresentValue.longValue()};
-                //            System.out.println((bytes[0]));
-                //           System.out.println((constOrNotPresentValue.characterEncoding()));
+                //            System.toWriterln((bytes[0]));
+                //           System.toWriterln((constOrNotPresentValue.characterEncoding()));
                 return new String(bytes, UTF_8);
 
             } else {
@@ -258,42 +281,57 @@ public class CompactTokenListener implements TokenListener {
     }
 
     private void printValue(Token typeToken, Object printableObject) {
-        String field_label=typeToken.name();
+        String field_label = typeToken.name();
         printValue(field_label, printableObject);
     }
 
     private void printValue(String field_label, Object printableObject) {
-        out.print(", ");
+        writerOut(", ");
         if (include_value_labels) {
-            out.print(field_label);
-            out.print("=");
+            writerOut(field_label);
+            writerOut("=");
         }
-        out.print(printableObject);
+        writerOut(printableObject);
         //here is where it prints the deep scope for each value.. we'd like to somehow
     }
 
     private void printNewRow(RowType row_type) {
-        out.print(message_index);
-        printTimestamps();
+        writerOut(message_index);
+        printTemplateIDandTimestamps();
         printRowHeader(row_type);
         printScope();
     }
 
-    private void printRowHeader(RowType row_type){
-        out.print(", " + row_type + ", ");
-        if (row_type == RowType.group) {
-            out.print(group_type_index + ", " + group_type_index);
-            out.print(group_entry_index + ", " + group_entry_index);
-        }
+    private void printRowHeader(RowType row_type) {
+        writerOut(", " + row_type + ", ");
+//        if (row_type == RowType.group) {
+            writerOut(group_type_index + ", " + group_entry_index + ", ");
+//        }
 
     }
 
-    private void printScope(){
+    private void printScope() {
         final Iterator<String> i = nonTerminalScope.descendingIterator();
-        {
-            while (i.hasNext()) {
-                out.print(i.next());
+        while (i.hasNext()) {
+            if (print_full_scope | (!i.hasNext())) {
+                writerOut(i.next());
+            } else {
+                i.next();
             }
         }
     }
+
+    private void writerOut(Object o) {
+        String s = o.toString();
+        writerOut(s);
+    }
+
+    private void writerOut(String s) {
+        try {
+            out.write(s);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
