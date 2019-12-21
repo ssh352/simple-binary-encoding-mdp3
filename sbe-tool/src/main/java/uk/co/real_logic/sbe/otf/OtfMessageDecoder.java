@@ -18,6 +18,7 @@ package uk.co.real_logic.sbe.otf;
 import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.ir.Token;
 
+import java.io.IOException;
 import java.util.List;
 
 import static uk.co.real_logic.sbe.ir.Signal.BEGIN_FIELD;
@@ -54,8 +55,7 @@ public class OtfMessageDecoder
         final int actingVersion,
         final int blockLength,
         final List<Token> msgTokens,
-        final TokenListener listener)
-    {
+        final TokenListener listener) throws IOException {
         listener.onBeginMessage(msgTokens.get(0));
 
         int i = offset;
@@ -87,8 +87,7 @@ public class OtfMessageDecoder
         final List<Token> tokens,
         final int tokenIndex,
         final int numTokens,
-        final TokenListener listener)
-    {
+        final TokenListener listener) throws IOException {
         int i = tokenIndex;
 
         while (i < numTokens)
@@ -129,7 +128,11 @@ public class OtfMessageDecoder
                     break;
 
                 case ENCODING:
-                    listener.onEncoding(fieldToken, buffer, bufferOffset + offset, typeToken, actingVersion);
+                    try {
+                        listener.onEncoding(fieldToken, buffer, bufferOffset + offset, typeToken, actingVersion);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     break;
             }
 
@@ -146,8 +149,7 @@ public class OtfMessageDecoder
         final List<Token> tokens,
         int tokenIdx,
         final int numTokens,
-        final TokenListener listener)
-    {
+        final TokenListener listener) throws IOException {
         while (tokenIdx < numTokens)
         {
             final Token token = tokens.get(tokenIdx);
@@ -220,8 +222,7 @@ public class OtfMessageDecoder
         final int tokenIdx,
         final int toIndex,
         final int actingVersion,
-        final TokenListener listener)
-    {
+        final TokenListener listener) throws IOException {
         listener.onBeginComposite(fieldToken, tokens, tokenIdx, toIndex);
 
         for (int i = tokenIdx + 1; i < toIndex; )
@@ -272,8 +273,7 @@ public class OtfMessageDecoder
         int tokenIdx,
         final int numTokens,
         final int actingVersion,
-        final TokenListener listener)
-    {
+        final TokenListener listener) throws IOException {
         while (tokenIdx < numTokens)
         {
             final Token token = tokens.get(tokenIdx);

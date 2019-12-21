@@ -21,6 +21,7 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -57,13 +58,17 @@ public class JsonPrinter
         final int messageOffset = bufferOffset + headerDecoder.encodedLength();
         final List<Token> msgTokens = ir.getMessage(templateId);
 
-        OtfMessageDecoder.decode(
-            buffer,
-            messageOffset,
-            actingVersion,
-            blockLength,
-            msgTokens,
-            new JsonTokenListener(output));
+        try {
+            OtfMessageDecoder.decode(
+                buffer,
+                messageOffset,
+                actingVersion,
+                blockLength,
+                msgTokens,
+                new JsonTokenListener(output));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void validateId(final int schemaId)

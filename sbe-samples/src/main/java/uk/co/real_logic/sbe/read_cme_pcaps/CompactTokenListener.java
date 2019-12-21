@@ -42,8 +42,8 @@ public class CompactTokenListener implements TokenListener {
     private long message_count;
     CharSequence transact_time = null;
     long message_index;
-    long group_type_index = 0;
-    long group_entry_index = 0;
+    long row_type_index = 0;
+    long type_entry_index = 0;
     boolean include_value_labels = true;
     boolean transact_time_found = false;
     boolean print_full_scope;
@@ -63,12 +63,9 @@ public class CompactTokenListener implements TokenListener {
     }
 
 
-    public void printTemplateIDandTimestamps() {
-        writerOut(", " + template_id + ", " + sending_time + ", " + transact_time );
-    }
 
     public void onBeginMessage(final Token token) {
-        writerOut(message_index);
+        row_type_index=0;
         nonTerminalScope.push(token.name());
     }
 
@@ -89,11 +86,17 @@ public class CompactTokenListener implements TokenListener {
             final int actingVersion) {
 
         final CharSequence terminalValue = readEncodingAsString(buffer, index, typeToken, actingVersion);
-        if (!transact_time_found & fieldToken.name().equals("TransactTime")) {
-            this.transact_time = terminalValue;
-            this.transact_time_found = true;
+
+        //transact time is special case.. instead of outputting, we want to stash it to output later
+        if (!fieldToken.name().equals("TransactTime")) {
+            printValue(fieldToken, terminalValue);
+        } else {
+            if(!transact_time_found){
+                this.transact_time = terminalValue;
+                this.transact_time_found = true;
+            }
         }
-        printValue(fieldToken, terminalValue);
+
     }
 
     public void onEnum(
@@ -121,7 +124,7 @@ public class CompactTokenListener implements TokenListener {
             }
         }
 
-        printValue(typeToken, value);
+//        printValue(typeToken, value);
 //        printValue(determineName(0, fieldToken, tokens, beginIndex), value);
     }
 
@@ -156,10 +159,11 @@ public class CompactTokenListener implements TokenListener {
             sb.append(Boolean.toString(flag));
         }
 //        printTimestampsAndTemplateID();
-        printNewRow(RowType.messageheader);
-        printValue(typeToken, encodedValue);
+        writeNewRow(RowType.messageheader);
+//        printValue(typeToken, encodedValue);
         writerOut(sb.toString());
         writerOut("\n");
+        row_type_index++;
     }
 
     public void onBeginComposite(
@@ -176,8 +180,8 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) {
-        group_entry_index = 0;
-        printNewRow(RowType.groupheader);
+        type_entry_index = 0;
+        writeNewRow(RowType.groupheader);
         writerOut(token.name());
         if (include_value_labels) {
             writerOut(", Group Header : numInGroup=");
@@ -186,17 +190,18 @@ public class CompactTokenListener implements TokenListener {
         }
         writerOut(Integer.toString(numInGroup));
         writerOut("\n");
-        group_type_index++;
+        row_type_index++;
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
         nonTerminalScope.push( token.name());
-        printNewRow(RowType.group);
+        writeNewRow(RowType.group);
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
         nonTerminalScope.pop();
-        group_entry_index++;
+        type_entry_index++;
+        writerOut("\n");
     }
 
     public void onVarData(
@@ -295,22 +300,28 @@ public class CompactTokenListener implements TokenListener {
         //here is where it prints the deep scope for each value.. we'd like to somehow
     }
 
-    private void printNewRow(RowType row_type) {
-        writerOut(message_index);
-        printTemplateIDandTimestamps();
-        printRowHeader(row_type);
+    private void writeNewRow(RowType row_type) {
+        writeRowHeader(row_type);
+        writeTimestamps();
         printScope();
     }
 
-    private void printRowHeader(RowType row_type) {
-        writerOut(", " + row_type + ", ");
-//        if (row_type == RowType.group) {
-            writerOut(group_type_index + ", " + group_entry_index + ", ");
-//        }
+    public void writeTimestamps() {
+        writerOut(", " + template_id + ", " + sending_time + ", " + transact_time );
+    }
 
+    private void writeRowHeader(RowType row_type) {
+        writerOut(message_index);
+        writerOut(", ");
+        writerOut(row_type_index);
+        writerOut(", ");
+        writerOut(type_entry_index);
+        writerOut(", ");
+        writerOut(pad(row_type.toString(), 13, ' '));
     }
 
     private void printScope() {
+        writerOut(", ");
         final Iterator<String> i = nonTerminalScope.descendingIterator();
         while (i.hasNext()) {
             if (print_full_scope | (!i.hasNext())) {
@@ -334,4 +345,13 @@ public class CompactTokenListener implements TokenListener {
         }
     }
 
+    private String pad(String str, int size, char padChar)
+    {
+        StringBuffer padded = new StringBuffer(str);
+        while (padded.length() < size)
+        {
+            padded.append(padChar);
+        }
+        return padded.toString();
+    }
 }

@@ -48,9 +48,8 @@ public class ReadPcaps {
         private static final int SCHEMA_BUFFER_CAPACITY = 1000 * 1024;
 
         public static void main(final String[] args) throws Exception {
-            System.out.println("\n*** OTF Example ***\n");
-            boolean verbose=false;
             boolean run_short=true;
+            long message_index=0;
             // Encode up message and schema as if we just got them off the wire.
             final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
             String schema_file = "c:/marketdata/templates_FixBinary.xml";
@@ -63,11 +62,7 @@ public class ReadPcaps {
             RandomAccessFile aFile = new RandomAccessFile(binary_file_path, "rw");
             FileChannel inChannel = aFile.getChannel();
 
-//create buffer with capacity of 48 bytes
-//        ByteBuffer encodedMsgBuffer = ByteBuffer.allocate(MSG_BUFFER_CAPACITY);
             MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
-//        System.out.println("inchannel size" + inChannel.size());
-//        int bytesRead = inChannel.read(encodedMsgBuffer); //read into buffer.
 
             encodedMsgBuffer.flip();  //make buffer ready for read
 
@@ -97,9 +92,7 @@ public class ReadPcaps {
             if(run_short){num_lines=num_lines_short;}
 
 
-//        while (bufferOffset < 500000000) { //todo fix running to exact end of fil/e
             while (bufferOffset < num_lines) { //todo fix running to exact end of file
-//            System.out.println("buffer offset: " + bufferOffset);
 
                 bufferOffset=next_offset;
                 int size_int = buffer.getShort(bufferOffset + 2);
@@ -108,29 +101,18 @@ public class ReadPcaps {
                 next_offset =size_int + bufferOffset + 4;
                 bufferOffset = bufferOffset + bytes_to_skip;
                 int templateIdDirect=buffer.getShort(bufferOffset+2);
-                System.out.println("offset: " + bufferOffset + " templateIDDirect: " + templateIdDirect + " nextOffset: " + next_offset);
-                System.out.println("sending time: " + sending_time);
-                for(int i = 0;i < headerDecoder.encodedLength(); i++) {
-//                System.out.println("byte " + i + ": " + buffer.getByte(i));
-                }
+//                System.out.println("offset: " + bufferOffset + " templateIDDirect: " + templateIdDirect + " nextOffset: " + next_offset);
+
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
-                final int schemaId = headerDecoder.getSchemaId(buffer, bufferOffset);
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
                 blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
 
                 bufferOffset += headerDecoder.encodedLength();
-                // System.out.println("templateIdFromBuffer: " + templateId);
-                // System.out.println("bufferOffset: " + bufferOffset);
-                //System.out.println("blockLength: " + blockLength);
                 Integer count = messageTypeMap.getOrDefault(templateId, 0);
                 messageTypeMap.put(templateId, count + 1);
-//            System.out.println("TemplateId: " +  templateId);
-                if (ir.checkForMessage(templateId)) {
+
+//                if (ir.checkForMessage(templateId)) {
                     System.out.println("TemplateId: " +  templateId);
-                    if(templateId==48){
-                        int breakontradesummary=1;
-                        System.out.println("TemplateId: " +  templateId);
-                    }
                     final List<Token> msgTokens = ir.getMessage(templateId);
                     if (bufferOffset + blockLength < inChannel.size()){
                         bufferOffset = OtfMessageDecoder.decode(
@@ -139,10 +121,11 @@ public class ReadPcaps {
                                 actingVersion,
                                 blockLength,
                                 msgTokens,
-                                new CMEPcapListener(new PrintWriter(System.out, true), verbose, sending_time));
+                                new CompactTokenListener(new PrintWriter(System.out, true), message_index, sending_time, templateId, false));
                     }
+                    message_index++;
 
-                }
+ //               }
             }
         }
 

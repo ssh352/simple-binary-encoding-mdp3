@@ -18,6 +18,7 @@ package uk.co.real_logic.sbe.otf;
 import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.ir.Token;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -53,7 +54,7 @@ public interface TokenListener
      * @param typeToken     of the encoded primitive value.
      * @param actingVersion of the encoded message for determining validity of extension fields.
      */
-    void onEncoding(Token fieldToken, DirectBuffer buffer, int bufferIndex, Token typeToken, int actingVersion);
+    void onEncoding(Token fieldToken, DirectBuffer buffer, int bufferIndex, Token typeToken, int actingVersion) throws IOException;
 
     /**
      * Enum encoded type encountered.
@@ -93,7 +94,7 @@ public interface TokenListener
         List<Token> tokens,
         int fromIndex,
         int toIndex,
-        int actingVersion);
+        int actingVersion) throws IOException;
 
     /**
      * Beginning of Composite encoded type encountered.
@@ -121,7 +122,7 @@ public interface TokenListener
      * @param token      describing the group.
      * @param numInGroup number of times the group will be repeated.
      */
-    void onGroupHeader(Token token, int numInGroup);
+    void onGroupHeader(Token token, int numInGroup) throws IOException;
 
     /**
      * Beginning of group encoded type encountered.
@@ -130,7 +131,7 @@ public interface TokenListener
      * @param groupIndex index for the repeat count of the group.
      * @param numInGroup number of times the group will be repeated.
      */
-    void onBeginGroup(Token token, int groupIndex, int numInGroup);
+    void onBeginGroup(Token token, int groupIndex, int numInGroup) throws IOException;
 
     /**
      * End of group encoded type encountered.
@@ -150,5 +151,5 @@ public interface TokenListener
      * @param length      of the variable data in bytes.
      * @param typeToken   of the variable data. Needed to determine character encoding of the variable data.
      */
-    void onVarData(Token fieldToken, DirectBuffer buffer, int bufferIndex, int length, Token typeToken);
+    void onVarData(Token fieldToken, DirectBuffer buffer, int bufferIndex, int length, Token typeToken) throws IOException;
 }

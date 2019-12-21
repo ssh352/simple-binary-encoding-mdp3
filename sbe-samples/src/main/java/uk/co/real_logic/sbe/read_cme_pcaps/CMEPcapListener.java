@@ -244,7 +244,6 @@ public class CMEPcapListener implements TokenListener
                 //            System.out.println((bytes[0]));
                 //           System.out.println((constOrNotPresentValue.characterEncoding()));
                 return new String(bytes, UTF_8);
-
             }
             else
             {
