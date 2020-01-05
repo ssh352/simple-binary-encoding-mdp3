@@ -44,63 +44,104 @@ public class ReadPcaps {
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
-        private static final int MSG_BUFFER_CAPACITY = 1000000 * 1024;
-        private static final int SCHEMA_BUFFER_CAPACITY = 1000 * 1024;
+    private static final int MSG_BUFFER_CAPACITY = 1000000 * 1024;
+    private static final int SCHEMA_BUFFER_CAPACITY = 1000 * 1024;
 
-        public static void main(final String[] args) throws Exception {
-            boolean run_short=true;
-            long message_index=0;
-            // Encode up message and schema as if we just got them off the wire.
-            final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
-            String schema_file = "c:/marketdata/templates_FixBinary.xml";
-            encodeSchema(encodedSchemaBuffer, schema_file);
+    public static void main(final String[] args) throws Exception {
 
-            String binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
-//     String binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191013";
+        boolean run_short = true;
+        boolean write_to_file;
+        write_to_file=true;
+
+//        String data_source="ICE";
+        String data_source="CME";
+
+        String binary_file_path;
+        String out_file_path;
+        int bytes_to_skip;
+        int starting_offset;
+        if(data_source=="ICE"){
+            starting_offset=0; //what should this be?
+            write_to_file=false;
+            bytes_to_skip=40;// tentative.. based on 24 bytes after heardbeat vs 46 on ice
+            binary_file_path = "c:/marketdata/ice_data/test_data/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014";
+
+            out_file_path = "c:/marketdata/ice_parsed_compact_short";
+        } else {
+
+            starting_offset=0;
+            bytes_to_skip=18;
+            binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
+            out_file_path = "c:/marketdata/cme_parsed_compact_short_2";
+        }
+        long message_index = 0;
+        Writer outWriter;
+        message_index = 0;
+        // Encode up message and schema as if we just got them off the wire.
+        if(write_to_file){
+            outWriter=new FileWriter(out_file_path);
+//            outWriter.write("beginning of file");
+            outWriter.flush();
+        } else{
+            outWriter=new PrintWriter(System.out, true);
+
+        }
+
+        final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
+
+        String schema_file = "c:/marketdata/templates_FixBinary.xml";
+        encodeSchema(encodedSchemaBuffer, schema_file);
 
 
-            RandomAccessFile aFile = new RandomAccessFile(binary_file_path, "rw");
-            FileChannel inChannel = aFile.getChannel();
 
-            MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
+        RandomAccessFile aFile = new RandomAccessFile(binary_file_path, "rw");
+        FileChannel inChannel = aFile.getChannel();
 
-            encodedMsgBuffer.flip();  //make buffer ready for read
+        MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
 
-
-            // Now lets decode the schema IR so we have IR objects.
-            encodedSchemaBuffer.flip();
-            final Ir ir = decodeIr(encodedSchemaBuffer);
+        encodedMsgBuffer.flip();  //make buffer ready for read
 
 
-            final OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure());
+        // Now lets decode the schema IR so we have IR objects.
+        encodedSchemaBuffer.flip();
+        final Ir ir = decodeIr(encodedSchemaBuffer);
 
 
-            // Now we have IR we can read the message header
-            int bufferOffset = 0;
+        final OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure());
 
 
-            final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
-
-            Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
-            int blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
-            int bytes_to_skip=18;
-            int next_offset=0;
+        // Now we have IR we can read the message header
+        int bufferOffset = 0;
 
 
-            long num_lines=500000000;
-            int num_lines_short = 500000; //only run through part of buffer for debugging purposes
-            if(run_short){num_lines=num_lines_short;}
+        final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
+
+        Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
+//        int blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
+        int blockLength;
+        int next_offset = 0;
 
 
-            while (bufferOffset < num_lines) { //todo fix running to exact end of file
+        long num_lines = 500000000;
+        int num_lines_short = 500000; //only run through part of buffer for debugging purposes
+        if (run_short) {
+            num_lines = num_lines_short;
+        }
 
-                bufferOffset=next_offset;
+
+        boolean keep_reading = true;
+        while (keep_reading) { //todo fix running to exact end of file
+            if(run_short & (bufferOffset > num_lines)){
+                break;
+            }
+            try {
+                bufferOffset = next_offset;
                 int size_int = buffer.getShort(bufferOffset + 2);
                 long sending_time = buffer.getLong(bufferOffset + 8, ByteOrder.LITTLE_ENDIAN);
 
-                next_offset =size_int + bufferOffset + 4;
+                next_offset = size_int + bufferOffset + 4;
                 bufferOffset = bufferOffset + bytes_to_skip;
-                int templateIdDirect=buffer.getShort(bufferOffset+2);
+                int templateIdDirect = buffer.getShort(bufferOffset + 2);
 //                System.out.println("offset: " + bufferOffset + " templateIDDirect: " + templateIdDirect + " nextOffset: " + next_offset);
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
@@ -111,50 +152,45 @@ public class ReadPcaps {
                 Integer count = messageTypeMap.getOrDefault(templateId, 0);
                 messageTypeMap.put(templateId, count + 1);
 
-//                if (ir.checkForMessage(templateId)) {
-                    System.out.println("TemplateId: " +  templateId);
-                    final List<Token> msgTokens = ir.getMessage(templateId);
-                    if (bufferOffset + blockLength < inChannel.size()){
-                        bufferOffset = OtfMessageDecoder.decode(
-                                buffer,
-                                bufferOffset,
-                                actingVersion,
-                                blockLength,
-                                msgTokens,
-                                new CompactTokenListener(new PrintWriter(System.out, true), message_index, sending_time, templateId, false));
-                    }
-                    message_index++;
-
- //               }
-            }
-        }
-
-
-        private static void encodeSchema ( final ByteBuffer byteBuffer, String schema_file) throws Exception
-        {
-            File initialFile = new File(schema_file);
-            InputStream targetStream = new FileInputStream(initialFile);
-            try (InputStream in = new BufferedInputStream(targetStream)) {
-                final MessageSchema schema = XmlSchemaParser.parse(in, ParserOptions.DEFAULT);
-                final Ir ir = new IrGenerator().generate(schema);
-                try (IrEncoder irEncoder = new IrEncoder(byteBuffer, ir)) {
-                    irEncoder.encode();
+                final List<Token> msgTokens = ir.getMessage(templateId);
+                if (bufferOffset + blockLength < inChannel.size()) {
+                    bufferOffset = OtfMessageDecoder.decode(
+                            buffer,
+                            bufferOffset,
+                            actingVersion,
+                            blockLength,
+                            msgTokens,
+                            new CompactTokenListener(outWriter, message_index, sending_time, templateId, false));
                 }
+                message_index++;
+                outWriter.flush();
+            } catch(Exception e) {
+                outWriter.close();
+                inChannel.close();
             }
-        }
-
-
-
-
-        private static Ir decodeIr ( final ByteBuffer buffer)
-        {
-            try (IrDecoder irDecoder = new IrDecoder(buffer)) {
-                return irDecoder.decode();
-            }
-        }
-
-
-
-
     }
+    }
+
+
+    private static void encodeSchema(final ByteBuffer byteBuffer, String schema_file) throws Exception {
+        File initialFile = new File(schema_file);
+        InputStream targetStream = new FileInputStream(initialFile);
+        try (InputStream in = new BufferedInputStream(targetStream)) {
+            final MessageSchema schema = XmlSchemaParser.parse(in, ParserOptions.DEFAULT);
+            final Ir ir = new IrGenerator().generate(schema);
+            try (IrEncoder irEncoder = new IrEncoder(byteBuffer, ir)) {
+                irEncoder.encode();
+            }
+        }
+    }
+
+
+    private static Ir decodeIr(final ByteBuffer buffer) {
+        try (IrDecoder irDecoder = new IrDecoder(buffer)) {
+            return irDecoder.decode();
+        }
+    }
+
+
+}
 
