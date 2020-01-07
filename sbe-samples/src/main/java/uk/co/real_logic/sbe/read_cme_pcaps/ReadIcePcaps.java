@@ -1,10 +1,6 @@
 package uk.co.real_logic.sbe.read_cme_pcaps;
 
 import org.agrona.concurrent.UnsafeBuffer;
-import uk.co.real_logic.sbe.read_cme_pcaps.io.kaitai.ByteBufferKaitaiStream;
-
-import uk.co.real_logic.sbe.read_cme_pcaps.io.kaitai.ByteBufferKaitaiStream;
-import uk.co.real_logic.sbe.read_cme_pcaps.io.kaitai.KaitaiStream;
 
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
