@@ -49,7 +49,7 @@ public class ReadPcaps {
 
     public static void main(final String[] args) throws Exception {
 
-        boolean run_short = true;
+        boolean run_short = false;
         boolean write_to_file;
         write_to_file=true;
 
@@ -58,18 +58,25 @@ public class ReadPcaps {
 
         String binary_file_path;
         String out_file_path;
-        int header_bytes;
+        //number of leading bytes for the whole file
         int starting_offset;
+        //byte position in packet header of the packet size
         int size_offset;
+        //byte position in packet header of the sending time size
         int sending_time_offset;
-        ByteOrder message_header_endianness;
+        //number of bytes in packet before template id
+        int header_bytes;
+        //number of bytes to adjust the packet size to jump from on header to the next
+        int packet_size_padding;
+        ByteOrder message_size_endianness;
         if(data_source=="ICE"){
             starting_offset=40; //what should this be?
             size_offset=16;
-            message_header_endianness=ByteOrder.BIG_ENDIAN;
+            message_size_endianness=ByteOrder.BIG_ENDIAN;
             sending_time_offset=46;
-            write_to_file=false;
-            header_bytes=40;// tentative.. based on 24 bytes after heardbeat vs 46 on ice
+            write_to_file=true;
+            header_bytes=56;
+            packet_size_padding=30;
             binary_file_path = "c:/marketdata/ice_data/test_data/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap";
 
             out_file_path = "c:/marketdata/ice_parsed_compact_short";
@@ -77,9 +84,10 @@ public class ReadPcaps {
 
             starting_offset=0;
             size_offset=2;
-            message_header_endianness=ByteOrder.LITTLE_ENDIAN;
+            message_size_endianness=ByteOrder.LITTLE_ENDIAN;
             sending_time_offset=8;
             header_bytes=18;
+            packet_size_padding=4;
             binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
             out_file_path = "c:/marketdata/cme_parsed_compact_short_2";
         }
@@ -148,21 +156,15 @@ public class ReadPcaps {
             }
             try {
                 bufferOffset = next_offset;
-                int size_int = buffer.getShort(bufferOffset + size_offset, message_header_endianness);
+                int size_int = buffer.getShort(bufferOffset + size_offset, message_size_endianness);
 //                int size_int_big = buffer.getShort(bufferOffset + size_offset, ByteOrder.BIG_ENDIAN);
 //                int size_int_little = buffer.getShort(bufferOffset + size_offset, ByteOrder.LITTLE_ENDIAN);
-                for(int i = 0;  i <8 ; i++){
-                    int temp_byte_offset=bufferOffset + sending_time_offset + i;
-                    System.out.println("temp_byte_offset: " + temp_byte_offset);
-                    System.out.println(buffer.getByte(temp_byte_offset));
-                }
                 long sending_time = buffer.getLong(bufferOffset + sending_time_offset);
-                next_offset = size_int + bufferOffset + 4;
+                next_offset = size_int + bufferOffset + packet_size_padding;
                 bufferOffset = bufferOffset + header_bytes;
-                int templateIdDirect = buffer.getShort(bufferOffset + 2);
-//                System.out.println("offset: " + bufferOffset + " templateIDDirect: " + templateIdDirect + " nextOffset: " + next_offset);
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
+                System.out.println("templateid:" + templateId);
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
                 blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
 
