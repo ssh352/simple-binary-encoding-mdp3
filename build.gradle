@@ -419,14 +419,18 @@ project(':sbe-samples') {
         workingDir = 'src/main/resources'
     }
 
-    task runCMEPcaps(dependsOn: 'compileJava', type: JavaExec) {
+    task readCMEPcaps(dependsOn: 'compileJava', type: JavaExec) {
+
         classpath = sourceSets.main.runtimeClasspath
         main = 'uk.co.real_logic.sbe.read_cme_pcaps.ReadPcaps'
         workingDir = 'src/main/resources'
+        args("c:/marketdata/ice_data/test_data/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap","c:/marketdata/ice_parsed_compact_short_3");
     }
     task runJavaExamples {
         dependsOn 'runExampleUsingGeneratedStub', 'runExampleUsingGeneratedStubExtension', 'runOtfExample'
     }
+
+
 
     uploadArchives {
         repositories {
