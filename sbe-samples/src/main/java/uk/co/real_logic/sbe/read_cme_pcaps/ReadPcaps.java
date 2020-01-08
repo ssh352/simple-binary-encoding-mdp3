@@ -49,6 +49,8 @@ public class ReadPcaps {
 
     public static void main(final String[] args) throws Exception {
 
+        String in_file = args[0];
+        String out_file = args[1];
         boolean run_short = false;
         boolean write_to_file;
         write_to_file=true;
@@ -56,8 +58,8 @@ public class ReadPcaps {
         String data_source="ICE";
 //        String data_source="CME";
 
-        String binary_file_path;
-        String out_file_path;
+        String binary_file_path = in_file;
+        String out_file_path= out_file;
         //number of leading bytes for the whole file
         int starting_offset;
         //byte position in packet header of the packet size
@@ -77,9 +79,9 @@ public class ReadPcaps {
             write_to_file=true;
             header_bytes=56;
             packet_size_padding=30;
-            binary_file_path = "c:/marketdata/ice_data/test_data/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap";
+//            binary_file_path = "c:/marketdata/ice_data/test_data/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap";
 
-            out_file_path = "c:/marketdata/ice_parsed_compact_short";
+//            out_file_path = "c:/marketdata/ice_parsed_compact_short";
         } else {
 
             starting_offset=0;
@@ -88,8 +90,8 @@ public class ReadPcaps {
             sending_time_offset=8;
             header_bytes=18;
             packet_size_padding=4;
-            binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
-            out_file_path = "c:/marketdata/cme_parsed_compact_short_2";
+//            binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
+//            out_file_path = "c:/marketdata/cme_parsed_compact_short_2";
         }
 
         long message_index = 0;
