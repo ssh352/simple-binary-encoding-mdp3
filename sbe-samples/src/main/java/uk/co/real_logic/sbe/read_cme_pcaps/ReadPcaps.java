@@ -48,9 +48,17 @@ public class ReadPcaps {
     private static final int SCHEMA_BUFFER_CAPACITY = 1000 * 1024;
 
     public static void main(final String[] args) throws Exception {
-
+        String os_string= System.getProperty("os.name").toLowerCase();
         String in_file = args[0];
         String out_file = args[1];
+
+
+        String schema_file;
+        if(os_string.equals("linux")){
+           schema_file = "/marketdata/templates_FixBinary.xml"; 
+        } else{
+           schema_file = "c:/marketdata/templates_FixBinary.xml";
+        }
         boolean run_short = false;
         boolean write_to_file;
         write_to_file=true;
@@ -109,7 +117,6 @@ public class ReadPcaps {
 
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
 
-        String schema_file = "c:/marketdata/templates_FixBinary.xml";
         encodeSchema(encodedSchemaBuffer, schema_file);
 
 
@@ -150,9 +157,8 @@ public class ReadPcaps {
         }
 
 
-        System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
         boolean keep_reading = true;
-        while (keep_reading) { //todo fix running to exact end of file
+        while (keep_reading)) { //todo fix running to exact end of file
             if(run_short & (bufferOffset > num_lines)){
                 break;
             }
@@ -166,7 +172,6 @@ public class ReadPcaps {
                 bufferOffset = bufferOffset + header_bytes;
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
-                System.out.println("templateid:" + templateId);
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
                 blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
 

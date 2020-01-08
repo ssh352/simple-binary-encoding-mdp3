@@ -118,6 +118,7 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'signing'
     apply plugin: 'checkstyle'
+    checkstyle {ignoreFailures = true}
     apply plugin: 'eclipse'
     apply plugin: 'io.freefair.javadoc-links'
 
@@ -424,7 +425,7 @@ project(':sbe-samples') {
         classpath = sourceSets.main.runtimeClasspath
         main = 'uk.co.real_logic.sbe.read_cme_pcaps.ReadPcaps'
         workingDir = 'src/main/resources'
-        args("c:/marketdata/ice_data/test_data/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap","c:/marketdata/ice_parsed_compact_short_3");
+        //args("/marketdata/scratch/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap","/marketdata/scratch/ice_parsed_7_8_32_70");
     }
     task runJavaExamples {
         dependsOn 'runExampleUsingGeneratedStub', 'runExampleUsingGeneratedStubExtension', 'runOtfExample'
