@@ -87,9 +87,6 @@ public class ReadPcaps {
             write_to_file=true;
             header_bytes=56;
             packet_size_padding=30;
-//            binary_file_path = "c:/marketdata/ice_data/test_data/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap";
-
-//            out_file_path = "c:/marketdata/ice_parsed_compact_short";
         } else {
 
             starting_offset=0;
@@ -101,7 +98,6 @@ public class ReadPcaps {
 //            binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
 //            out_file_path = "c:/marketdata/cme_parsed_compact_short_2";
         }
-
         long message_index = 0;
         Writer outWriter;
         message_index = 0;
@@ -157,9 +153,11 @@ public class ReadPcaps {
         }
 
 
-        boolean keep_reading = true;
-        while (keep_reading)) { //todo fix running to exact end of file
-            if(run_short & (bufferOffset > num_lines)){
+        int buffer_capacity =  buffer.capacity();
+        int lines_read=0;
+        System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
+        while ((next_offset < buffer_capacity)) { //todo fix running to exact end of file
+            if(lines_read >= num_lines ){
                 break;
             }
             try {
@@ -191,6 +189,7 @@ public class ReadPcaps {
                 }
                 message_index++;
                 outWriter.flush();
+                lines_read = lines_read + 1;
             } catch(Exception e) {
                 outWriter.close();
                 inChannel.close();
