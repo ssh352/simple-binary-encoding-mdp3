@@ -48,9 +48,17 @@ public class ReadPcaps {
     private static final int SCHEMA_BUFFER_CAPACITY = 1000 * 1024;
 
     public static void main(final String[] args) throws Exception {
-
+        String os_string= System.getProperty("os.name").toLowerCase();
         String in_file = args[0];
         String out_file = args[1];
+
+
+        String schema_file;
+        if(os_string.equals("linux")){
+           schema_file = "/marketdata/templates_FixBinary.xml"; 
+        } else{
+           schema_file = "c:/marketdata/templates_FixBinary.xml";
+        }
         boolean run_short = false;
         boolean write_to_file;
         write_to_file=true;
@@ -79,9 +87,6 @@ public class ReadPcaps {
             write_to_file=true;
             header_bytes=56;
             packet_size_padding=30;
-//            binary_file_path = "c:/marketdata/ice_data/test_data/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap";
-
-//            out_file_path = "c:/marketdata/ice_parsed_compact_short";
         } else {
 
             starting_offset=0;
@@ -108,7 +113,6 @@ public class ReadPcaps {
 
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
 
-        String schema_file = "c:/marketdata/templates_FixBinary.xml";
         encodeSchema(encodedSchemaBuffer, schema_file);
 
 
@@ -147,11 +151,12 @@ public class ReadPcaps {
         if (run_short) {
             num_lines = num_lines_short;
         }
+
+
         int buffer_capacity =  buffer.capacity();
         int lines_read=0;
         System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
-        boolean keep_reading = true;
-        while (keep_reading & (next_offset < buffer_capacity)) { //todo fix running to exact end of file
+        while ((next_offset < buffer_capacity)) { //todo fix running to exact end of file
             if(lines_read >= num_lines ){
                 break;
             }
@@ -165,7 +170,6 @@ public class ReadPcaps {
                 bufferOffset = bufferOffset + header_bytes;
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
-                System.out.println("templateid:" + templateId);
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
                 blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
 
