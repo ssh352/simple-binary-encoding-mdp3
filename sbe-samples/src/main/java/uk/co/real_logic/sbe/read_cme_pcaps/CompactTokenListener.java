@@ -124,6 +124,8 @@ public class CompactTokenListener implements TokenListener {
             }
         }
 
+        writerOut(", ");
+        writerOut(value);
 //        printValue(typeToken, value);
 //        printValue(determineName(0, fieldToken, tokens, beginIndex), value);
     }
