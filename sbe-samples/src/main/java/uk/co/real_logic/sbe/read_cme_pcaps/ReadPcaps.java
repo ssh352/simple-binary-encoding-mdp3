@@ -44,8 +44,8 @@ public class ReadPcaps {
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
-    private static final int MSG_BUFFER_CAPACITY = 1000000 * 1024;
-    private static final int SCHEMA_BUFFER_CAPACITY = 1000 * 1024;
+//    private static final int MSG_BUFFER_CAPACITY = 1000000 * 1024;
+    private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
 
     public static void main(final String[] args) throws Exception {
         String os_string= System.getProperty("os.name").toLowerCase();
@@ -85,7 +85,6 @@ public class ReadPcaps {
             size_offset=16;
             message_size_endianness=ByteOrder.BIG_ENDIAN;
             sending_time_offset=46;
-            write_to_file=true;
             header_bytes=56;
             packet_size_padding=30;
         } else {
@@ -120,7 +119,7 @@ public class ReadPcaps {
 
         RandomAccessFile aFile = new RandomAccessFile(binary_file_path, "rw");
         FileChannel inChannel = aFile.getChannel();
-
+        long fileSize=inChannel.size();
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
 
         encodedMsgBuffer.flip();  //make buffer ready for read
@@ -153,24 +152,23 @@ public class ReadPcaps {
             num_lines = num_lines_short;
         }
 
-	int output_lines_counter=0;
+        long sending_time=0;
         int buffer_capacity =  buffer.capacity();
         int lines_read=0;
         System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
-        while ((next_offset < buffer_capacity)) { //todo fix running to exact end of file
-	    if(output_lines_counter>10000){
-		    System.out.println(output_lines_counter);
-		    output_lines_counter++;
-	    }
+        while (bufferOffset < fileSize) {
             if(lines_read >= num_lines ){
+                System.out.println("Read " + num_lines +" lines");
                 break;
             }
             try {
+                if((lines_read*1.0/10000==lines_read/10000) ){
+                    System.out.println(lines_read);
+                    System.out.println("sending_time: " + sending_time);
+                }
                 bufferOffset = next_offset;
                 int size_int = buffer.getShort(bufferOffset + size_offset, message_size_endianness);
-//                int size_int_big = buffer.getShort(bufferOffset + size_offset, ByteOrder.BIG_ENDIAN);
-//                int size_int_little = buffer.getShort(bufferOffset + size_offset, ByteOrder.LITTLE_ENDIAN);
-                long sending_time = buffer.getLong(bufferOffset + sending_time_offset);
+                sending_time = buffer.getLong(bufferOffset + sending_time_offset);
                 next_offset = size_int + bufferOffset + packet_size_padding;
                 bufferOffset = bufferOffset + header_bytes;
 
@@ -183,7 +181,7 @@ public class ReadPcaps {
                 messageTypeMap.put(templateId, count + 1);
 
                 final List<Token> msgTokens = ir.getMessage(templateId);
-                if (bufferOffset + blockLength < inChannel.size()) {
+                if (bufferOffset + blockLength < fileSize) {
                     bufferOffset = OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
@@ -191,15 +189,22 @@ public class ReadPcaps {
                             blockLength,
                             msgTokens,
                             new CompactTokenListener(outWriter, message_index, sending_time, templateId, false));
+                } else{
+                    break;
                 }
                 message_index++;
                 outWriter.flush();
                 lines_read = lines_read + 1;
             } catch(Exception e) {
-                outWriter.close();
-                inChannel.close();
+                e.printStackTrace();
+                System.out.println("read next message failed");
+                outWriter.flush();
             }
-    }
+
+
+        }
+        outWriter.close();
+        inChannel.close();
     }
 
 
