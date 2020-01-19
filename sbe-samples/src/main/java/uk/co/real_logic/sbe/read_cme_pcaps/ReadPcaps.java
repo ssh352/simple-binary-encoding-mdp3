@@ -153,11 +153,15 @@ public class ReadPcaps {
             num_lines = num_lines_short;
         }
 
-
+	int output_lines_counter=0;
         int buffer_capacity =  buffer.capacity();
         int lines_read=0;
         System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
         while ((next_offset < buffer_capacity)) { //todo fix running to exact end of file
+	    if(output_lines_counter>10000){
+		    System.out.println(output_lines_counter);
+		    output_lines_counter++;
+	    }
             if(lines_read >= num_lines ){
                 break;
             }
