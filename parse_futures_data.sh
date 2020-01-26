@@ -4,6 +4,9 @@ do
     cmd="./gradlew readCMEPcaps --args='$fullpath ${fullpath}.parsed'"
     echo $cmd
     eval $cmd
-    gzip="gzip ${fullpath}.parsed"
+    wait
+    gzip="gzip -f ${fullpath}.parsed"
     eval $gzip 
+    wait
+
 done
