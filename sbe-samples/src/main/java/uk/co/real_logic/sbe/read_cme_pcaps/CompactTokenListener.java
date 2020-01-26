@@ -38,25 +38,28 @@ public class CompactTokenListener implements TokenListener {
     private final Writer out;
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
+    private long packet_sequence_number;
     private long sending_time;
-    private long message_count;
     CharSequence transact_time = null;
-    long message_index;
-    long row_type_index = 0;
-    long type_entry_index = 0;
+    long message_count;
+    long group_header_count = 0;
+    long group_element_count = 0;
     boolean include_value_labels = true;
     boolean transact_time_found = false;
     boolean print_full_scope;
+
+    static long event_count=0;
 
     enum RowType {
         messageheader, groupheader, group
     }
 
 
-    public CompactTokenListener(final Writer out, long message_index, long sending_time, int template_id, boolean include_value_labels) {
+    public CompactTokenListener(final Writer out,long message_count, long packet_sequence_number,   long sending_time, int template_id, boolean include_value_labels) {
         this.template_id = template_id;
-        this.message_index = message_index;
         this.sending_time = sending_time;
+        this.packet_sequence_number = packet_sequence_number;
+        this.message_count=message_count;
         this.out = out;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
@@ -65,7 +68,7 @@ public class CompactTokenListener implements TokenListener {
 
 
     public void onBeginMessage(final Token token) {
-        row_type_index=0;
+        this.group_header_count=0;
         nonTerminalScope.push(token.name());
     }
 
@@ -165,7 +168,9 @@ public class CompactTokenListener implements TokenListener {
 //        printValue(typeToken, encodedValue);
         writerOut(sb.toString());
         writerOut("\n");
-        row_type_index++;
+
+
+        event_count++;
     }
 
     public void onBeginComposite(
@@ -182,7 +187,8 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) {
-        type_entry_index = 0;
+        this.group_element_count = 0;
+        this.group_header_count++;
         writeNewRow(RowType.groupheader);
         writerOut(token.name());
         if (include_value_labels) {
@@ -192,17 +198,16 @@ public class CompactTokenListener implements TokenListener {
         }
         writerOut(Integer.toString(numInGroup));
         writerOut("\n");
-        row_type_index++;
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
+        this.group_element_count++;
         nonTerminalScope.push( token.name());
         writeNewRow(RowType.group);
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
         nonTerminalScope.pop();
-        type_entry_index++;
         writerOut("\n");
     }
 
@@ -303,23 +308,25 @@ public class CompactTokenListener implements TokenListener {
     }
 
     private void writeNewRow(RowType row_type) {
-        writeRowHeader(row_type);
+        writeRow(row_type);
         writeTimestamps();
         printScope();
     }
 
     public void writeTimestamps() {
-        writerOut(", " + template_id + ", " + sending_time + ", " + transact_time );
+        String packet_sequence_number_string = String.format ("%d",packet_sequence_number );
+        String event_count_string = String.format ("%d",event_count );
+        writerOut(", " + template_id + ", " + packet_sequence_number_string + ", " + event_count_string +", " + sending_time + ", " + transact_time );
     }
 
-    private void writeRowHeader(RowType row_type) {
-        writerOut(message_index);
+    private void writeRow(RowType row_type) {
+        writerOut(message_count);
         writerOut(", ");
-        writerOut(row_type_index);
+        writerOut(group_header_count);
         writerOut(", ");
-        writerOut(type_entry_index);
+        writerOut(group_element_count);
         writerOut(", ");
-        writerOut(pad(row_type.toString(), 13, ' '));
+        writerOut(pad(row_type.toString(), 16, ' '));
     }
 
     private void printScope() {
