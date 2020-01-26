@@ -53,6 +53,7 @@ public class ReadPcaps {
         String out_file = args[1];
         System.out.println("in_file=" + in_file);
         System.out.println("out_file=" + out_file);
+        int message_index=0;
 
         String schema_file;
         if(os_string.equals("linux")){
@@ -74,6 +75,7 @@ public class ReadPcaps {
         //byte position in packet header of the packet size
         int size_offset;
         //byte position in packet header of the sending time size
+        int packet_sequence_number_offset;
         int sending_time_offset;
         //number of bytes in packet before template id
         int header_bytes;
@@ -84,6 +86,7 @@ public class ReadPcaps {
             starting_offset=40; //what should this be?
             size_offset=16;
             message_size_endianness=ByteOrder.BIG_ENDIAN;
+            packet_sequence_number_offset=42;
             sending_time_offset=46;
             header_bytes=56;
             packet_size_padding=30;
@@ -92,15 +95,14 @@ public class ReadPcaps {
             starting_offset=0;
             size_offset=2;
             message_size_endianness=ByteOrder.LITTLE_ENDIAN;
+            packet_sequence_number_offset=4;
             sending_time_offset=8;
             header_bytes=18;
             packet_size_padding=4;
 //            binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
 //            out_file_path = "c:/marketdata/cme_parsed_compact_short_2";
         }
-        long message_index = 0;
         Writer outWriter;
-        message_index = 0;
         // Encode up message and schema as if we just got them off the wire.
         if(write_to_file){
             outWriter=new FileWriter(out_file_path);
@@ -153,6 +155,7 @@ public class ReadPcaps {
         }
 
         long sending_time=0;
+        long packet_sequence_number=0;
         int buffer_capacity =  buffer.capacity();
         int lines_read=0;
         System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
@@ -168,6 +171,7 @@ public class ReadPcaps {
                 }
                 bufferOffset = next_offset;
                 int size_int = buffer.getShort(bufferOffset + size_offset, message_size_endianness);
+                packet_sequence_number= buffer.getInt(bufferOffset + packet_sequence_number_offset);
                 sending_time = buffer.getLong(bufferOffset + sending_time_offset);
                 next_offset = size_int + bufferOffset + packet_size_padding;
                 bufferOffset = bufferOffset + header_bytes;
@@ -188,7 +192,7 @@ public class ReadPcaps {
                             actingVersion,
                             blockLength,
                             msgTokens,
-                            new CompactTokenListener(outWriter, message_index, sending_time, templateId, false));
+                            new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, false));
                 } else{
                     break;
                 }
