@@ -115,6 +115,7 @@ public class CompactTokenListener implements TokenListener {
 
     public void onEndMessage(final Token token) {
         nonTerminalScope.pop();
+        writerOut("\n");
         try {
             out.flush();
         } catch (IOException e) {
@@ -210,7 +211,6 @@ public class CompactTokenListener implements TokenListener {
 //        printTimestampsAndTemplateID();
 //        printValue(typeToken, encodedValue);
         writerOut(sb.toString());
-        writerOut("\n");
 
 
         event_count++;
@@ -240,7 +240,6 @@ public class CompactTokenListener implements TokenListener {
             writerOut(", ");
         }
         writerOut(Integer.toString(numInGroup));
-        writerOut("\n");
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
@@ -251,7 +250,6 @@ public class CompactTokenListener implements TokenListener {
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
         nonTerminalScope.pop();
-        writerOut("\n");
     }
 
     public void onVarData(
@@ -314,6 +312,7 @@ public class CompactTokenListener implements TokenListener {
     }
 
     private void writeRow(RowType row_type) {
+
         writerOut(message_count);
         writerOut(", ");
         writerOut(group_header_count);
