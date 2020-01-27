@@ -154,11 +154,9 @@ public class ReadPcaps {
 
         long sending_time=0;
         long packet_sequence_number=0;
-        int buffer_capacity =  buffer.capacity();
         int lines_read=0;
         System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
-        while (bufferOffset < fileSize) { //todo fix running to exact end of file
-//        while ((next_offset < buffer_capacity)) { //todo fix running to exact end of file
+        while (next_offset < buffer.capacity()) {
             if(lines_read >= num_lines ){
                 System.out.println("Read " + num_lines +" lines");
                 break;
@@ -170,8 +168,6 @@ public class ReadPcaps {
                 }
                 bufferOffset = next_offset;
                 int size_int = buffer.getShort(bufferOffset + size_offset, message_size_endianness);
-//                int size_int_big = buffer.getShort(bufferOffset + size_offset, ByteOrder.BIG_ENDIAN);
-//                int size_int_little = buffer.getShort(bufferOffset + size_offset, ByteOrder.LITTLE_ENDIAN);
                 packet_sequence_number= buffer.getInt(bufferOffset + packet_sequence_number_offset);
                 sending_time = buffer.getLong(bufferOffset + sending_time_offset);
                 next_offset = size_int + bufferOffset + packet_size_padding;
