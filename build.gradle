@@ -427,6 +427,18 @@ project(':sbe-samples') {
         workingDir = 'src/main/resources'
         //args("/marketdata/scratch/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap.00014/20191007.070000.080000.CME_GBX.CBOT.32_70.B.02.pcap","/marketdata/scratch/ice_parsed_7_8_32_70");
     }
+
+    task readCMEPcapsJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'parse pcaps',  
+            'Implementation-Version': version,
+            'Main-Class': 'uk.co.real_logic.sbe.read_cme_pcaps.ReadPcaps'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+    }
+
     task runJavaExamples {
         dependsOn 'runExampleUsingGeneratedStub', 'runExampleUsingGeneratedStubExtension', 'runOtfExample'
     }
@@ -789,6 +801,8 @@ task uploadToMavenCentral {
         'sbe-all:uploadArchives',
         'sbe-all:uploadShadow'
 }
+
+
 
 wrapper {
     gradleVersion = '5.6.3'
