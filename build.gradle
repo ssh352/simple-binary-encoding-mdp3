@@ -148,6 +148,15 @@ subprojects {
         options.deprecation = true
     }
 
+compileJava {
+        if (JavaVersion.current().ordinal() >= JavaVersion.VERSION_1_9.ordinal()) {
+            options.compilerArgs.addAll(['--add-exports', 'java.base/java.lang.reflect=ALL-UNNAMED'])
+            options.compilerArgs.addAll(['--add-exports', 'jdk.unsupported/sun.misc=ALL-UNNAMED'])
+        }
+        options.encoding = 'UTF-8'
+        options.deprecation = true
+    }
+
     compileTestJava {
         if (JavaVersion.current().ordinal() >= JavaVersion.VERSION_1_9.ordinal()) {
             options.compilerArgs.addAll(['--add-exports', 'java.base/java.lang.reflect=ALL-UNNAMED'])
@@ -370,6 +379,17 @@ project(':sbe-samples') {
         compile files('build/classes/java/generated')
     }
 
+    jar {
+        manifest.attributes(
+            'Main-Class': 'uk.co.real_logic.sbe.read_cme_pcaps.ReadPcaps',
+            'Specification-Title': 'Simple Binary Encoding',
+            'Specification-Version': '1.0',
+            'Implementation-Title': 'SBE',
+            'Implementation-Version': "${sbeVersion}",
+            'Implementation-Vendor': 'Real Logic Limited',
+            'Automatic-Module-Name': 'uk.co.real_logic.sbe.tool'
+        )
+    }
     sourceSets {
         generated.java.srcDir 'build/generated-src'
     }
@@ -429,12 +449,18 @@ project(':sbe-samples') {
     }
 
     task readCMEPcapsJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Title': 'parse pcaps',  
-            'Implementation-Version': version,
-            'Main-Class': 'uk.co.real_logic.sbe.read_cme_pcaps.ReadPcaps'
+    jar {
+        manifest.attributes(
+            'Main-Class': 'uk.co.real_logic.sbe.read_cme_pcaps.ReadPcaps',
+            'Specification-Title': 'Simple Binary Encoding',
+            'Specification-Version': '1.0',
+            'Implementation-Title': 'SBE',
+            'Implementation-Version': "${sbeVersion}",
+            'Implementation-Vendor': 'Real Logic Limited',
+            'Automatic-Module-Name': 'uk.co.real_logic.sbe.tool'
+        )
     }
-    baseName = project.name + '-all'
+    baseName = 'parse-pcaps' + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
     }
