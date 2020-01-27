@@ -138,6 +138,9 @@ public class CompactTokenListener implements TokenListener {
             if (!transact_time_found) {
                 this.transact_time = terminalValue;
                 this.transact_time_found = true;
+                //waiting to get transact time before writing row header
+                writeNewRow(RowType.messageheader);
+
             }
         }
 
@@ -184,7 +187,6 @@ public class CompactTokenListener implements TokenListener {
             final int endIndex,
             final int actingVersion) {
         final Token typeToken = tokens.get(beginIndex + 1);
-        System.out.println("on_bit_set token_name: " + typeToken.name());
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
         //     toWriter(determineName(0, fieldToken, tokens, beginIndex)).append(':');
@@ -206,7 +208,6 @@ public class CompactTokenListener implements TokenListener {
             sb.append(flag);
         }
 //        printTimestampsAndTemplateID();
-        writeNewRow(RowType.messageheader);
 //        printValue(typeToken, encodedValue);
         writerOut(sb.toString());
         writerOut("\n");
