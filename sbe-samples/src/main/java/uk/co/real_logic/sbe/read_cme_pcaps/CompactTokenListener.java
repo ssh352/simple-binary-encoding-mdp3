@@ -230,6 +230,7 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) {
+        writerOut("\n");
         this.group_element_count = 0;
         this.group_header_count++;
         writeNewRow(RowType.groupheader);
@@ -243,6 +244,7 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
+        writerOut("\n");
         this.group_element_count++;
         nonTerminalScope.push(token.name());
         writeNewRow(RowType.group);
