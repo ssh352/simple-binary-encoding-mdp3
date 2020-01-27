@@ -23,23 +23,21 @@ import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.otf.Types;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class CompactTokenListener implements TokenListener {
+    static long event_count = 0;
     private final int template_id;
-    private int compositeLevel = 0;
     private final Writer out;
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
-    private long packet_sequence_number;
-    private long sending_time;
     CharSequence transact_time = null;
     long message_count;
     long group_header_count = 0;
@@ -47,201 +45,18 @@ public class CompactTokenListener implements TokenListener {
     boolean include_value_labels = true;
     boolean transact_time_found = false;
     boolean print_full_scope;
+    private int compositeLevel = 0;
+    private long packet_sequence_number;
+    private long sending_time;
 
-    static long event_count=0;
-
-    enum RowType {
-        messageheader, groupheader, group
-    }
-
-
-    public CompactTokenListener(final Writer out,long message_count, long packet_sequence_number,   long sending_time, int template_id, boolean include_value_labels) {
+    public CompactTokenListener(final Writer out, long message_count, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
         this.template_id = template_id;
         this.sending_time = sending_time;
         this.packet_sequence_number = packet_sequence_number;
-        this.message_count=message_count;
+        this.message_count = message_count;
         this.out = out;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
-    }
-
-
-
-    public void onBeginMessage(final Token token) {
-        this.group_header_count=0;
-        nonTerminalScope.push(token.name());
-    }
-
-    public void onEndMessage(final Token token) {
-        nonTerminalScope.pop();
-        try {
-            out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void onEncoding(
-            final Token fieldToken,
-            final DirectBuffer buffer,
-            final int index,
-            final Token typeToken,
-            final int actingVersion) {
-
-        final CharSequence terminalValue = readEncodingAsString(buffer, index, typeToken, actingVersion);
-
-        //transact time is special case.. instead of outputting, we want to stash it to output later
-        if (!fieldToken.name().equals("TransactTime")) {
-            printValue(fieldToken, terminalValue);
-        } else {
-            if(!transact_time_found){
-                this.transact_time = terminalValue;
-                this.transact_time_found = true;
-            }
-        }
-
-    }
-
-    public void onEnum(
-            final Token fieldToken,
-            final DirectBuffer buffer,
-            final int bufferIndex,
-            final List<Token> tokens,
-            final int beginIndex,
-            final int endIndex,
-            final int actingVersion) {
-        final Token typeToken = tokens.get(beginIndex + 1);
-        final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
-
-        String value = null;
-        if (fieldToken.isConstantEncoding()) {
-            final String refValue = fieldToken.encoding().constValue().toString();
-            final int indexOfDot = refValue.indexOf('.');
-            value = -1 == indexOfDot ? refValue : refValue.substring(indexOfDot + 1);
-        } else {
-            for (int i = beginIndex + 1; i < endIndex; i++) {
-                if (encodedValue == tokens.get(i).encoding().constValue().longValue()) {
-                    value = tokens.get(i).name();
-                    break;
-                }
-            }
-        }
-
-        writerOut(", ");
-        if(value!=null){
-            writerOut(value);
-        } else
-        writerOut("null");
-    }
-
-    public void onBitSet(
-            final Token fieldToken,
-            final DirectBuffer buffer,
-            final int bufferIndex,
-            final List<Token> tokens,
-            final int beginIndex,
-            final int endIndex,
-            final int actingVersion) {
-        final Token typeToken = tokens.get(beginIndex + 1);
-
-        final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
-
-        //     toWriter(determineName(0, fieldToken, tokens, beginIndex)).append(':');
-
-        //hold value of string for a bit, so we can get the transact time from the header
-        StringBuilder sb = new StringBuilder();
-        for (int i = beginIndex + 1; i < endIndex; i++) {
-            //don't display transact time.. it is special case on every row
-            if (!tokens.get(i).name().equals("TransactTime")) {
-                if (include_value_labels) {
-                    sb.append(tokens.get(i).name() + '=');
-                } else {
-                    sb.append(", ");
-                }
-            }
-            final long bitPosition = tokens.get(i).encoding().constValue().longValue();
-            final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
-
-            sb.append(Boolean.toString(flag));
-        }
-//        printTimestampsAndTemplateID();
-        writeNewRow(RowType.messageheader);
-//        printValue(typeToken, encodedValue);
-        writerOut(sb.toString());
-        writerOut("\n");
-
-
-        event_count++;
-    }
-
-    public void onBeginComposite(
-            final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
-        ++compositeLevel;
-
-        nonTerminalScope.push(determineName(1, fieldToken, tokens, fromIndex) + ".");
-    }
-
-    public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
-        --compositeLevel;
-
-        nonTerminalScope.pop();
-    }
-
-    public void onGroupHeader(final Token token, final int numInGroup) {
-        this.group_element_count = 0;
-        this.group_header_count++;
-        writeNewRow(RowType.groupheader);
-        writerOut(token.name());
-        if (include_value_labels) {
-            writerOut(", Group Header : numInGroup=");
-        } else {
-            writerOut(", ");
-        }
-        writerOut(Integer.toString(numInGroup));
-        writerOut("\n");
-    }
-
-    public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
-        this.group_element_count++;
-        nonTerminalScope.push( token.name());
-        writeNewRow(RowType.group);
-    }
-
-    public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
-        nonTerminalScope.pop();
-        writerOut("\n");
-    }
-
-    public void onVarData(
-            final Token fieldToken,
-            final DirectBuffer buffer,
-            final int bufferIndex,
-            final int length,
-            final Token typeToken) {
-        final String value;
-        try {
-            final String characterEncoding = typeToken.encoding().characterEncoding();
-            if (null == characterEncoding) {
-                value = length + " bytes of raw data";
-            } else {
-                buffer.getBytes(bufferIndex, tempBuffer, 0, length);
-                value = new String(tempBuffer, 0, length, characterEncoding);
-            }
-        } catch (final UnsupportedEncodingException ex) {
-            ex.printStackTrace();
-            return;
-        }
-
-        printValue(fieldToken, value);
-    }
-
-    private String determineName(
-            final int thresholdLevel, final Token fieldToken, final List<Token> tokens, final int fromIndex) {
-        if (compositeLevel > thresholdLevel) {
-            return tokens.get(fromIndex).name();
-        } else {
-            return fieldToken.name();
-        }
     }
 
     private static CharSequence readEncodingAsString(
@@ -293,8 +108,185 @@ public class CompactTokenListener implements TokenListener {
         return null;
     }
 
+    public void onBeginMessage(final Token token) {
+        this.group_header_count = 0;
+        nonTerminalScope.push(token.name());
+    }
+
+    public void onEndMessage(final Token token) {
+        nonTerminalScope.pop();
+        try {
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void onEncoding(
+            final Token fieldToken,
+            final DirectBuffer buffer,
+            final int index,
+            final Token typeToken,
+            final int actingVersion) {
+
+        final CharSequence terminalValue = readEncodingAsString(buffer, index, typeToken, actingVersion);
+
+        //transact time is special case.. instead of outputting, we want to stash it to output later
+        if (!fieldToken.name().equals("TransactTime")) {
+            printValue(fieldToken, terminalValue);
+        } else {
+            if (!transact_time_found) {
+                this.transact_time = terminalValue;
+                this.transact_time_found = true;
+            }
+        }
+
+    }
+
+    public void onEnum(
+            final Token fieldToken,
+            final DirectBuffer buffer,
+            final int bufferIndex,
+            final List<Token> tokens,
+            final int beginIndex,
+            final int endIndex,
+            final int actingVersion) {
+        final Token typeToken = tokens.get(beginIndex + 1);
+        final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
+
+        String value = null;
+        if (fieldToken.isConstantEncoding()) {
+            final String refValue = fieldToken.encoding().constValue().toString();
+            final int indexOfDot = refValue.indexOf('.');
+            value = -1 == indexOfDot ? refValue : refValue.substring(indexOfDot + 1);
+        } else {
+            for (int i = beginIndex + 1; i < endIndex; i++) {
+                if (encodedValue == tokens.get(i).encoding().constValue().longValue()) {
+                    value = tokens.get(i).name();
+                    break;
+                }
+            }
+        }
+
+        writerOut(", ");
+        if (value != null) {
+            writerOut(value);
+        } else
+            writerOut("null");
+    }
+
+    public void onBitSet(
+            final Token fieldToken,
+            final DirectBuffer buffer,
+            final int bufferIndex,
+            final List<Token> tokens,
+            final int beginIndex,
+            final int endIndex,
+            final int actingVersion) {
+        final Token typeToken = tokens.get(beginIndex + 1);
+        System.out.println("on_bit_set token_name: " + typeToken.name());
+        final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
+
+        //     toWriter(determineName(0, fieldToken, tokens, beginIndex)).append(':');
+
+        //hold value of string for a bit, so we can get the transact time from the header
+        StringBuilder sb = new StringBuilder();
+        for (int i = beginIndex + 1; i < endIndex; i++) {
+            //don't display transact time.. it is special case on every row
+            if (!tokens.get(i).name().equals("TransactTime")) {
+                if (include_value_labels) {
+                    sb.append(tokens.get(i).name() + '=');
+                } else {
+                    sb.append(", ");
+                }
+            }
+            final long bitPosition = tokens.get(i).encoding().constValue().longValue();
+            final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
+
+            sb.append(flag);
+        }
+//        printTimestampsAndTemplateID();
+        writeNewRow(RowType.messageheader);
+//        printValue(typeToken, encodedValue);
+        writerOut(sb.toString());
+        writerOut("\n");
+
+
+        event_count++;
+    }
+
+    public void onBeginComposite(
+            final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
+        ++compositeLevel;
+
+        nonTerminalScope.push(determineName(1, fieldToken, tokens, fromIndex) + ".");
+    }
+
+    public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
+        --compositeLevel;
+
+        nonTerminalScope.pop();
+    }
+
+    public void onGroupHeader(final Token token, final int numInGroup) {
+        this.group_element_count = 0;
+        this.group_header_count++;
+        writeNewRow(RowType.groupheader);
+        writerOut(token.name());
+        if (include_value_labels) {
+            writerOut(", Group Header : numInGroup=");
+        } else {
+            writerOut(", ");
+        }
+        writerOut(Integer.toString(numInGroup));
+        writerOut("\n");
+    }
+
+    public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
+        this.group_element_count++;
+        nonTerminalScope.push(token.name());
+        writeNewRow(RowType.group);
+    }
+
+    public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
+        nonTerminalScope.pop();
+        writerOut("\n");
+    }
+
+    public void onVarData(
+            final Token fieldToken,
+            final DirectBuffer buffer,
+            final int bufferIndex,
+            final int length,
+            final Token typeToken) {
+        final String value;
+        try {
+            final String characterEncoding = typeToken.encoding().characterEncoding();
+            if (null == characterEncoding) {
+                value = length + " bytes of raw data";
+            } else {
+                buffer.getBytes(bufferIndex, tempBuffer, 0, length);
+                value = new String(tempBuffer, 0, length, characterEncoding);
+            }
+        } catch (final UnsupportedEncodingException ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        printValue(fieldToken, value);
+    }
+
+    private String determineName(
+            final int thresholdLevel, final Token fieldToken, final List<Token> tokens, final int fromIndex) {
+        if (compositeLevel > thresholdLevel) {
+            return tokens.get(fromIndex).name();
+        } else {
+            return fieldToken.name();
+        }
+    }
+
     private void printValue(Token typeToken, Object printableObject) {
-        String field_label = typeToken.name();
+        String field_label = typeToken.name(); //todo:rename to writeValue
         printValue(field_label, printableObject);
     }
 
@@ -315,9 +307,9 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void writeTimestamps() {
-        String packet_sequence_number_string = String.format ("%d",packet_sequence_number );
-        String event_count_string = String.format ("%d",event_count );
-        writerOut(", " + template_id + ", " + packet_sequence_number_string + ", " + event_count_string +", " + sending_time + ", " + transact_time );
+        String packet_sequence_number_string = String.format("%d", packet_sequence_number);
+        String event_count_string = String.format("%d", event_count);
+        writerOut(", " + template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + sending_time + ", " + transact_time);
     }
 
     private void writeRow(RowType row_type) {
@@ -355,13 +347,15 @@ public class CompactTokenListener implements TokenListener {
         }
     }
 
-    private String pad(String str, int size, char padChar)
-    {
+    private String pad(String str, int size, char padChar) {
         StringBuffer padded = new StringBuffer(str);
-        while (padded.length() < size)
-        {
+        while (padded.length() < size) {
             padded.append(padChar);
         }
         return padded.toString();
+    }
+
+    enum RowType {
+        messageheader, groupheader, group
     }
 }
