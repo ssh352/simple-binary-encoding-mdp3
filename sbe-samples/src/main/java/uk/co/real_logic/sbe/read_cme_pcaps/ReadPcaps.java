@@ -51,8 +51,6 @@ public class ReadPcaps {
         String os_string= System.getProperty("os.name").toLowerCase();
         String in_file = args[0];
         String out_file = args[1];
-        System.out.println("in_file=" + in_file);
-        System.out.println("out_file=" + out_file);
         int message_index=0;
 
         String schema_file;
