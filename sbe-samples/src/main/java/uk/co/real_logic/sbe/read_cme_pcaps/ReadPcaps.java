@@ -59,7 +59,7 @@ public class ReadPcaps {
         } else{
            schema_file = "c:/marketdata/templates_FixBinary.xml";
         }
-        boolean run_short = false;
+        boolean run_short = true;
         boolean write_to_file;
         write_to_file=true;
 
@@ -156,12 +156,17 @@ public class ReadPcaps {
         long packet_sequence_number=0;
         int lines_read=0;
         System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
+
+
         while (next_offset < buffer.capacity()) {
+
             if(lines_read >= num_lines ){
                 System.out.println("Read " + num_lines +" lines");
                 break;
             }
             try {
+
+
                 if((lines_read*1.0/10000==lines_read/10000) ){
                     System.out.println(lines_read);
                     System.out.println("sending_time: " + sending_time);
@@ -189,7 +194,7 @@ public class ReadPcaps {
                             actingVersion,
                             blockLength,
                             msgTokens,
-                            new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, false));
+                            new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, true));
                 } else{
                     break;
                 }
