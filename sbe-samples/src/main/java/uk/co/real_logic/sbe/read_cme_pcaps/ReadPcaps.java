@@ -158,6 +158,16 @@ public class ReadPcaps {
         System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
 
 
+        parseMessage(message_index, size_offset, packet_sequence_number_offset, sending_time_offset, header_bytes, packet_size_padding, message_size_endianness, outWriter, fileSize, ir, headerDecoder, next_offset, buffer, messageTypeMap, num_lines, sending_time, lines_read);
+
+        outWriter.close();
+        inChannel.close();
+    }
+
+    private static void parseMessage(int message_index, int size_offset, int packet_sequence_number_offset, int sending_time_offset, int header_bytes, int packet_size_padding, ByteOrder message_size_endianness, Writer outWriter, long fileSize, Ir ir, OtfHeaderDecoder headerDecoder, int next_offset, UnsafeBuffer buffer, Map<Integer, Integer> messageTypeMap, long num_lines, long sending_time, int lines_read) throws IOException {
+        int bufferOffset;
+        long packet_sequence_number;
+        int blockLength;
         while (next_offset < buffer.capacity()) {
 
             if(lines_read >= num_lines ){
@@ -209,8 +219,6 @@ public class ReadPcaps {
 
 
         }
-        outWriter.close();
-        inChannel.close();
     }
 
 
