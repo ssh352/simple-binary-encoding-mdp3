@@ -2,6 +2,7 @@ package uk.co.real_logic.sbe.read_cme_pcaps;
 
 
 import org.agrona.concurrent.UnsafeBuffer;
+import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.CMEPcapListener;
 import uk.co.real_logic.sbe.ir.Ir;
 import uk.co.real_logic.sbe.ir.IrDecoder;
@@ -69,17 +70,17 @@ public class ReadPcaps {
         String binary_file_path = in_file;
         String out_file_path= out_file;
         //number of leading bytes for the whole file
-        int starting_offset;
+        final int starting_offset;
         //byte position in packet header of the packet size
-        int size_offset;
+        final int size_offset;
         //byte position in packet header of the sending time size
-        int packet_sequence_number_offset;
-        int sending_time_offset;
+        final int packet_sequence_number_offset;
+        final int sending_time_offset;
         //number of bytes in packet before template id
-        int header_bytes;
+        final int header_bytes;
         //number of bytes to adjust the packet size to jump from on header to the next
-        int packet_size_padding;
-        ByteOrder message_size_endianness;
+        final int packet_size_padding;
+        final ByteOrder message_size_endianness;
         if(data_source=="ICE"){
             starting_offset=40; //what should this be?
             size_offset=16;
@@ -158,16 +159,6 @@ public class ReadPcaps {
         System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
 
 
-        parseMessage(message_index, size_offset, packet_sequence_number_offset, sending_time_offset, header_bytes, packet_size_padding, message_size_endianness, outWriter, fileSize, ir, headerDecoder, next_offset, buffer, messageTypeMap, num_lines, sending_time, lines_read);
-
-        outWriter.close();
-        inChannel.close();
-    }
-
-    private static void parseMessage(int message_index, int size_offset, int packet_sequence_number_offset, int sending_time_offset, int header_bytes, int packet_size_padding, ByteOrder message_size_endianness, Writer outWriter, long fileSize, Ir ir, OtfHeaderDecoder headerDecoder, int next_offset, UnsafeBuffer buffer, Map<Integer, Integer> messageTypeMap, long num_lines, long sending_time, int lines_read) throws IOException {
-        int bufferOffset;
-        long packet_sequence_number;
-        int blockLength;
         while (next_offset < buffer.capacity()) {
 
             if(lines_read >= num_lines ){
@@ -197,16 +188,17 @@ public class ReadPcaps {
                 messageTypeMap.put(templateId, count + 1);
 
                 final List<Token> msgTokens = ir.getMessage(templateId);
-                if (bufferOffset + blockLength < fileSize) {
-                    bufferOffset = OtfMessageDecoder.decode(
+                if (bufferOffset + blockLength >= fileSize) {
+                    break;
+                } else {
+                    TokenListener tokenListener= new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, true);
+                    OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
                             actingVersion,
                             blockLength,
                             msgTokens,
-                            new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, true));
-                } else{
-                    break;
+                            tokenListener);
                 }
                 message_index++;
                 outWriter.flush();
@@ -219,6 +211,8 @@ public class ReadPcaps {
 
 
         }
+        outWriter.close();
+        inChannel.close();
     }
 
 
