@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.real_logic.sbe.read_cme_pcaps;
+package uk.co.real_logic.sbe.read_cme_pcaps.token_listeners;
 
 import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.PrimitiveValue;
@@ -65,8 +65,6 @@ public class CompactTokenListener implements TokenListener {
         if (null != constOrNotPresentValue) {
             if (constOrNotPresentValue.size() == 1) {
                 final byte[] bytes = {(byte) constOrNotPresentValue.longValue()};
-                //            System.toWriterln((bytes[0]));
-                //           System.toWriterln((constOrNotPresentValue.characterEncoding()));
                 return new String(bytes, UTF_8);
 
             } else {
