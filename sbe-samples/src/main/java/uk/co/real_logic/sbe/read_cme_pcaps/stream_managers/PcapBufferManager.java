@@ -9,6 +9,7 @@ public class PcapBufferManager {
     private int buffer_offset=0;
     private int header_offset;
     private int next_offset;
+    private int token_offset;
     public PcapBufferManager(DataOffsets offsets, UnsafeBuffer buffer) {
         this.buffer=buffer;
         this.offsets =offsets;
@@ -24,9 +25,15 @@ public class PcapBufferManager {
         this.next_offset=calculate_next_offset();
     }
 
-    public void advanceBufferOffset(int increment){
-        setBufferOffset(this.buffer_offset+increment);
+    public void setTokenOffset(int header_length)
+    {
+        this.token_offset=this.buffer_offset + header_length;
     }
+
+    public int getTokenOffset(){
+        return this.token_offset;
+    }
+
     public int getBufferOffset() {
         return this.buffer_offset;
     }

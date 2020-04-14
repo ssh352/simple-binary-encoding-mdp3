@@ -109,6 +109,7 @@ public class ReadPcaps {
 
         while (bufferManager.nextOffsetValid(bufferManager.next_offset())) {
 
+            System.out.print("starting buffer position " + String.valueOf(bufferManager.getBufferOffset()));
             if(lines_read >= num_lines ){
                 System.out.println("Read " + num_lines +" lines");
                 break;
@@ -121,7 +122,6 @@ public class ReadPcaps {
                     System.out.println("sending_time: " + sending_time);
                 }
 //                bufferManager.setBufferOffset(bufferManager.next_offset());
-                int message_size = bufferManager.message_size();
                 packet_sequence_number= bufferManager.packet_sequence_number();
                 sending_time = bufferManager.sending_time();
 
@@ -129,7 +129,7 @@ public class ReadPcaps {
                 final int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
                 blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
 
-                bufferManager.advanceBufferOffset(headerDecoder.encodedLength());
+                bufferManager.setTokenOffset(headerDecoder.encodedLength());
                 Integer count = messageTypeMap.getOrDefault(templateId, 0);
                 messageTypeMap.put(templateId, count + 1);
 
@@ -141,7 +141,7 @@ public class ReadPcaps {
 //                    TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                     OtfMessageDecoder.decode(
                             bufferManager.getBuffer(),
-                            bufferManager.getBufferOffset(),
+                            bufferManager.getTokenOffset(),
                             actingVersion,
                             blockLength,
                             msgTokens,
@@ -156,7 +156,7 @@ public class ReadPcaps {
                 outWriter.flush();
             }
 
-
+            System.out.print(" next buffer position " + String.valueOf(bufferManager.next_offset()) + "\n" );
         }
         outWriter.close();
         inChannel.close();
