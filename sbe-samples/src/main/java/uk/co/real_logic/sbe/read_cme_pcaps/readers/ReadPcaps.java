@@ -51,7 +51,6 @@ public class ReadPcaps {
     private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
 
     public static void main(final String[] args) throws Exception {
-
         ReadPcapProperties prop=new ReadPcapProperties(args[0]);
 
         int message_index=0;
