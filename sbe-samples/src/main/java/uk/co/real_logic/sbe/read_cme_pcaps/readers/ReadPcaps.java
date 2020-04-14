@@ -107,8 +107,8 @@ public class ReadPcaps {
         int lines_read=0;
 
 
-        while (bufferManager.nextOffsetValid(bufferManager.next_offset())) {
-
+        while (bufferManager.nextOffsetValid()) {
+            bufferManager.incrementPacket();
             System.out.print("starting buffer position " + String.valueOf(bufferManager.getBufferOffset()));
             if(lines_read >= num_lines ){
                 System.out.println("Read " + num_lines +" lines");

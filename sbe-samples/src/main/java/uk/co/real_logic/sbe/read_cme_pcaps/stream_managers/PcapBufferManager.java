@@ -25,6 +25,10 @@ public class PcapBufferManager {
         this.next_offset=calculate_next_offset();
     }
 
+    public void incrementPacket(){
+        this.setBufferOffset(this.next_offset);
+    }
+
     public void setTokenOffset(int header_length)
     {
         this.token_offset=this.buffer_offset + header_length;
@@ -42,8 +46,8 @@ public class PcapBufferManager {
         return this.header_offset;
     }
 
-    public boolean nextOffsetValid(int nextOffset){
-        return nextOffset < buffer.capacity();
+    public boolean nextOffsetValid(){
+        return this.next_offset < buffer.capacity();
     }
 
     public int message_size(){
