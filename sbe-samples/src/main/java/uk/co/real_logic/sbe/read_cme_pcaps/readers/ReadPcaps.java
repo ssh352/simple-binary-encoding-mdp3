@@ -11,6 +11,7 @@ import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
+import uk.co.real_logic.sbe.read_cme_pcaps.stream_managers.PcapBufferManager;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
 import uk.co.real_logic.sbe.xml.IrGenerator;
 import uk.co.real_logic.sbe.xml.MessageSchema;
@@ -60,28 +61,15 @@ public class ReadPcaps {
     public static void main(final String[] args) throws Exception {
         readProperties(args[0]);
 
-        
+
         int message_index=0;
 
 
-        String data_source="ICE";
-//        String data_source="CME";
-
-        //number of leading bytes for the whole file
-        final int starting_offset;
-        //byte position in packet header of the packet size
-        final int size_offset;
-        //byte position in packet header of the sending time size
-        final int packet_sequence_number_offset;
-        final int sending_time_offset;
-        //number of bytes in packet before template id
-        final int header_bytes;
-        //number of bytes to adjust the packet size to jump from on header to the next
-        final int packet_size_padding;
-        final ByteOrder message_size_endianness;
-        DataOffsets offsets= new DataOffsets("ICE");
+        DataOffsets offsets= new DataOffsets(data_source);
         Writer outWriter;
         // Encode up message and schema as if we just got them off the wire.
+
+
         if(write_to_file){
             outWriter=new FileWriter(out_file);
 //            outWriter.write("beginning of file");
@@ -92,37 +80,27 @@ public class ReadPcaps {
         }
 
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
-
         encodeSchema(encodedSchemaBuffer, schema_file);
-
-
-
         RandomAccessFile aFile = new RandomAccessFile(in_file, "rw");
         FileChannel inChannel = aFile.getChannel();
         long fileSize=inChannel.size();
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
-
         encodedMsgBuffer.flip();  //make buffer ready for read
-
-
         // Now lets decode the schema IR so we have IR objects.
         encodedSchemaBuffer.flip();
         final Ir ir = decodeIr(encodedSchemaBuffer);
-
-
         final OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure());
 
-
         // Now we have IR we can read the message header
+
         int bufferOffset = offsets.starting_offset; //skip leading bytes before message capture proper
         int next_offset = bufferOffset;
 
 
 
-        final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
+        final PcapBufferManager bufferManager = new PcapBufferManager(offsets, encodedMsgBuffer);
 
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
-//        int blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
         int blockLength;
 
 
@@ -135,10 +113,9 @@ public class ReadPcaps {
         long sending_time=0;
         long packet_sequence_number=0;
         int lines_read=0;
-        System.out.println("first_capture byte: " + buffer.getByte(bufferOffset) );
 
 
-        while (next_offset < buffer.capacity()) {
+        while (bufferManager.nextOffsetValid(next_offset)) {
 
             if(lines_read >= num_lines ){
                 System.out.println("Read " + num_lines +" lines");
@@ -152,15 +129,15 @@ public class ReadPcaps {
                     System.out.println("sending_time: " + sending_time);
                 }
                 bufferOffset = next_offset;
-                int size_int = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
-                packet_sequence_number= buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
-                sending_time = buffer.getLong(bufferOffset + offsets.sending_time_offset);
-                next_offset = size_int + bufferOffset + offsets.packet_size_padding;
+                int message_size = bufferManager.getBuffer().getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
+                packet_sequence_number= bufferManager.getBuffer().getInt(bufferOffset + offsets.packet_sequence_number_offset);
+                sending_time = bufferManager.getBuffer().getLong(bufferOffset + offsets.sending_time_offset);
+                next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
-                final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
-                final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
-                blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
+                final int templateId = headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferOffset);
+                final int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferOffset);
+                blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferOffset);
 
                 bufferOffset += headerDecoder.encodedLength();
                 Integer count = messageTypeMap.getOrDefault(templateId, 0);
@@ -173,7 +150,7 @@ public class ReadPcaps {
                     TokenListener tokenListener= new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, true);
 //                    TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                     OtfMessageDecoder.decode(
-                            buffer,
+                            bufferManager.getBuffer(),
                             bufferOffset,
                             actingVersion,
                             blockLength,
