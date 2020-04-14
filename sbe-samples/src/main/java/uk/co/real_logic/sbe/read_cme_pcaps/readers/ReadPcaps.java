@@ -149,7 +149,7 @@ public class ReadPcaps {
                             msgTokens,
                             tokenListener);
                 }
-                System.out.print(" next buffer position" + String.valueOf(next_offset) + "\n" );
+                System.out.print(" next buffer position " + String.valueOf(next_offset) + "\n" );
                 message_index++;
                 outWriter.flush();
                 lines_read = lines_read + 1;
