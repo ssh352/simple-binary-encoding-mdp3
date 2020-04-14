@@ -27,6 +27,7 @@ import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 
 public class ReadPcaps {
@@ -48,27 +49,37 @@ public class ReadPcaps {
 //    private static final int MSG_BUFFER_CAPACITY = 1000000 * 1024;
     private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
 
+   private static String os_string;
+   private static String in_file;
+   private static String out_file;
+   private static String data_source;
+   private static String schema_file;
+   private static boolean run_short;
+    private static boolean write_to_file;
+
     public static void main(final String[] args) throws Exception {
-        String os_string= System.getProperty("os.name").toLowerCase();
-        String in_file = args[0];
-        String out_file = args[1];
+        ReadPcapProperties readPcapProperties=new ReadPcapProperties();
+        Properties prop=readPcapProperties.get_properties("c:/marketdata/configs/example.config");
+
+        System.out.println(prop.getProperty("reader.name"));
+        System.out.println(prop.getProperty("reader.version"));
+
+        os_string= prop.getProperty("reader.os");
+        in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
+        out_file = Paths.get(prop.getProperty("reader.out_file")).toString();
+        System.out.println(in_file);
+        System.out.println(out_file);
+
+        schema_file=Paths.get(prop.getProperty("reader.schema_file")).toString();
+        run_short = Boolean.getBoolean(prop.getProperty("reader.run_short"));
+        write_to_file = Boolean.getBoolean(prop.getProperty("reader.write_to_file"));
+
         int message_index=0;
 
-        String schema_file;
-        if(os_string.equals("linux")){
-           schema_file = "/marketdata/templates_FixBinary.xml"; 
-        } else{
-           schema_file = "c:/marketdata/templates_FixBinary.xml";
-        }
-        boolean run_short = true;
-        boolean write_to_file;
-        write_to_file=true;
 
         String data_source="ICE";
 //        String data_source="CME";
 
-        String binary_file_path = in_file;
-        String out_file_path= out_file;
         //number of leading bytes for the whole file
         final int starting_offset;
         //byte position in packet header of the packet size
@@ -104,7 +115,7 @@ public class ReadPcaps {
         Writer outWriter;
         // Encode up message and schema as if we just got them off the wire.
         if(write_to_file){
-            outWriter=new FileWriter(out_file_path);
+            outWriter=new FileWriter(out_file);
 //            outWriter.write("beginning of file");
             outWriter.flush();
         } else{
@@ -118,7 +129,7 @@ public class ReadPcaps {
 
 
 
-        RandomAccessFile aFile = new RandomAccessFile(binary_file_path, "rw");
+        RandomAccessFile aFile = new RandomAccessFile(in_file, "rw");
         FileChannel inChannel = aFile.getChannel();
         long fileSize=inChannel.size();
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
@@ -192,6 +203,7 @@ public class ReadPcaps {
                     break;
                 } else {
                     TokenListener tokenListener= new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, true);
+//                    TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
