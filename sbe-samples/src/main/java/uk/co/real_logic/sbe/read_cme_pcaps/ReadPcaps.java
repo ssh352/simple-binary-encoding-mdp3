@@ -58,21 +58,7 @@ public class ReadPcaps {
     private static boolean write_to_file;
 
     public static void main(final String[] args) throws Exception {
-        ReadPcapProperties readPcapProperties=new ReadPcapProperties();
-        Properties prop=readPcapProperties.get_properties("c:/marketdata/configs/example.config");
-
-        System.out.println(prop.getProperty("reader.name"));
-        System.out.println(prop.getProperty("reader.version"));
-
-        os_string= prop.getProperty("reader.os");
-        in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
-        out_file = Paths.get(prop.getProperty("reader.out_file")).toString();
-        System.out.println(in_file);
-        System.out.println(out_file);
-
-        schema_file=Paths.get(prop.getProperty("reader.schema_file")).toString();
-        run_short = Boolean.getBoolean(prop.getProperty("reader.run_short"));
-        write_to_file = Boolean.getBoolean(prop.getProperty("reader.write_to_file"));
+        readProperties(args[0]);
 
         int message_index=0;
 
@@ -225,6 +211,22 @@ public class ReadPcaps {
         }
         outWriter.close();
         inChannel.close();
+    }
+
+    private static void readProperties(String config_file) {
+        ReadPcapProperties readPcapProperties=new ReadPcapProperties();
+        Properties prop=readPcapProperties.get_properties(config_file);
+
+        System.out.println(prop.getProperty("reader.name"));
+        System.out.println(prop.getProperty("reader.version"));
+
+        os_string= prop.getProperty("reader.os");
+        in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
+        out_file = Paths.get(prop.getProperty("reader.out_file")).toString();
+
+        schema_file=Paths.get(prop.getProperty("reader.schema_file")).toString();
+        run_short = Boolean.getBoolean(prop.getProperty("reader.run_short"));
+        write_to_file = Boolean.getBoolean(prop.getProperty("reader.write_to_file"));
     }
 
 
