@@ -49,16 +49,9 @@ public class ReadPcaps {
 //    private static final int MSG_BUFFER_CAPACITY = 1000000 * 1024;
     private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
 
-   private static String os_string;
-   private static String in_file;
-   private static String out_file;
-   private static String data_source;
-   private static String schema_file;
-   private static boolean run_short;
-    private static boolean write_to_file;
 
     public static void main(final String[] args) throws Exception {
-        readProperties(args[0]);
+        ReadPcapProperties prop = new ReadPcapProperties(args[0]);
 
         
         int message_index=0;
@@ -82,8 +75,8 @@ public class ReadPcaps {
         DataOffsets offsets= new DataOffsets("ICE");
         Writer outWriter;
         // Encode up message and schema as if we just got them off the wire.
-        if(write_to_file){
-            outWriter=new FileWriter(out_file);
+        if(prop.write_to_file){
+            outWriter=new FileWriter(prop.out_file);
 //            outWriter.write("beginning of file");
             outWriter.flush();
         } else{
@@ -93,11 +86,11 @@ public class ReadPcaps {
 
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
 
-        encodeSchema(encodedSchemaBuffer, schema_file);
+        encodeSchema(encodedSchemaBuffer, prop.schema_file);
 
 
 
-        RandomAccessFile aFile = new RandomAccessFile(in_file, "rw");
+        RandomAccessFile aFile = new RandomAccessFile(prop.in_file, "rw");
         FileChannel inChannel = aFile.getChannel();
         long fileSize=inChannel.size();
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
@@ -128,7 +121,7 @@ public class ReadPcaps {
 
         long num_lines = 500000000;
         int num_lines_short = 500000; //only run through part of buffer for debugging purposes
-        if (run_short) {
+        if (prop.run_short) {
             num_lines = num_lines_short;
         }
 
@@ -195,21 +188,6 @@ public class ReadPcaps {
         inChannel.close();
     }
 
-    private static void readProperties(String config_file) {
-        ReadPcapProperties readPcapProperties=new ReadPcapProperties();
-        Properties prop=readPcapProperties.get_properties(config_file);
-
-        System.out.println(prop.getProperty("reader.name"));
-        System.out.println(prop.getProperty("reader.version"));
-
-        os_string= prop.getProperty("reader.os");
-        in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
-        out_file = Paths.get(prop.getProperty("reader.out_file")).toString();
-
-        schema_file=Paths.get(prop.getProperty("reader.schema_file")).toString();
-        run_short = Boolean.getBoolean(prop.getProperty("reader.run_short"));
-        write_to_file = Boolean.getBoolean(prop.getProperty("reader.write_to_file"));
-    }
 
 
     private static void encodeSchema(final ByteBuffer byteBuffer, String schema_file) throws Exception {
