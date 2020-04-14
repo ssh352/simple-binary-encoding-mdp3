@@ -24,10 +24,7 @@ import uk.co.real_logic.sbe.otf.Types;
 
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class ExampleTokenListener implements TokenListener
 {
@@ -35,20 +32,39 @@ public class ExampleTokenListener implements TokenListener
     private final PrintWriter out;
     private final Deque<String> namedScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
-
+    private boolean verbose;
+    private long sending_time;
+    CharSequence transact_time;
+    private String last_printed_string = "";
     public ExampleTokenListener(final PrintWriter out)
     {
+        this.verbose=true;
         this.out = out;
+    }
+
+
+    public ExampleTokenListener(final PrintWriter out, boolean verbose, long sending_time)
+    {
+        this.sending_time=sending_time;
+        this.verbose=verbose;
+        this.out = out;
+    }
+
+    public void PrintSendingTime(){
+        out.print("sending_time: " + sending_time + ", transact_time:" + transact_time + ", ");
     }
 
     public void onBeginMessage(final Token token)
     {
+        out.print(" message_token_name=" + token.name());
         namedScope.push(token.name() + ".");
     }
 
     public void onEndMessage(final Token token)
     {
-        namedScope.pop();
+        while(namedScope.size()>0){
+            namedScope.pop();
+        }
     }
 
     public void onEncoding(
@@ -58,13 +74,31 @@ public class ExampleTokenListener implements TokenListener
         final Token typeToken,
         final int actingVersion)
     {
-        final CharSequence value = readEncodingAsString(buffer, index, typeToken, actingVersion);
+       // System.out.println("type token: " +  typeToken);
+        CharSequence value;
+        if(fieldToken.name().contains("Size")) {
+            int abc=1;
+//              set acting version to -1 for size so it is always read
+            value = readEncodingAsString(buffer, index, typeToken, -1, sending_time);
+        } else {
+            value = readEncodingAsString(buffer, index, typeToken, actingVersion, sending_time);
+        }
+        if(fieldToken.name().equals("TransactTime")){
+            this.transact_time=value;
+        }
 
         printScope();
-        out.append(compositeLevel > 0 ? typeToken.name() : fieldToken.name())
-            .append('=')
-            .append(value)
-            .println();
+        if(verbose) {
+            out.append(compositeLevel > 0 ? typeToken.name() : fieldToken.name())
+                    .append('=')
+                    .append(value)
+                    .println();
+        }else{
+            out.append(compositeLevel > 0 ? typeToken.name() : fieldToken.name())
+                    .append('=')
+                    .append(value)
+                    .append(" ");
+        }
     }
 
     public void onEnum(
@@ -92,17 +126,23 @@ public class ExampleTokenListener implements TokenListener
             {
                 if (encodedValue == tokens.get(i).encoding().constValue().longValue())
                 {
-                    value = tokens.get(i).name();
+                    value = tokens.get(i).name() + " k";
                     break;
                 }
             }
         }
 
         printScope();
-        out.append(determineName(0, fieldToken, tokens, beginIndex))
-            .append('=')
-            .append(value)
-            .println();
+        if(verbose) {
+            out.append(determineName(0, fieldToken, tokens, beginIndex))
+                    .append(" h =")
+                    .append(value)
+                    .println();
+        } else {
+
+            //this get rid ov verbose printing of message type for every field
+            out.append(" ").append(value);
+        }
     }
 
     public void onBitSet(
@@ -118,19 +158,29 @@ public class ExampleTokenListener implements TokenListener
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
         printScope();
-        out.append(determineName(0, fieldToken, tokens, beginIndex)).append(':');
+        out.append(determineName(0, fieldToken, tokens, beginIndex)).append(" i :");
+        if(verbose) {
+            for (int i = beginIndex + 1; i < endIndex; i++) {
+                out.append(' ').append(tokens.get(i).name()).append(" j =");
 
-        for (int i = beginIndex + 1; i < endIndex; i++)
-        {
-            out.append(' ').append(tokens.get(i).name()).append('=');
+                final long bitPosition = tokens.get(i).encoding().constValue().longValue();
+                final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
 
-            final long bitPosition = tokens.get(i).encoding().constValue().longValue();
-            final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
+                out.append(Boolean.toString(flag));
+            }
 
-            out.append(Boolean.toString(flag));
-        }
+            out.println();
+        } else{
+// group header?
+                for (int i = beginIndex + 1; i < endIndex; i++) {
+                    out.append(tokens.get(i).name());
 
-        out.println();
+                    final long bitPosition = tokens.get(i).encoding().constValue().longValue();
+                    final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
+
+                    out.append(Boolean.toString(flag));
+                }
+            }
     }
 
     public void onBeginComposite(
@@ -138,33 +188,43 @@ public class ExampleTokenListener implements TokenListener
     {
         ++compositeLevel;
 
-        namedScope.push(determineName(1, fieldToken, tokens, fromIndex) + ".");
+        namedScope.push(determineName(1, fieldToken, tokens, fromIndex));
     }
 
     public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex)
     {
         --compositeLevel;
-
-        namedScope.pop();
+        while(namedScope.size()>0) {
+            namedScope.pop();
+        }
     }
 
     public void onGroupHeader(final Token token, final int numInGroup)
     {
         printScope();
         out.append(token.name())
-            .append(" Group Header : numInGroup=")
+            .append("\n e Group Header : numInGroup=")
             .append(Integer.toString(numInGroup))
             .println();
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup)
     {
-        namedScope.push(token.name() + ".");
+        if(groupIndex==0) {
+            PrintSendingTime();
+        }
+        //is_this_the_problem_for not printing size?
+        if(token.name().contains("EntrySize" )){
+//            namedScope.push(" found entry size");
+        }
+        out.print(" group_token_name=" + token.name() + " ");
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup)
     {
-        namedScope.pop();
+        while(namedScope.size()>0) {
+            namedScope.pop();
+        }
     }
 
     public void onVarData(
@@ -195,10 +255,15 @@ public class ExampleTokenListener implements TokenListener
         }
 
         printScope();
+        if(verbose){
         out.append(fieldToken.name())
             .append('=')
             .append(value)
-            .println();
+            .println();}
+        else{
+            out.append(fieldToken.name()).append('=').append(value);
+
+        }
     }
 
     private String determineName(
@@ -215,7 +280,7 @@ public class ExampleTokenListener implements TokenListener
     }
 
     private static CharSequence readEncodingAsString(
-        final DirectBuffer buffer, final int index, final Token typeToken, final int actingVersion)
+        final DirectBuffer buffer, final int index, final Token typeToken, final int actingVersion, long sending_time)  //added sending time as argument for printing
     {
         final PrimitiveValue constOrNotPresentValue = constOrNotPresentValue(typeToken, actingVersion);
         if (null != constOrNotPresentValue)
@@ -225,8 +290,9 @@ public class ExampleTokenListener implements TokenListener
                 try
                 {
                     final byte[] bytes = { (byte)constOrNotPresentValue.longValue() };
-                    return new String(bytes, constOrNotPresentValue.characterEncoding());
-                }
+//                    System.out.println("charset_name:"+  constOrNotPresentValue.characterEncoding());
+                    return new String(bytes, "UTF-8"); //default charset to UTF-8  todo: find out why charset is not present
+                    }
                 catch (final UnsupportedEncodingException ex)
                 {
                     throw new RuntimeException(ex);
@@ -244,8 +310,9 @@ public class ExampleTokenListener implements TokenListener
 
         for (int i = 0, size = typeToken.arrayLength(); i < size; i++)
         {
+//            sb.append(" f ");
             Types.appendAsString(sb, buffer, index + (i * elementSize), encoding);
-            sb.append(", ");
+            sb.append(",");
         }
 
         sb.setLength(sb.length() - 2);
@@ -267,6 +334,10 @@ public class ExampleTokenListener implements TokenListener
 
     private static PrimitiveValue constOrNotPresentValue(final Token token, final int actingVersion)
     {
+        //hard coding that MDEntry Size will have a value
+        if (token.name().equals("MDEntrySize")){
+            return null;
+        }
         if (token.isConstantEncoding())
         {
             return token.encoding().constValue();
@@ -281,10 +352,18 @@ public class ExampleTokenListener implements TokenListener
 
     private void printScope()
     {
+        //position500 when printing actually happens, perhaps where to get rid of labels?
         final Iterator<String> i = namedScope.descendingIterator();
         while (i.hasNext())
         {
-            out.print(i.next());
+            if(last_printed_string.contains("MDEntrySize")) {
+                int break_here=123;
+            }
+            String next = i.next();
+//                out.println(next);
+            last_printed_string=next;
+
+
         }
     }
 }
