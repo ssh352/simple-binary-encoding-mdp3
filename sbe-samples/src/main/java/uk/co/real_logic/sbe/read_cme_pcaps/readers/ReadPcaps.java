@@ -99,7 +99,7 @@ public class ReadPcaps {
         final PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer);
 
         bufferManager.setBufferOffset(offsets.starting_offset); //skip leading bytes before message capture proper
-        int next_offset = bufferManager.getBufferOffset();
+//        int next_offset = bufferManager.getBufferOffset();
 
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
         int blockLength;
@@ -116,7 +116,7 @@ public class ReadPcaps {
         int lines_read=0;
 
 
-        while (bufferManager.nextOffsetValid(next_offset)) {
+        while (bufferManager.nextOffsetValid(bufferManager.next_offset())) {
 
             if(lines_read >= num_lines ){
                 System.out.println("Read " + num_lines +" lines");
@@ -129,16 +129,14 @@ public class ReadPcaps {
                     System.out.println(lines_read);
                     System.out.println("sending_time: " + sending_time);
                 }
-                bufferManager.setBufferOffset(next_offset);
-                int message_size = bufferManager.getBuffer().getShort(bufferManager.getBufferOffset() + offsets.size_offset, offsets.message_size_endianness);
-                packet_sequence_number= bufferManager.getBuffer().getInt(bufferManager.getBufferOffset() + offsets.packet_sequence_number_offset);
-                sending_time = bufferManager.getBuffer().getLong(bufferManager.getBufferOffset() + offsets.sending_time_offset);
-                next_offset = message_size + bufferManager.getBufferOffset() + offsets.packet_size_padding;
-                bufferManager.advanceBufferOffset(offsets.header_bytes);
+//                bufferManager.setBufferOffset(bufferManager.next_offset());
+                int message_size = bufferManager.message_size();
+                packet_sequence_number= bufferManager.packet_sequence_number();
+                sending_time = bufferManager.sending_time();
 
-                final int templateId = headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getBufferOffset());
-                final int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getBufferOffset());
-                blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferManager.getBufferOffset());
+                final int templateId = headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
+                final int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
+                blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
 
                 bufferManager.advanceBufferOffset(headerDecoder.encodedLength());
                 Integer count = messageTypeMap.getOrDefault(templateId, 0);
