@@ -93,12 +93,13 @@ public class ReadPcaps {
 
         // Now we have IR we can read the message header
 
-        int bufferOffset = offsets.starting_offset; //skip leading bytes before message capture proper
-        int next_offset = bufferOffset;
 
 
         final UnsafeBuffer buffer= new UnsafeBuffer(encodedMsgBuffer);
         final PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer);
+
+        bufferManager.setBufferOffset(offsets.starting_offset); //skip leading bytes before message capture proper
+        int next_offset = bufferManager.getBufferOffset();
 
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
         int blockLength;
@@ -128,30 +129,30 @@ public class ReadPcaps {
                     System.out.println(lines_read);
                     System.out.println("sending_time: " + sending_time);
                 }
-                bufferOffset = next_offset;
-                int message_size = bufferManager.getBuffer().getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
-                packet_sequence_number= bufferManager.getBuffer().getInt(bufferOffset + offsets.packet_sequence_number_offset);
-                sending_time = bufferManager.getBuffer().getLong(bufferOffset + offsets.sending_time_offset);
-                next_offset = message_size + bufferOffset + offsets.packet_size_padding;
-                bufferOffset = bufferOffset + offsets.header_bytes;
+                bufferManager.setBufferOffset(next_offset);
+                int message_size = bufferManager.getBuffer().getShort(bufferManager.getBufferOffset() + offsets.size_offset, offsets.message_size_endianness);
+                packet_sequence_number= bufferManager.getBuffer().getInt(bufferManager.getBufferOffset() + offsets.packet_sequence_number_offset);
+                sending_time = bufferManager.getBuffer().getLong(bufferManager.getBufferOffset() + offsets.sending_time_offset);
+                next_offset = message_size + bufferManager.getBufferOffset() + offsets.packet_size_padding;
+                bufferManager.advanceBufferOffset(offsets.header_bytes);
 
-                final int templateId = headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferOffset);
-                final int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferOffset);
-                blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferOffset);
+                final int templateId = headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getBufferOffset());
+                final int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getBufferOffset());
+                blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferManager.getBufferOffset());
 
-                bufferOffset += headerDecoder.encodedLength();
+                bufferManager.advanceBufferOffset(headerDecoder.encodedLength());
                 Integer count = messageTypeMap.getOrDefault(templateId, 0);
                 messageTypeMap.put(templateId, count + 1);
 
                 final List<Token> msgTokens = ir.getMessage(templateId);
-                if (bufferOffset + blockLength >= fileSize) {
+                if (bufferManager.getBufferOffset() + blockLength >= fileSize) {
                     break;
                 } else {
                     TokenListener tokenListener= new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, true);
 //                    TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                     OtfMessageDecoder.decode(
                             bufferManager.getBuffer(),
-                            bufferOffset,
+                            bufferManager.getBufferOffset(),
                             actingVersion,
                             blockLength,
                             msgTokens,
