@@ -116,3 +116,8 @@ rust/car_example/target
 # Mac
 .DS_Store
 /sbe-tool/src/main/golang/uk_co_real_logic_sbe_ir_generated/
+/codemr/sbe/graphs/all_bymodularity.cmr
+/codemr/sbe/graphs/
+/codemr/sbe/html/
+/codemr/sbe/sbe.mdl
+/codemr/sbe 1/
