@@ -9,6 +9,7 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
+import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
 import uk.co.real_logic.sbe.xml.IrGenerator;
@@ -16,6 +17,7 @@ import uk.co.real_logic.sbe.xml.MessageSchema;
 import uk.co.real_logic.sbe.xml.ParserOptions;
 import uk.co.real_logic.sbe.xml.XmlSchemaParser;
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -76,26 +78,7 @@ public class ReadPcaps {
         //number of bytes to adjust the packet size to jump from on header to the next
         final int packet_size_padding;
         final ByteOrder message_size_endianness;
-        if(data_source=="ICE"){
-            starting_offset=40; //what should this be?
-            size_offset=16;
-            message_size_endianness=ByteOrder.BIG_ENDIAN;
-            packet_sequence_number_offset=42;
-            sending_time_offset=46;
-            header_bytes=56;
-            packet_size_padding=30;
-        } else {
-
-            starting_offset=0;
-            size_offset=2;
-            message_size_endianness=ByteOrder.LITTLE_ENDIAN;
-            packet_sequence_number_offset=4;
-            sending_time_offset=8;
-            header_bytes=18;
-            packet_size_padding=4;
-//            binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
-//            out_file_path = "c:/marketdata/cme_parsed_compact_short_2";
-        }
+        DataOffsets offsets= new DataOffsets("ICE");
         Writer outWriter;
         // Encode up message and schema as if we just got them off the wire.
         if(write_to_file){
@@ -130,7 +113,7 @@ public class ReadPcaps {
 
 
         // Now we have IR we can read the message header
-        int bufferOffset = starting_offset; //skip leading bytes before message capture proper
+        int bufferOffset = offsets.starting_offset; //skip leading bytes before message capture proper
         int next_offset = bufferOffset;
 
 
@@ -168,11 +151,11 @@ public class ReadPcaps {
                     System.out.println("sending_time: " + sending_time);
                 }
                 bufferOffset = next_offset;
-                int size_int = buffer.getShort(bufferOffset + size_offset, message_size_endianness);
-                packet_sequence_number= buffer.getInt(bufferOffset + packet_sequence_number_offset);
-                sending_time = buffer.getLong(bufferOffset + sending_time_offset);
-                next_offset = size_int + bufferOffset + packet_size_padding;
-                bufferOffset = bufferOffset + header_bytes;
+                int size_int = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
+                packet_sequence_number= buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
+                sending_time = buffer.getLong(bufferOffset + offsets.sending_time_offset);
+                next_offset = size_int + bufferOffset + offsets.packet_size_padding;
+                bufferOffset = bufferOffset + offsets.header_bytes;
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
