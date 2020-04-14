@@ -120,6 +120,7 @@ public class ReadPcaps {
                     System.out.println("sending_time: " + sending_time);
                 }
                 bufferOffset = next_offset;
+                System.out.print("starting buffer position " + String.valueOf(bufferOffset));
                 int message_size = bufferManager.getBuffer().getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
                 packet_sequence_number= bufferManager.getBuffer().getInt(bufferOffset + offsets.packet_sequence_number_offset);
                 sending_time = bufferManager.getBuffer().getLong(bufferOffset + offsets.sending_time_offset);
@@ -148,6 +149,7 @@ public class ReadPcaps {
                             msgTokens,
                             tokenListener);
                 }
+                System.out.print(" next buffer position" + String.valueOf(next_offset) + "\n" );
                 message_index++;
                 outWriter.flush();
                 lines_read = lines_read + 1;
