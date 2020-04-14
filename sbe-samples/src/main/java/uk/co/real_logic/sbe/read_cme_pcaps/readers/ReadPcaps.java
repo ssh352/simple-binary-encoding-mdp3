@@ -97,8 +97,8 @@ public class ReadPcaps {
         int next_offset = bufferOffset;
 
 
-
-        final PcapBufferManager bufferManager = new PcapBufferManager(offsets, encodedMsgBuffer);
+        final UnsafeBuffer buffer= new UnsafeBuffer(encodedMsgBuffer);
+        final PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer);
 
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
         int blockLength;
@@ -186,6 +186,7 @@ public class ReadPcaps {
         schema_file=Paths.get(prop.getProperty("reader.schema_file")).toString();
         run_short = Boolean.getBoolean(prop.getProperty("reader.run_short"));
         write_to_file = Boolean.getBoolean(prop.getProperty("reader.write_to_file"));
+        data_source=prop.getProperty("reader.data_source");
     }
 
 

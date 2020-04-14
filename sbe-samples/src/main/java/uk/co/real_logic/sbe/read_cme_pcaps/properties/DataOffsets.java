@@ -19,8 +19,8 @@ public class DataOffsets {
 
         public DataOffsets(String data_source){
             this.data_source = data_source;
-            if(data_source=="ICE"){
-                starting_offset=40; //what should this be?
+            if(data_source.equals("ICE")){
+                this.starting_offset=40; //what should this be?
                 size_offset=16;
                 message_size_endianness=ByteOrder.BIG_ENDIAN;
                 packet_sequence_number_offset=42;
