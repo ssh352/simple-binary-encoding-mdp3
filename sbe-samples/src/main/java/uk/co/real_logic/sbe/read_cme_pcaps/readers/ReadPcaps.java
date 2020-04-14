@@ -1,15 +1,17 @@
-package uk.co.real_logic.sbe.read_cme_pcaps;
+package uk.co.real_logic.sbe.read_cme_pcaps.readers;
 
 
 import org.agrona.concurrent.UnsafeBuffer;
 import uk.co.real_logic.sbe.otf.TokenListener;
-import uk.co.real_logic.sbe.read_cme_pcaps.CMEPcapListener;
 import uk.co.real_logic.sbe.ir.Ir;
 import uk.co.real_logic.sbe.ir.IrDecoder;
 import uk.co.real_logic.sbe.ir.IrEncoder;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
+import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
+import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
+import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.xml.IrGenerator;
 import uk.co.real_logic.sbe.xml.MessageSchema;
 import uk.co.real_logic.sbe.xml.ParserOptions;
@@ -20,10 +22,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,62 +55,25 @@ public class ReadPcaps {
    private static String schema_file;
    private static boolean run_short;
     private static boolean write_to_file;
+    private static Ir ir;
+
 
     public static void main(final String[] args) throws Exception {
         readProperties(args[0]);
-
         int message_index=0;
+        DataOffsets offsets= new DataOffsets(data_source);
 
-
-        String data_source="ICE";
-//        String data_source="CME";
-
-        //number of leading bytes for the whole file
-        final int starting_offset;
-        //byte position in packet header of the packet size
-        final int size_offset;
-        //byte position in packet header of the sending time size
-        final int packet_sequence_number_offset;
-        final int sending_time_offset;
-        //number of bytes in packet before template id
-        final int header_bytes;
-        //number of bytes to adjust the packet size to jump from on header to the next
-        final int packet_size_padding;
-        final ByteOrder message_size_endianness;
-        if(data_source=="ICE"){
-            starting_offset=40; //what should this be?
-            size_offset=16;
-            message_size_endianness=ByteOrder.BIG_ENDIAN;
-            packet_sequence_number_offset=42;
-            sending_time_offset=46;
-            header_bytes=56;
-            packet_size_padding=30;
-        } else {
-
-            starting_offset=0;
-            size_offset=2;
-            message_size_endianness=ByteOrder.LITTLE_ENDIAN;
-            packet_sequence_number_offset=4;
-            sending_time_offset=8;
-            header_bytes=18;
-            packet_size_padding=4;
-//            binary_file_path = "c:/marketdata/20191014-PCAP_316_0___0-20191014";
-//            out_file_path = "c:/marketdata/cme_parsed_compact_short_2";
-        }
         Writer outWriter;
-        // Encode up message and schema as if we just got them off the wire.
         if(write_to_file){
             outWriter=new FileWriter(out_file);
-//            outWriter.write("beginning of file");
             outWriter.flush();
         } else{
             outWriter=new PrintWriter(System.out, true);
-
         }
 
-        final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
+        ir=decodeIr();
 
-        encodeSchema(encodedSchemaBuffer, schema_file);
+        final OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure());
 
 
 
@@ -124,15 +86,12 @@ public class ReadPcaps {
 
 
         // Now lets decode the schema IR so we have IR objects.
-        encodedSchemaBuffer.flip();
-        final Ir ir = decodeIr(encodedSchemaBuffer);
 
 
-        final OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure());
 
 
         // Now we have IR we can read the message header
-        int bufferOffset = starting_offset; //skip leading bytes before message capture proper
+        int bufferOffset = offsets.starting_offset; //skip leading bytes before message capture proper
         int next_offset = bufferOffset;
 
 
@@ -170,11 +129,11 @@ public class ReadPcaps {
                     System.out.println("sending_time: " + sending_time);
                 }
                 bufferOffset = next_offset;
-                int size_int = buffer.getShort(bufferOffset + size_offset, message_size_endianness);
-                packet_sequence_number= buffer.getInt(bufferOffset + packet_sequence_number_offset);
-                sending_time = buffer.getLong(bufferOffset + sending_time_offset);
-                next_offset = size_int + bufferOffset + packet_size_padding;
-                bufferOffset = bufferOffset + header_bytes;
+                int size_int = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
+                packet_sequence_number= buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
+                sending_time = buffer.getLong(bufferOffset + offsets.sending_time_offset);
+                next_offset = size_int + bufferOffset + offsets.packet_size_padding;
+                bufferOffset = bufferOffset + offsets.header_bytes;
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
@@ -221,6 +180,7 @@ public class ReadPcaps {
         System.out.println(prop.getProperty("reader.version"));
 
         os_string= prop.getProperty("reader.os");
+        data_source= prop.getProperty("reader.data_source");
         in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
         out_file = Paths.get(prop.getProperty("reader.out_file")).toString();
 
@@ -243,10 +203,15 @@ public class ReadPcaps {
     }
 
 
-    private static Ir decodeIr(final ByteBuffer buffer) {
-        try (IrDecoder irDecoder = new IrDecoder(buffer)) {
-            return irDecoder.decode();
+    private static Ir decodeIr() throws Exception {
+        final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
+        encodeSchema(encodedSchemaBuffer, schema_file);
+        encodedSchemaBuffer.flip();
+        Ir ir;
+        try (IrDecoder irDecoder = new IrDecoder(encodedSchemaBuffer)) {
+            ir=irDecoder.decode();
         }
+        return ir;
     }
 
 
