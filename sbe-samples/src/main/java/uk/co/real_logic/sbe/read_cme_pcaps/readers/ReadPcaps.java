@@ -18,17 +18,13 @@ import uk.co.real_logic.sbe.xml.MessageSchema;
 import uk.co.real_logic.sbe.xml.ParserOptions;
 import uk.co.real_logic.sbe.xml.XmlSchemaParser;
 
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 
 public class ReadPcaps {
@@ -51,22 +47,22 @@ public class ReadPcaps {
     private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
 
     public static void main(final String[] args) throws Exception {
-        ReadPcapProperties prop=new ReadPcapProperties(args[0]);
+        ReadPcapProperties prop = new ReadPcapProperties(args[0]);
 
-        int message_index=0;
+        int message_index = 0;
 
 
-        DataOffsets offsets= new DataOffsets(prop.data_source);
+        DataOffsets offsets = new DataOffsets(prop.data_source);
         Writer outWriter;
         // Encode up message and schema as if we just got them off the wire.
 
 
-        if(prop.write_to_file){
-            outWriter=new FileWriter(prop.out_file);
+        if (prop.write_to_file) {
+            outWriter = new FileWriter(prop.out_file);
 //            outWriter.write("beginning of file");
             outWriter.flush();
-        } else{
-            outWriter=new PrintWriter(System.out, true);
+        } else {
+            outWriter = new PrintWriter(System.out, true);
 
         }
 
@@ -74,7 +70,7 @@ public class ReadPcaps {
         encodeSchema(encodedSchemaBuffer, prop.schema_file);
         RandomAccessFile aFile = new RandomAccessFile(prop.in_file, "rw");
         FileChannel inChannel = aFile.getChannel();
-        long fileSize=inChannel.size();
+        long fileSize = inChannel.size();
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
         encodedMsgBuffer.flip();  //make buffer ready for read
         // Now lets decode the schema IR so we have IR objects.
@@ -85,8 +81,7 @@ public class ReadPcaps {
         // Now we have IR we can read the message header
 
 
-
-        final UnsafeBuffer buffer= new UnsafeBuffer(encodedMsgBuffer);
+        final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
         final PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer);
 
         bufferManager.setBufferOffset(offsets.starting_offset); //skip leading bytes before message capture proper
@@ -102,28 +97,25 @@ public class ReadPcaps {
             num_lines = num_lines_short;
         }
 
-        long sending_time=0;
-        long packet_sequence_number=0;
-        int lines_read=0;
+        long sending_time;
+        long packet_sequence_number = 0;
+        int lines_read = 0;
 
 
         while (bufferManager.nextOffsetValid()) {
             bufferManager.incrementPacket();
-            System.out.print("starting buffer position " + String.valueOf(bufferManager.getBufferOffset()));
-            if(lines_read >= num_lines ){
-                System.out.println("Read " + num_lines +" lines");
+            System.out.print("starting buffer position " + bufferManager.getBufferOffset());
+            if (lines_read >= num_lines) {
+                System.out.println("Read " + num_lines + " lines");
                 break;
             }
             try {
 
 
-                if((lines_read*1.0/10000==lines_read/10000) ){
-                    System.out.println(lines_read);
-                    System.out.println("sending_time: " + sending_time);
-                }
-//                bufferManager.setBufferOffset(bufferManager.next_offset());
-                packet_sequence_number= bufferManager.packet_sequence_number();
+                packet_sequence_number = bufferManager.packet_sequence_number();
                 sending_time = bufferManager.sending_time();
+
+                printSendingTimeProgress(sending_time, lines_read);
 
                 final int templateId = headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
                 final int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
@@ -134,34 +126,36 @@ public class ReadPcaps {
                 messageTypeMap.put(templateId, count + 1);
 
                 final List<Token> msgTokens = ir.getMessage(templateId);
-                if (bufferManager.getBufferOffset() + blockLength >= fileSize) {
-                    break;
-                } else {
-                    TokenListener tokenListener= new CompactTokenListener(outWriter, message_index,  packet_sequence_number, sending_time, templateId, true);
-//                    TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
-                    OtfMessageDecoder.decode(
+                TokenListener tokenListener = new CompactTokenListener(outWriter, message_index, packet_sequence_number, sending_time, templateId, true);
+//                TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
+                OtfMessageDecoder.decode(
                             bufferManager.getBuffer(),
                             bufferManager.getTokenOffset(),
                             actingVersion,
                             blockLength,
                             msgTokens,
                             tokenListener);
-                }
                 message_index++;
                 outWriter.flush();
                 lines_read = lines_read + 1;
-            } catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("read next message failed");
                 outWriter.flush();
             }
 
-            System.out.print(" next buffer position " + String.valueOf(bufferManager.next_offset()) + "\n" );
+            System.out.print(" next buffer position " + bufferManager.next_offset() + "\n");
         }
         outWriter.close();
         inChannel.close();
     }
 
+    private static void printSendingTimeProgress(long sending_time, int lines_read) {
+        if ((lines_read * 1.0 / 10000 == lines_read / 10000)) {
+            System.out.println(lines_read);
+            System.out.println("sending_time: " + sending_time);
+        }
+    }
 
 
     private static void encodeSchema(final ByteBuffer byteBuffer, String schema_file) throws Exception {

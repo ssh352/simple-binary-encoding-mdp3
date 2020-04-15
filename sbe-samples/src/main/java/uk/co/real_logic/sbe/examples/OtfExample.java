@@ -29,22 +29,22 @@ import uk.co.real_logic.sbe.xml.MessageSchema;
 import uk.co.real_logic.sbe.xml.ParserOptions;
 import uk.co.real_logic.sbe.xml.XmlSchemaParser;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class OtfExample
-{
+public class OtfExample {
     private static final MessageHeaderEncoder HEADER_ENCODER = new MessageHeaderEncoder();
     private static final CarEncoder CAR_ENCODER = new CarEncoder();
     private static final int MSG_BUFFER_CAPACITY = 4 * 1024;
     private static final int SCHEMA_BUFFER_CAPACITY = 16 * 1024;
 
-    public static void main(final String[] args) throws Exception
-    {
+    public static void main(final String[] args) throws Exception {
         System.out.println("\n*** OTF Example ***\n");
 
         // Encode up message and schema as if we just got them off the wire.
@@ -78,35 +78,30 @@ public class OtfExample
         final List<Token> msgTokens = ir.getMessage(templateId);
 
         bufferOffset = OtfMessageDecoder.decode(
-            buffer,
-            bufferOffset,
-            actingVersion,
-            blockLength,
-            msgTokens,
-            new ExampleTokenListener(new PrintWriter(System.out, true)));
+                buffer,
+                bufferOffset,
+                actingVersion,
+                blockLength,
+                msgTokens,
+                new ExampleTokenListener(new PrintWriter(System.out, true)));
 
-        if (bufferOffset != encodedMsgBuffer.position())
-        {
+        if (bufferOffset != encodedMsgBuffer.position()) {
             throw new IllegalStateException("Message not fully decoded");
         }
     }
 
-    private static void encodeSchema(final ByteBuffer byteBuffer) throws Exception
-    {
+    private static void encodeSchema(final ByteBuffer byteBuffer) throws Exception {
         final Path path = Paths.get("example-schema.xml");
-        try (InputStream in = new BufferedInputStream(Files.newInputStream(path)))
-        {
+        try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {
             final MessageSchema schema = XmlSchemaParser.parse(in, ParserOptions.DEFAULT);
             final Ir ir = new IrGenerator().generate(schema);
-            try (IrEncoder irEncoder = new IrEncoder(byteBuffer, ir))
-            {
+            try (IrEncoder irEncoder = new IrEncoder(byteBuffer, ir)) {
                 irEncoder.encode();
             }
         }
     }
 
-    private static void encodeTestMessage(final ByteBuffer byteBuffer)
-    {
+    private static void encodeTestMessage(final ByteBuffer byteBuffer) {
         final UnsafeBuffer buffer = new UnsafeBuffer(byteBuffer);
 
         final int encodedLength = ExampleUsingGeneratedStub.encode(CAR_ENCODER, buffer, HEADER_ENCODER);
@@ -114,10 +109,8 @@ public class OtfExample
         byteBuffer.position(encodedLength);
     }
 
-    private static Ir decodeIr(final ByteBuffer buffer)
-    {
-        try (IrDecoder irDecoder = new IrDecoder(buffer))
-        {
+    private static Ir decodeIr(final ByteBuffer buffer) {
+        try (IrDecoder irDecoder = new IrDecoder(buffer)) {
             return irDecoder.decode();
         }
     }

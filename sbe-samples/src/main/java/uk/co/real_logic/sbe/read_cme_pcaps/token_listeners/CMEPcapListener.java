@@ -29,43 +29,86 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class CMEPcapListener implements TokenListener
-{
-    private int compositeLevel = 0;
+public class CMEPcapListener implements TokenListener {
     private final PrintWriter out;
     private final Deque<String> namedScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
+    CharSequence transact_time;
+    private int compositeLevel = 0;
     private boolean verbose;
     private long sending_time;
-    CharSequence transact_time;
 
-    public CMEPcapListener(final PrintWriter out)
-    {
-        this.verbose=true;
+    public CMEPcapListener(final PrintWriter out) {
+        this.verbose = true;
         this.out = out;
     }
 
 
-    public CMEPcapListener(final PrintWriter out, boolean verbose, long sending_time)
-    {
-        this.sending_time=sending_time;
-        this.verbose=verbose;
+    public CMEPcapListener(final PrintWriter out, boolean verbose, long sending_time) {
+        this.sending_time = sending_time;
+        this.verbose = verbose;
         this.out = out;
     }
 
-    public void PrintSendingTime(){
+    private static CharSequence readEncodingAsString(
+            final DirectBuffer buffer, final int index, final Token typeToken, final int actingVersion) {
+        final PrimitiveValue constOrNotPresentValue = constOrNotPresentValue(typeToken, actingVersion);
+        if (null != constOrNotPresentValue) {
+            if (constOrNotPresentValue.size() == 1) {
+                final byte[] bytes = {(byte) constOrNotPresentValue.longValue()};
+                //            System.out.println((bytes[0]));
+                //           System.out.println((constOrNotPresentValue.characterEncoding()));
+                return new String(bytes, UTF_8);
+            } else {
+                return constOrNotPresentValue.toString();
+            }
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        final Encoding encoding = typeToken.encoding();
+        final int elementSize = encoding.primitiveType().size();
+
+        for (int i = 0, size = typeToken.arrayLength(); i < size; i++) {
+            Types.appendAsString(sb, buffer, index + (i * elementSize), encoding);
+            sb.append(", ");
+        }
+
+        sb.setLength(sb.length() - 2);
+
+        return sb;
+    }
+
+    private static long readEncodingAsLong(
+            final DirectBuffer buffer, final int bufferIndex, final Token typeToken, final int actingVersion) {
+        final PrimitiveValue constOrNotPresentValue = constOrNotPresentValue(typeToken, actingVersion);
+        if (null != constOrNotPresentValue) {
+            return constOrNotPresentValue.longValue();
+        }
+
+        return Types.getLong(buffer, bufferIndex, typeToken.encoding());
+    }
+
+    private static PrimitiveValue constOrNotPresentValue(final Token token, final int actingVersion) {
+        if (token.isConstantEncoding()) {
+            return token.encoding().constValue();
+        } else if (token.isOptionalEncoding() && actingVersion < token.version()) {
+            return token.encoding().applicableNullValue();
+        }
+
+        return null;
+    }
+
+    public void PrintSendingTime() {
         out.print("sending_time: " + sending_time + " transact_time:" + transact_time);
     }
 
-    public void onBeginMessage(final Token token)
-    {
+    public void onBeginMessage(final Token token) {
         namedScope.push(token.name() + ".");
     }
 
-    public void onEndMessage(final Token token)
-    {
+    public void onEndMessage(final Token token) {
         namedScope.pop();
     }
 
@@ -74,8 +117,7 @@ public class CMEPcapListener implements TokenListener
             final DirectBuffer buffer,
             final int index,
             final Token typeToken,
-            final int actingVersion)
-    {
+            final int actingVersion) {
         final CharSequence value = readEncodingAsString(buffer, index, typeToken, actingVersion);
 
         printScope();
@@ -92,24 +134,18 @@ public class CMEPcapListener implements TokenListener
             final List<Token> tokens,
             final int beginIndex,
             final int endIndex,
-            final int actingVersion)
-    {
+            final int actingVersion) {
         final Token typeToken = tokens.get(beginIndex + 1);
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
         String value = null;
-        if (fieldToken.isConstantEncoding())
-        {
+        if (fieldToken.isConstantEncoding()) {
             final String refValue = fieldToken.encoding().constValue().toString();
             final int indexOfDot = refValue.indexOf('.');
             value = -1 == indexOfDot ? refValue : refValue.substring(indexOfDot + 1);
-        }
-        else
-        {
-            for (int i = beginIndex + 1; i < endIndex; i++)
-            {
-                if (encodedValue == tokens.get(i).encoding().constValue().longValue())
-                {
+        } else {
+            for (int i = beginIndex + 1; i < endIndex; i++) {
+                if (encodedValue == tokens.get(i).encoding().constValue().longValue()) {
                     value = tokens.get(i).name();
                     break;
                 }
@@ -130,16 +166,14 @@ public class CMEPcapListener implements TokenListener
             final List<Token> tokens,
             final int beginIndex,
             final int endIndex,
-            final int actingVersion)
-    {
+            final int actingVersion) {
         final Token typeToken = tokens.get(beginIndex + 1);
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
         printScope();
         out.append(determineName(0, fieldToken, tokens, beginIndex)).append(':');
 
-        for (int i = beginIndex + 1; i < endIndex; i++)
-        {
+        for (int i = beginIndex + 1; i < endIndex; i++) {
             out.append(' ').append(tokens.get(i).name()).append('=');
 
             final long bitPosition = tokens.get(i).encoding().constValue().longValue();
@@ -152,22 +186,19 @@ public class CMEPcapListener implements TokenListener
     }
 
     public void onBeginComposite(
-            final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex)
-    {
+            final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
         ++compositeLevel;
 
         namedScope.push(determineName(1, fieldToken, tokens, fromIndex) + ".");
     }
 
-    public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex)
-    {
+    public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
         --compositeLevel;
 
         namedScope.pop();
     }
 
-    public void onGroupHeader(final Token token, final int numInGroup)
-    {
+    public void onGroupHeader(final Token token, final int numInGroup) {
         printScope();
         out.append(token.name())
                 .append(" Group Header : numInGroup=")
@@ -175,13 +206,11 @@ public class CMEPcapListener implements TokenListener
                 .println();
     }
 
-    public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup)
-    {
+    public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
         namedScope.push(token.name() + ".");
     }
 
-    public void onEndGroup(final Token token, final int groupIndex, final int numInGroup)
-    {
+    public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
         namedScope.pop();
     }
 
@@ -190,24 +219,17 @@ public class CMEPcapListener implements TokenListener
             final DirectBuffer buffer,
             final int bufferIndex,
             final int length,
-            final Token typeToken)
-    {
+            final Token typeToken) {
         final String value;
-        try
-        {
+        try {
             final String characterEncoding = typeToken.encoding().characterEncoding();
-            if (null == characterEncoding)
-            {
+            if (null == characterEncoding) {
                 value = length + " bytes of raw data";
-            }
-            else
-            {
+            } else {
                 buffer.getBytes(bufferIndex, tempBuffer, 0, length);
                 value = new String(tempBuffer, 0, length, characterEncoding);
             }
-        }
-        catch (final UnsupportedEncodingException ex)
-        {
+        } catch (final UnsupportedEncodingException ex) {
             ex.printStackTrace();
             return;
         }
@@ -220,83 +242,17 @@ public class CMEPcapListener implements TokenListener
     }
 
     private String determineName(
-            final int thresholdLevel, final Token fieldToken, final List<Token> tokens, final int fromIndex)
-    {
-        if (compositeLevel > thresholdLevel)
-        {
+            final int thresholdLevel, final Token fieldToken, final List<Token> tokens, final int fromIndex) {
+        if (compositeLevel > thresholdLevel) {
             return tokens.get(fromIndex).name();
-        }
-        else
-        {
+        } else {
             return fieldToken.name();
         }
     }
 
-    private static CharSequence readEncodingAsString(
-            final DirectBuffer buffer, final int index, final Token typeToken, final int actingVersion)
-    {
-        final PrimitiveValue constOrNotPresentValue = constOrNotPresentValue(typeToken, actingVersion);
-        if (null != constOrNotPresentValue)
-        {
-            if (constOrNotPresentValue.size() == 1)
-            {
-                final byte[] bytes = { (byte)constOrNotPresentValue.longValue() };
-                //            System.out.println((bytes[0]));
-                //           System.out.println((constOrNotPresentValue.characterEncoding()));
-                return new String(bytes, UTF_8);
-            }
-            else
-            {
-                return constOrNotPresentValue.toString();
-            }
-        }
-
-        final StringBuilder sb = new StringBuilder();
-        final Encoding encoding = typeToken.encoding();
-        final int elementSize = encoding.primitiveType().size();
-
-        for (int i = 0, size = typeToken.arrayLength(); i < size; i++)
-        {
-            Types.appendAsString(sb, buffer, index + (i * elementSize), encoding);
-            sb.append(", ");
-        }
-
-        sb.setLength(sb.length() - 2);
-
-        return sb;
-    }
-
-    private static long readEncodingAsLong(
-            final DirectBuffer buffer, final int bufferIndex, final Token typeToken, final int actingVersion)
-    {
-        final PrimitiveValue constOrNotPresentValue = constOrNotPresentValue(typeToken, actingVersion);
-        if (null != constOrNotPresentValue)
-        {
-            return constOrNotPresentValue.longValue();
-        }
-
-        return Types.getLong(buffer, bufferIndex, typeToken.encoding());
-    }
-
-    private static PrimitiveValue constOrNotPresentValue(final Token token, final int actingVersion)
-    {
-        if (token.isConstantEncoding())
-        {
-            return token.encoding().constValue();
-        }
-        else if (token.isOptionalEncoding() && actingVersion < token.version())
-        {
-            return token.encoding().applicableNullValue();
-        }
-
-        return null;
-    }
-
-    private void printScope()
-    {
+    private void printScope() {
         final Iterator<String> i = namedScope.descendingIterator();
-        while (i.hasNext())
-        {
+        while (i.hasNext()) {
             out.print(i.next());
         }
     }

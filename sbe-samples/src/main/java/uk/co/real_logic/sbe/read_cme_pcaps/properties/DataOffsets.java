@@ -17,26 +17,26 @@ public class DataOffsets {
     public final String data_source;
     public final ByteOrder message_size_endianness;
 
-        public DataOffsets(String data_source){//todo: change data source to enum
-            this.data_source = data_source;
-            if(data_source.equals("ICE")){
-                this.starting_offset=40; //what should this be?
-                size_offset=16;
-                message_size_endianness=ByteOrder.BIG_ENDIAN;
-                packet_sequence_number_offset=42;
-                sending_time_offset=46;
-                header_bytes=56;
-                packet_size_padding=30;
-            } else {
+    public DataOffsets(String data_source) {//todo: change data source to enum
+        this.data_source = data_source;
+        if (data_source.equals("ICE")) {
+            this.starting_offset = 40; //what should this be?
+            size_offset = 16;
+            message_size_endianness = ByteOrder.BIG_ENDIAN;
+            packet_sequence_number_offset = 42;
+            sending_time_offset = 46;
+            header_bytes = 56;
+            packet_size_padding = 30;
+        } else {
 
-                starting_offset=0;
-                size_offset=2;
-                message_size_endianness=ByteOrder.LITTLE_ENDIAN;
-                packet_sequence_number_offset=4;
-                sending_time_offset=8;
-                header_bytes=18;
-                packet_size_padding=4;
-            }
+            starting_offset = 0;
+            size_offset = 2;
+            message_size_endianness = ByteOrder.LITTLE_ENDIAN;
+            packet_sequence_number_offset = 4;
+            sending_time_offset = 8;
+            header_bytes = 18;
+            packet_size_padding = 4;
         }
+    }
 
 }
