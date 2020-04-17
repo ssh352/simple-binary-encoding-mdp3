@@ -21,6 +21,7 @@ import uk.co.real_logic.sbe.ir.Encoding;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.otf.Types;
+import uk.co.real_logic.sbe.read_cme_pcaps.tablebulders.RowCounter;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -39,7 +40,7 @@ public class CompactTokenListener implements TokenListener {
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
     CharSequence transact_time = null;
-    long message_count;
+    RowCounter row_counter;
     long group_header_count = 0;
     long group_element_count = 0;
     boolean include_value_labels = true;
@@ -49,11 +50,11 @@ public class CompactTokenListener implements TokenListener {
     private long packet_sequence_number;
     private long sending_time;
 
-    public CompactTokenListener(final Writer out, long message_count, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
+    public CompactTokenListener(final Writer out, RowCounter row_counter, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
         this.template_id = template_id;
         this.sending_time = sending_time;
         this.packet_sequence_number = packet_sequence_number;
-        this.message_count = message_count;
+        this.row_counter = row_counter;
         this.out = out;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
@@ -313,7 +314,7 @@ public class CompactTokenListener implements TokenListener {
 
     private void writeRow(RowType row_type) {
 
-        writerOut(message_count);
+        writerOut(this.row_counter.get_row_count());
         writerOut(", ");
         writerOut(group_header_count);
         writerOut(", ");
