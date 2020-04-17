@@ -35,7 +35,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class CompactTokenListener implements TokenListener {
     static long event_count = 0;
-    private final int template_id;
     private final Writer out;
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
@@ -47,13 +46,8 @@ public class CompactTokenListener implements TokenListener {
     boolean transact_time_found = false;
     boolean print_full_scope;
     private int compositeLevel = 0;
-    private long packet_sequence_number;
-    private long sending_time;
 
-    public CompactTokenListener(final Writer out, RowCounter row_counter, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
-        this.template_id = template_id;
-        this.sending_time = sending_time;
-        this.packet_sequence_number = packet_sequence_number;
+    public CompactTokenListener(final Writer out, RowCounter row_counter,  boolean include_value_labels) {
         this.row_counter = row_counter;
         this.out = out;
         this.include_value_labels = include_value_labels;
@@ -307,9 +301,10 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void writeTimestamps() {
-        String packet_sequence_number_string = String.format("%d", packet_sequence_number);
+        String packet_sequence_number_string = String.format("%d", row_counter.getPacketSequenceNumber());
         String event_count_string = String.format("%d", event_count);
-        writerOut(", " + template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + sending_time + ", " + transact_time);
+        writerOut(", " + row_counter.getTemplateId() + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + row_counter.getSending_time() + ", " + transact_time);
+        row_counter.increment_row_count();
     }
 
     private void writeRow(RowType row_type) {

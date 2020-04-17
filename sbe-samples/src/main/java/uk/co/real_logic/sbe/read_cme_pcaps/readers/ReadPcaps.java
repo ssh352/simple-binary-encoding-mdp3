@@ -113,21 +113,21 @@ public class ReadPcaps {
             try {
 
 
-                packet_sequence_number = bufferManager.packet_sequence_number();
-                sending_time = bufferManager.sending_time();
+                rowCounter.setPacketSequenceNumber(bufferManager.packet_sequence_number());
+                rowCounter.setSending_time(bufferManager.sending_time());
 
-                printSendingTimeProgress(sending_time, lines_read);
+                printSendingTimeProgress(rowCounter.getSending_time(), lines_read);
 
-                final int templateId = headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
+                rowCounter.setTemplateId(headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getHeaderOffset()));
                 final int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
                 blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
 
                 bufferManager.setTokenOffset(headerDecoder.encodedLength());
-                Integer count = messageTypeMap.getOrDefault(templateId, 0);
-                messageTypeMap.put(templateId, count + 1);
+                Integer count = messageTypeMap.getOrDefault(rowCounter.getTemplateId(), 0);
+                messageTypeMap.put(rowCounter.getTemplateId(), count + 1);
 
-                final List<Token> msgTokens = ir.getMessage(templateId);
-                TokenListener tokenListener = new CompactTokenListener(outWriter,rowCounter, packet_sequence_number, sending_time, templateId, true);
+                final List<Token> msgTokens = ir.getMessage(rowCounter.getTemplateId());
+                TokenListener tokenListener = new CompactTokenListener(outWriter,rowCounter, true);
 //                TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                 OtfMessageDecoder.decode(
                             bufferManager.getBuffer(),
@@ -136,7 +136,6 @@ public class ReadPcaps {
                             blockLength,
                             msgTokens,
                             tokenListener);
-                rowCounter.increment_row_count();
                 outWriter.flush();
                 lines_read = lines_read + 1;
             } catch (Exception e) {
