@@ -93,7 +93,7 @@ public class ReadPcaps {
 
 
         long num_lines = 500000000;
-        int num_lines_short = 500000; //only run through part of buffer for debugging purposes
+        int num_lines_short = 50000; //only run through part of buffer for debugging purposes
         if (prop.run_short) {
             num_lines = num_lines_short;
         }
@@ -105,9 +105,9 @@ public class ReadPcaps {
 
         while (bufferManager.nextOffsetValid()) {
             bufferManager.incrementPacket();
-//            System.out.print("starting buffer position " + bufferManager.getBufferOffset());
-            if (lines_read >= num_lines) {
-                System.out.println("Read " + num_lines + " lines");
+//            System.out.print("starting buffer position " + String.valueOf(bufferManager.getBufferOffset()));
+            if(lines_read >= num_lines ){
+                System.out.println("Read " + num_lines +" lines");
                 break;
             }
             try {
@@ -145,6 +145,7 @@ public class ReadPcaps {
                 outWriter.flush();
             }
 
+  //          System.out.print(" next buffer position " + String.valueOf(bufferManager.next_offset()) + "\n" );
         }
         outWriter.close();
         inChannel.close();

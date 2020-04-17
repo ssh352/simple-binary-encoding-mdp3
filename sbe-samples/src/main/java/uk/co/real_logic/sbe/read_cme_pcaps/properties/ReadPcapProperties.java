@@ -40,9 +40,10 @@ public class ReadPcapProperties {
         in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
         out_file = Paths.get(prop.getProperty("reader.out_file")).toString();
 
-        schema_file = Paths.get(prop.getProperty("reader.schema_file")).toString();
-        run_short = Boolean.getBoolean(prop.getProperty("reader.run_short"));
-        String write_to_file_string = prop.getProperty("reader.write_to_file");
+        schema_file=Paths.get(prop.getProperty("reader.schema_file")).toString();
+        String run_short_string = prop.getProperty("reader.run_short");
+        run_short = Boolean.parseBoolean(run_short_string);
+        String write_to_file_string=prop.getProperty("reader.write_to_file");
 
         write_to_file = Boolean.parseBoolean(write_to_file_string);
         data_source = prop.getProperty("reader.data_source");
