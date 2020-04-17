@@ -126,7 +126,7 @@ public class ReadPcaps {
                 messageTypeMap.put(templateId, count + 1);
 
                 final List<Token> msgTokens = ir.getMessage(templateId);
-                TokenListener tokenListener = new CompactTokenListener(outWriter, message_index, packet_sequence_number, sending_time, templateId, true);
+                TokenListener tokenListener = new CompactTokenListener(outWriter, me, packet_sequence_number, sending_time, templateId, true);
 //                TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                 OtfMessageDecoder.decode(
                             bufferManager.getBuffer(),
