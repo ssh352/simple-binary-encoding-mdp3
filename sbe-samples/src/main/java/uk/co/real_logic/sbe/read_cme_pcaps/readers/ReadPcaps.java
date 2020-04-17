@@ -12,6 +12,7 @@ import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.stream_managers.PcapBufferManager;
+import uk.co.real_logic.sbe.read_cme_pcaps.tablebulders.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
 import uk.co.real_logic.sbe.xml.IrGenerator;
 import uk.co.real_logic.sbe.xml.MessageSchema;
@@ -49,7 +50,7 @@ public class ReadPcaps {
     public static void main(final String[] args) throws Exception {
         ReadPcapProperties prop = new ReadPcapProperties(args[0]);
 
-        int message_index = 0;
+        RowCounter rowCounter = new RowCounter();
 
 
         DataOffsets offsets = new DataOffsets(prop.data_source);
@@ -104,7 +105,7 @@ public class ReadPcaps {
 
         while (bufferManager.nextOffsetValid()) {
             bufferManager.incrementPacket();
-            System.out.print("starting buffer position " + bufferManager.getBufferOffset());
+//            System.out.print("starting buffer position " + bufferManager.getBufferOffset());
             if (lines_read >= num_lines) {
                 System.out.println("Read " + num_lines + " lines");
                 break;
@@ -126,7 +127,7 @@ public class ReadPcaps {
                 messageTypeMap.put(templateId, count + 1);
 
                 final List<Token> msgTokens = ir.getMessage(templateId);
-                TokenListener tokenListener = new CompactTokenListener(outWriter, me, packet_sequence_number, sending_time, templateId, true);
+                TokenListener tokenListener = new CompactTokenListener(outWriter,rowCounter, packet_sequence_number, sending_time, templateId, true);
 //                TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                 OtfMessageDecoder.decode(
                             bufferManager.getBuffer(),
@@ -135,7 +136,7 @@ public class ReadPcaps {
                             blockLength,
                             msgTokens,
                             tokenListener);
-                message_index++;
+                rowCounter.increment_row_count();
                 outWriter.flush();
                 lines_read = lines_read + 1;
             } catch (Exception e) {
@@ -144,7 +145,6 @@ public class ReadPcaps {
                 outWriter.flush();
             }
 
-            System.out.print(" next buffer position " + bufferManager.next_offset() + "\n");
         }
         outWriter.close();
         inChannel.close();
