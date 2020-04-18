@@ -23,9 +23,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 public class ReadPcaps {
@@ -50,7 +48,7 @@ public class ReadPcaps {
     public static void main(String[] args) throws Exception {
         ReadPcapProperties prop = new ReadPcapProperties(args[0]);
 
-        RowCounter rowCounter = new RowCounter();
+        RowCounter row_counter = new RowCounter();
 
 
         DataOffsets offsets = new DataOffsets(prop.data_source);
@@ -75,31 +73,28 @@ public class ReadPcaps {
 
         UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
 
-        final long max_lines_to_process = getNumLines(prop);
-        PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer, max_lines_to_process);
+        final long max_buffers_to_process= getNumLines(prop);
+        PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer, max_buffers_to_process);
 
         bufferManager.setBufferOffset(offsets.starting_offset); //skip leading bytes before message capture proper
 
-        final Map<Integer, Integer> messageTypeMap = new HashMap<>();
         int blockLength;
 
-        while (bufferManager.nextOffsetValid()) {
+        while (bufferManager.processNextOffset()) {
             try {
 
-                rowCounter.setPacketSequenceNumber(bufferManager.packet_sequence_number());
-                rowCounter.setSending_time(bufferManager.sending_time());
+                row_counter.setPacketSequenceNumber(bufferManager.packet_sequence_number());
+                row_counter.setSending_time(bufferManager.sending_time());
 
 
-                rowCounter.setTemplateId(headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getHeaderOffset()));
+                row_counter.setTemplateId(headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getHeaderOffset()));
                 int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
                 blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
 
                 bufferManager.setTokenOffset(headerDecoder.encodedLength());
-                final Integer count = messageTypeMap.getOrDefault(rowCounter.getTemplateId(), 0);
-                messageTypeMap.put(rowCounter.getTemplateId(), count + 1);
 
-                List<Token> msgTokens = ir.getMessage(rowCounter.getTemplateId());
-                final TokenListener tokenListener = new CompactTokenListener(outWriter,rowCounter, true);
+                List<Token> msgTokens = ir.getMessage(row_counter.getTemplateId());
+                final TokenListener tokenListener = new CompactTokenListener(outWriter,row_counter, true);
 //                TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                 OtfMessageDecoder.decode(
                             bufferManager.getBuffer(),
@@ -109,6 +104,7 @@ public class ReadPcaps {
                             msgTokens,
                             tokenListener);
                 outWriter.flush();
+                row_counter.increment_row_count();
             } catch (final Exception e) {
                 e.printStackTrace();
                 System.out.println("read next message failed");
@@ -136,7 +132,7 @@ public class ReadPcaps {
 
     private static long getNumLines(final ReadPcapProperties prop) {
         long num_lines = 500000000;
-        final int num_lines_short = 50000; //only run through part of buffer for debugging purposes
+        final int num_lines_short = 5000; //only run through part of buffer for debugging purposes
         if (prop.run_short) {
             num_lines = num_lines_short;
         }
