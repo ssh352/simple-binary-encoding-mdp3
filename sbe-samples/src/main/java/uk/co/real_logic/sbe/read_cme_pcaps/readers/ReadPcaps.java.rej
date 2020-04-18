@@ -1,9 +1,0 @@
-diff a/sbe-samples/src/main/java/uk/co/real_logic/sbe/read_cme_pcaps/readers/ReadPcaps.java b/sbe-samples/src/main/java/uk/co/real_logic/sbe/read_cme_pcaps/readers/ReadPcaps.java	(rejected hunks)
-@@ -12,6 +12,7 @@
- import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
- import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
- import uk.co.real_logic.sbe.read_cme_pcaps.stream_managers.PcapBufferManager;
-+import uk.co.real_logic.sbe.read_cme_pcaps.tablebulders.RowCounter;
- import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
- import uk.co.real_logic.sbe.xml.IrGenerator;
- import uk.co.real_logic.sbe.xml.MessageSchema;

@@ -83,23 +83,17 @@ public class ReadPcaps {
 
 
         final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
-        final PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer);
+
+        long num_lines = getNumLines(prop);
+        final PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer, num_lines);
 
         bufferManager.setBufferOffset(offsets.starting_offset); //skip leading bytes before message capture proper
-//        int next_offset = bufferManager.getBufferOffset();
 
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
         int blockLength;
 
 
-        long num_lines = 500000000;
-        int num_lines_short = 50000; //only run through part of buffer for debugging purposes
-        if (prop.run_short) {
-            num_lines = num_lines_short;
-        }
 
-        long sending_time;
-        long packet_sequence_number = 0;
         int lines_read = 0;
 
 
@@ -148,6 +142,15 @@ public class ReadPcaps {
         }
         outWriter.close();
         inChannel.close();
+    }
+
+    private static long getNumLines(ReadPcapProperties prop) {
+        long num_lines = 500000000;
+        int num_lines_short = 50000; //only run through part of buffer for debugging purposes
+        if (prop.run_short) {
+            num_lines = num_lines_short;
+        }
+        return num_lines;
     }
 
     private static void printSendingTimeProgress(long sending_time, int lines_read) {
