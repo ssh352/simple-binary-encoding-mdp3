@@ -17,8 +17,8 @@ public class DataOffsets {
     public final String data_source;
     public final ByteOrder message_size_endianness;
 
-    public DataOffsets(String data_source) {//todo: change data source to enum
-        this.data_source = data_source;
+    public DataOffsets(ReadPcapProperties prop) {//todo: change data source to enum
+        data_source = prop.data_source;
         if (data_source.equals("ICE")) {
             this.starting_offset = 40; //what should this be?
             size_offset = 16;
