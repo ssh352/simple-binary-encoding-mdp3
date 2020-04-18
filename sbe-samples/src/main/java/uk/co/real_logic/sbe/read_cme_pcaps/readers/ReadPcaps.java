@@ -9,6 +9,7 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
+import uk.co.real_logic.sbe.read_cme_pcaps.MessageProcessorInputs;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.stream_managers.PcapBufferManager;
@@ -27,22 +28,6 @@ import java.util.List;
 
 
 public class ReadPcaps {
-    /*
-     * Copyright 2013-2019 Real Logic Ltd.
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     * https://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-//    private static final int MSG_BUFFER_CAPACITY = 1000000 * 1024;
     private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
 
     public static void main(String[] args) throws Exception {
@@ -60,8 +45,9 @@ public class ReadPcaps {
         OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure()); // todo make obect that initializes both header decoder and ir decoder
 
         PcapBufferManager bufferManager = initializeBufferManager(prop, offsets); //todo put this function in constructor of buffer manager
-
-        processMessages(row_counter, outWriter, ir, headerDecoder, bufferManager);
+        MessageProcessorInputs message_processor_inputs = new MessageProcessorInputs(row_counter, headerDecoder, ir, bufferManager);
+        processMessages(message_processor_inputs, outWriter);
+//        processMessages(, outWriter, ir, headerDecoder, bufferManager);
         outWriter.close();
     }
 
@@ -76,19 +62,25 @@ public class ReadPcaps {
         return bufferManager;
     }
 
-    private static void processMessages(RowCounter row_counter, Writer outWriter, Ir ir, OtfHeaderDecoder headerDecoder, PcapBufferManager bufferManager) throws IOException {
+    private static void processMessages(MessageProcessorInputs message_processor_inputs, Writer outWriter) throws IOException {
+        //private static void processMessages(RowCounter row_counter, Writer outWriter, Ir ir, OtfHeaderDecoder headerDecoder, PcapBufferManager bufferManager) throws IOException {
+        RowCounter row_counter = message_processor_inputs.row_counter;
+        OtfHeaderDecoder header_decoder = message_processor_inputs.header_decoder;
+        PcapBufferManager pcap_buffer_manager = message_processor_inputs.pcap_buffer_manager;
+        Ir ir = message_processor_inputs.ir;
+
         int blockLength;
-        while (bufferManager.processNextOffset()) {
+        while (pcap_buffer_manager.processNextOffset()) {
             try {
 
-                setBufferProperties(row_counter, headerDecoder, bufferManager);
-                int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
-                blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
-                bufferManager.setTokenOffset(headerDecoder.encodedLength());
+                setBufferProperties(row_counter, header_decoder, pcap_buffer_manager);
+                int actingVersion = header_decoder.getSchemaVersion(pcap_buffer_manager.getBuffer(), pcap_buffer_manager.getHeaderOffset());
+                blockLength = header_decoder.getBlockLength(pcap_buffer_manager.getBuffer(), pcap_buffer_manager.getHeaderOffset());
+                pcap_buffer_manager.setTokenOffset(header_decoder.encodedLength());
 
                 List<Token> msgTokens = ir.getMessage(row_counter.getTemplateId());
                 final TokenListener tokenListener = new CompactTokenListener(outWriter,row_counter, true);
-                decodeMessage(bufferManager, blockLength, actingVersion, msgTokens, tokenListener);
+                decodeMessage(pcap_buffer_manager, blockLength, actingVersion, msgTokens, tokenListener);
                 outWriter.flush();
                 row_counter.increment_row_count();
             } catch (final Exception e) {
