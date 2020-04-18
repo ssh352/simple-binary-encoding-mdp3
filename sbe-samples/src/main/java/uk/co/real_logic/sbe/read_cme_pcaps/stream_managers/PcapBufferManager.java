@@ -2,6 +2,7 @@ package uk.co.real_logic.sbe.read_cme_pcaps.stream_managers;
 
 import org.agrona.concurrent.UnsafeBuffer;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
+import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 
 public class PcapBufferManager {
     private static DataOffsets offsets;
@@ -12,10 +13,11 @@ public class PcapBufferManager {
     private int token_offset;
     final private long max_buffers_to_process;
     private long buffers_processed =0;
+    private ReadPcapProperties prop;
 
-
-    public PcapBufferManager(DataOffsets offsets, UnsafeBuffer buffer, long max_buffers_to_process) {
-        this.max_buffers_to_process =max_buffers_to_process;
+    public PcapBufferManager(ReadPcapProperties prop, DataOffsets offsets, UnsafeBuffer buffer) {
+        this.prop = prop;
+        this.max_buffers_to_process = getNumLines();
         this.buffer = buffer;
         PcapBufferManager.offsets = offsets;
     }
@@ -84,6 +86,17 @@ public class PcapBufferManager {
     public int next_offset() {
         return this.next_offset;
     }
+
+
+    private long getNumLines() {
+        long num_lines = 500000000;
+        final int num_lines_short = 5000; //only run through part of buffer for debugging purposes
+        if (this.prop.run_short) {
+            num_lines = num_lines_short;
+        }
+        return num_lines;
+    }
+
 
 
 }

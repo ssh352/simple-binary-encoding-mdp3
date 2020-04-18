@@ -15,7 +15,7 @@ public class ReadPcapProperties {
     public final String schema_file;
     public final boolean run_short;
     public final boolean write_to_file;
-
+    public final int max_buffers_to_process_short;
 
     public ReadPcapProperties(String fileName) {
         Properties prop = new Properties();
@@ -24,9 +24,8 @@ public class ReadPcapProperties {
         try {
             is = new FileInputStream(fileName);
         } catch (FileNotFoundException ex) {
-
-
-        }
+            ex.printStackTrace();
+        } //todo: put filename into somewhere easier to test (read in gradle?)  Separate file?
         // load the properties file
         try {
             prop.load(is);
@@ -43,6 +42,7 @@ public class ReadPcapProperties {
         schema_file=Paths.get(prop.getProperty("reader.schema_file")).toString();
         String run_short_string = prop.getProperty("reader.run_short");
         run_short = Boolean.parseBoolean(run_short_string);
+        max_buffers_to_process_short = Integer.parseInt(prop.getProperty("reader.max_buffers_to_process_short"));
         String write_to_file_string=prop.getProperty("reader.write_to_file");
 
         write_to_file = Boolean.parseBoolean(write_to_file_string);

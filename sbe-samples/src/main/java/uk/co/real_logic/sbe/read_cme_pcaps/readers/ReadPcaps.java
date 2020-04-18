@@ -49,7 +49,6 @@ public class ReadPcaps {
 
         ReadPcapProperties prop = new ReadPcapProperties(args[0]);
         RowCounter row_counter = new RowCounter();
-        final long max_buffers_to_process= getNumLines(prop);
         DataOffsets offsets = new DataOffsets(prop.data_source);
 
         Writer outWriter = getWriter(prop);
@@ -60,20 +59,19 @@ public class ReadPcaps {
         Ir ir = decodeIr(encodedSchemaBuffer);
         OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure()); // todo make obect that initializes both header decoder and ir decoder
 
-        PcapBufferManager bufferManager = initializeBufferManager(prop, max_buffers_to_process, offsets); //todo put this function in constructor of buffer manager
+        PcapBufferManager bufferManager = initializeBufferManager(prop, offsets); //todo put this function in constructor of buffer manager
 
         processMessages(row_counter, outWriter, ir, headerDecoder, bufferManager);
         outWriter.close();
     }
 
-    //todo change signature to get maxbuffers to process from properties, call data offested directly from class
-    private static PcapBufferManager initializeBufferManager(ReadPcapProperties prop, long max_buffers_to_process, DataOffsets offsets) throws IOException {
+    private static PcapBufferManager initializeBufferManager(ReadPcapProperties prop, DataOffsets offsets) throws IOException {
         RandomAccessFile aFile = new RandomAccessFile(prop.in_file, "rw");
         FileChannel inChannel = aFile.getChannel();
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
         encodedMsgBuffer.flip();  //make buffer ready for read
         UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
-        PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer, max_buffers_to_process);
+        PcapBufferManager bufferManager = new PcapBufferManager(prop, offsets, buffer);
         bufferManager.setBufferOffset(offsets.starting_offset); //skip leading bytes before message capture proper
         return bufferManager;
     }
@@ -130,15 +128,6 @@ public class ReadPcaps {
 
         }
         return outWriter;
-    }
-
-    private static long getNumLines(final ReadPcapProperties prop) {
-        long num_lines = 500000000;
-        final int num_lines_short = 5000; //only run through part of buffer for debugging purposes
-        if (prop.run_short) {
-            num_lines = num_lines_short;
-        }
-        return num_lines;
     }
 
 
