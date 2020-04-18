@@ -13,6 +13,7 @@ public class PcapBufferManager {
     final private long max_lines;
     private long lines_read=0;
 
+
     public PcapBufferManager(DataOffsets offsets, UnsafeBuffer buffer, long max_lines) {
         this.max_lines=max_lines;
         this.buffer = buffer;
@@ -55,7 +56,7 @@ public class PcapBufferManager {
         if (this.next_offset >= buffer.capacity()){
             is_valid = false;
         }
-        if (lines_read<max_lines){
+        if (lines_read>max_lines){
             is_valid=false;
         }
         return is_valid;

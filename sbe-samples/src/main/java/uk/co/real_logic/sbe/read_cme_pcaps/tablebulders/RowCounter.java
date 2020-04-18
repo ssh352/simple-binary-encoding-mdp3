@@ -1,9 +1,21 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.tablebulders;
 
 public class RowCounter {
-private int row_count;
-private int packet_sequence_number;
-private int template_id;
+    private int row_count;
+    private int packet_sequence_number;
+    private int template_id;
+
+
+    public RowCounter() {
+        this.row_count = 0;
+    }
+
+    private void printSendingTimeProgress() {
+        if ((row_count * 1.0 / 10000 == row_count / 10000)) {
+            System.out.println("row_count: " + row_count);
+            System.out.println("sending_time: " + sending_time);
+        }
+    }
 
     public int getPacketSequenceNumber() {
         return packet_sequence_number;
@@ -33,12 +45,9 @@ private int template_id;
     private long sending_time;
 
 
-    public RowCounter() {
-        this.row_count = 0;
-    }
-
     public int increment_row_count() {
-        this.row_count+=1;
+        this.printSendingTimeProgress();
+        this.row_count += 1;
         return this.row_count;
     }
 
@@ -46,7 +55,6 @@ private int template_id;
     public int get_row_count() {
         return this.row_count;
     }
-
 
 
 }
