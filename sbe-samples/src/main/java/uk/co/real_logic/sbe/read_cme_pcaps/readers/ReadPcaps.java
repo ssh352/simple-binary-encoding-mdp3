@@ -46,63 +46,51 @@ public class ReadPcaps {
     private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
 
     public static void main(String[] args) throws Exception {
+
         ReadPcapProperties prop = new ReadPcapProperties(args[0]);
-
         RowCounter row_counter = new RowCounter();
-
-
+        final long max_buffers_to_process= getNumLines(prop);
         DataOffsets offsets = new DataOffsets(prop.data_source);
-        Writer outWriter;
 
-
-        outWriter = getWriter(prop);
+        Writer outWriter = getWriter(prop);
 
         ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
         encodeSchema(encodedSchemaBuffer, prop.schema_file);
-        RandomAccessFile aFile = new RandomAccessFile(prop.in_file, "rw");
-        final FileChannel inChannel = aFile.getChannel();
-        MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
-        encodedMsgBuffer.flip();  //make buffer ready for read
-        // Now lets decode the schema IR so we have IR objects.
         encodedSchemaBuffer.flip();
         Ir ir = decodeIr(encodedSchemaBuffer);
-        OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure());
+        OtfHeaderDecoder headerDecoder = new OtfHeaderDecoder(ir.headerStructure()); // todo make obect that initializes both header decoder and ir decoder
 
-        // Now we have IR we can read the message header
+        PcapBufferManager bufferManager = initializeBufferManager(prop, max_buffers_to_process, offsets); //todo put this function in constructor of buffer manager
 
+        processMessages(row_counter, outWriter, ir, headerDecoder, bufferManager);
+        outWriter.close();
+    }
 
+    //todo change signature to get maxbuffers to process from properties, call data offested directly from class
+    private static PcapBufferManager initializeBufferManager(ReadPcapProperties prop, long max_buffers_to_process, DataOffsets offsets) throws IOException {
+        RandomAccessFile aFile = new RandomAccessFile(prop.in_file, "rw");
+        FileChannel inChannel = aFile.getChannel();
+        MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
+        encodedMsgBuffer.flip();  //make buffer ready for read
         UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
-
-        final long max_buffers_to_process= getNumLines(prop);
         PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer, max_buffers_to_process);
-
         bufferManager.setBufferOffset(offsets.starting_offset); //skip leading bytes before message capture proper
+        return bufferManager;
+    }
 
+    private static void processMessages(RowCounter row_counter, Writer outWriter, Ir ir, OtfHeaderDecoder headerDecoder, PcapBufferManager bufferManager) throws IOException {
         int blockLength;
-
         while (bufferManager.processNextOffset()) {
             try {
 
-                row_counter.setPacketSequenceNumber(bufferManager.packet_sequence_number());
-                row_counter.setSending_time(bufferManager.sending_time());
-
-
-                row_counter.setTemplateId(headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getHeaderOffset()));
+                setBufferProperties(row_counter, headerDecoder, bufferManager);
                 int actingVersion = headerDecoder.getSchemaVersion(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
                 blockLength = headerDecoder.getBlockLength(bufferManager.getBuffer(), bufferManager.getHeaderOffset());
-
                 bufferManager.setTokenOffset(headerDecoder.encodedLength());
 
                 List<Token> msgTokens = ir.getMessage(row_counter.getTemplateId());
                 final TokenListener tokenListener = new CompactTokenListener(outWriter,row_counter, true);
-//                TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
-                OtfMessageDecoder.decode(
-                            bufferManager.getBuffer(),
-                            bufferManager.getTokenOffset(),
-                            actingVersion,
-                            blockLength,
-                            msgTokens,
-                            tokenListener);
+                decodeMessage(bufferManager, blockLength, actingVersion, msgTokens, tokenListener);
                 outWriter.flush();
                 row_counter.increment_row_count();
             } catch (final Exception e) {
@@ -113,8 +101,22 @@ public class ReadPcaps {
 
   //          System.out.print(" next buffer position " + String.valueOf(bufferManager.next_offset()) + "\n" );
         }
-        outWriter.close();
-        inChannel.close();
+    }
+
+    private static int decodeMessage(PcapBufferManager bufferManager, int blockLength, int actingVersion, List<Token> msgTokens, TokenListener tokenListener) throws IOException {
+        return OtfMessageDecoder.decode(
+                    bufferManager.getBuffer(),
+                    bufferManager.getTokenOffset(),
+                    actingVersion,
+                    blockLength,
+                    msgTokens,
+                    tokenListener);
+    }
+
+    private static void setBufferProperties(RowCounter row_counter, OtfHeaderDecoder headerDecoder, PcapBufferManager bufferManager) {
+        row_counter.setPacketSequenceNumber(bufferManager.packet_sequence_number());
+        row_counter.setSending_time(bufferManager.sending_time());
+        row_counter.setTemplateId(headerDecoder.getTemplateId(bufferManager.getBuffer(), bufferManager.getHeaderOffset()));
     }
 
     private static Writer getWriter(final ReadPcapProperties prop) throws IOException {

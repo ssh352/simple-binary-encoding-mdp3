@@ -10,12 +10,12 @@ public class PcapBufferManager {
     private int header_offset;
     private int next_offset;
     private int token_offset;
-    final private long max_lines;
-    private long lines_read=0;
+    final private long max_buffers_to_process;
+    private long buffers_processed =0;
 
 
-    public PcapBufferManager(DataOffsets offsets, UnsafeBuffer buffer, long max_lines) {
-        this.max_lines=max_lines;
+    public PcapBufferManager(DataOffsets offsets, UnsafeBuffer buffer, long max_buffers_to_process) {
+        this.max_buffers_to_process =max_buffers_to_process;
         this.buffer = buffer;
         PcapBufferManager.offsets = offsets;
     }
@@ -26,7 +26,7 @@ public class PcapBufferManager {
 
     public void incrementPacket() {
         this.setBufferOffset(this.next_offset);
-        this.lines_read++;
+        this.buffers_processed++;
     }
 
     public int getTokenOffset() {
@@ -51,14 +51,15 @@ public class PcapBufferManager {
         return this.header_offset;
     }
 
-    public boolean nextOffsetValid() {
+    public boolean processNextOffset() {
         Boolean is_valid=true;
         if (this.next_offset >= buffer.capacity()){
             is_valid = false;
         }
-        if (lines_read>max_lines){
+        if (buffers_processed >max_buffers_to_process){
             is_valid=false;
         }
+        buffers_processed++;
         return is_valid;
     }
 
