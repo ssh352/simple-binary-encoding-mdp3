@@ -18,17 +18,15 @@ import uk.co.real_logic.sbe.xml.MessageSchema;
 import uk.co.real_logic.sbe.xml.ParserOptions;
 import uk.co.real_logic.sbe.xml.XmlSchemaParser;
 
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+
+import static uk.co.real_logic.sbe.tests.FileComparison.compare_files;
 
 
 public class ReadPcaps {
@@ -120,7 +118,6 @@ public class ReadPcaps {
                     System.out.println("sending_time: " + sending_time);
                 }
                 bufferOffset = next_offset;
-                System.out.print("starting buffer position " + String.valueOf(bufferOffset));
                 int message_size = bufferManager.getBuffer().getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
                 packet_sequence_number= bufferManager.getBuffer().getInt(bufferOffset + offsets.packet_sequence_number_offset);
                 sending_time = bufferManager.getBuffer().getLong(bufferOffset + offsets.sending_time_offset);
@@ -149,7 +146,6 @@ public class ReadPcaps {
                             msgTokens,
                             tokenListener);
                 }
-                System.out.print(" next buffer position " + String.valueOf(next_offset) + "\n" );
                 message_index++;
                 outWriter.flush();
                 lines_read = lines_read + 1;
@@ -163,6 +159,7 @@ public class ReadPcaps {
         }
         outWriter.close();
         inChannel.close();
+        compare_files();
     }
 
 
