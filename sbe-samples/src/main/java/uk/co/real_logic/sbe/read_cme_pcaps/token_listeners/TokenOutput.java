@@ -42,11 +42,13 @@ public class TokenOutput {
         return padded.toString();
     }
 
-    public void printValue(String field_label, Object printableObject) {
+    void printValue(String field_label, String printableObject) {
         this.writerOut(", ");
         if (this.include_value_labels) {
             this.writerOut(field_label);
             this.writerOut("=");
         }
+        this.writerOut(printableObject);
+        //here is where it prints the deep scope for each value.. we'd like to somehow
     }
 }
