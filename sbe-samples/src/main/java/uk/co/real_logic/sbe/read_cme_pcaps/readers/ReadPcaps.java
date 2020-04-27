@@ -2,6 +2,7 @@ package uk.co.real_logic.sbe.read_cme_pcaps.readers;
 
 
 import org.agrona.concurrent.UnsafeBuffer;
+import uk.co.real_logic.sbe.counters.RowCounter;
 import uk.co.real_logic.sbe.ir.Ir;
 import uk.co.real_logic.sbe.ir.IrDecoder;
 import uk.co.real_logic.sbe.ir.IrEncoder;
@@ -51,7 +52,6 @@ public class ReadPcaps {
     public static void main(final String[] args) throws Exception {
         ReadPcapProperties prop = new ReadPcapProperties(args[0]);
 
-        int message_index = 0;
 
 
         DataOffsets offsets = new DataOffsets(prop.data_source);
@@ -67,6 +67,7 @@ public class ReadPcaps {
         }
 
         TokenOutput tokenOutput = new TokenOutput(outWriter, true);
+        RowCounter row_counter = new RowCounter();
 
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
         encodeSchema(encodedSchemaBuffer, prop.schema_file);
@@ -135,7 +136,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
-                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, message_index, packet_sequence_number, sending_time, templateId, true);
+                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, row_counter, packet_sequence_number, sending_time, templateId, true);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
@@ -144,7 +145,7 @@ public class ReadPcaps {
                             msgTokens,
                             tokenListener);
                 }
-                message_index++;
+                row_counter.increment_message_count();
                 outWriter.flush();
                 lines_read = lines_read + 1;
             } catch (Exception e) {
