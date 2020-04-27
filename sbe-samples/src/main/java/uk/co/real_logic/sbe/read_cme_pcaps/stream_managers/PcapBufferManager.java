@@ -4,6 +4,7 @@ import org.agrona.concurrent.UnsafeBuffer;
 
 public class PcapBufferManager {
     final public UnsafeBuffer buffer;
+
     public PcapBufferManager(UnsafeBuffer buffer) {
         this.buffer = buffer;
     }
@@ -13,13 +14,9 @@ public class PcapBufferManager {
     }
 
 
-
-    public boolean nextOffsetValid(int nextOffset){
+    public boolean nextOffsetValid(int nextOffset) {
         return nextOffset < this.buffer.capacity();
     }
-
-
-
 
 
 }

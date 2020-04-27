@@ -16,25 +16,25 @@ public class DataOffsets {
     public final int packet_size_padding;
     public final ByteOrder message_size_endianness;
 
-        public DataOffsets(String data_source){//todo: change data source to enum
-            if(data_source.equals("ICE")){
-                this.starting_offset = 40; //what should this be?
-                this.size_offset = 16;
-                this.message_size_endianness = ByteOrder.BIG_ENDIAN;
-                this.packet_sequence_number_offset = 42;
-                this.sending_time_offset = 46;
-                this.header_bytes = 56;
-                this.packet_size_padding = 30;
-            } else {
+    public DataOffsets(String data_source) {//todo: change data source to enum
+        if (data_source.equals("ICE")) {
+            this.starting_offset = 40; //what should this be?
+            this.size_offset = 16;
+            this.message_size_endianness = ByteOrder.BIG_ENDIAN;
+            this.packet_sequence_number_offset = 42;
+            this.sending_time_offset = 46;
+            this.header_bytes = 56;
+            this.packet_size_padding = 30;
+        } else {
 
-                this.starting_offset = 0;
-                this.size_offset = 2;
-                this.message_size_endianness = ByteOrder.LITTLE_ENDIAN;
-                this.packet_sequence_number_offset = 4;
-                this.sending_time_offset = 8;
-                this.header_bytes = 18;
-                this.packet_size_padding = 4;
-            }
+            this.starting_offset = 0;
+            this.size_offset = 2;
+            this.message_size_endianness = ByteOrder.LITTLE_ENDIAN;
+            this.packet_sequence_number_offset = 4;
+            this.sending_time_offset = 8;
+            this.header_bytes = 18;
+            this.packet_size_padding = 4;
         }
+    }
 
 }

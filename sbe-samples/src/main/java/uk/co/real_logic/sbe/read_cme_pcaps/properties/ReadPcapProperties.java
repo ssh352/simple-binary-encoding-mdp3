@@ -19,13 +19,13 @@ public class ReadPcapProperties {
 
     public ReadPcapProperties(String fileName) {
         Properties prop = new Properties();
-            // the configuration file name
-            InputStream is=null;
-            try {
-                is = new FileInputStream(fileName);
-            } catch (FileNotFoundException ex) {
-                ex.printStackTrace();
-            }
+        // the configuration file name
+        InputStream is = null;
+        try {
+            is = new FileInputStream(fileName);
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
         // load the properties file
         try {
             prop.load(is);

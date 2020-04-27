@@ -46,8 +46,9 @@ public class CompactTokenListener implements TokenListener {
     boolean transact_time_found;
     boolean print_full_scope;
     private int compositeLevel;
-    private long packet_sequence_number;
-    private long sending_time;
+    private final long packet_sequence_number;
+    private final long sending_time;
+    private TokenOutput tokenOutput;
 
     public CompactTokenListener(final Writer out, long message_count, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
         this.template_id = template_id;
@@ -57,7 +58,9 @@ public class CompactTokenListener implements TokenListener {
         this.out = out;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
+        this.tokenOutput = new TokenOutput(this, out, include_value_labels);
     }
+
 
     private static CharSequence readEncodingAsString(
             final DirectBuffer buffer, final int index, final Token typeToken, final int actingVersion) {
@@ -113,7 +116,9 @@ public class CompactTokenListener implements TokenListener {
 
     public void onEndMessage(final Token token) {
         this.nonTerminalScope.pop();
-        this.writerOut("\n");
+        this.tokenOutput.writerOut("\n");
+
+
         try {
             this.out.flush();
         } catch (IOException e) {
@@ -132,7 +137,7 @@ public class CompactTokenListener implements TokenListener {
 
         //transact time is special case.. instead of outputting, we want to stash it to output later
         if (!fieldToken.name().equals("TransactTime")) {
-            this.printValue(fieldToken, terminalValue);
+            this.tokenOutput.printValue(fieldToken.name(), terminalValue);
         } else {
             if (!this.transact_time_found) {
                 this.transact_time = terminalValue;
@@ -170,11 +175,11 @@ public class CompactTokenListener implements TokenListener {
             }
         }
 
-        this.writerOut(", ");
+        this.tokenOutput.writerOut(", ");
         if (value != null) {
-            this.writerOut(value);
+            this.tokenOutput.writerOut(value);
         } else
-            this.writerOut("null");
+            this.tokenOutput.writerOut("null");
     }
 
     public void onBitSet(
@@ -208,7 +213,7 @@ public class CompactTokenListener implements TokenListener {
         }
 //        printTimestampsAndTemplateID();
 //        printValue(typeToken, encodedValue);
-        this.writerOut(sb.toString());
+        this.tokenOutput.writerOut(sb.toString());
 
 
         event_count++;
@@ -228,21 +233,21 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) {
-        this.writerOut("\n");
+        this.tokenOutput.writerOut("\n");
         this.group_element_count = 0;
         this.group_header_count++;
         this.writeNewRow(RowType.groupheader);
-        this.writerOut(token.name());
+        this.tokenOutput.writerOut(token.name());
         if (this.include_value_labels) {
-            this.writerOut(", Group Header : numInGroup=");
+            this.tokenOutput.writerOut(", Group Header : numInGroup=");
         } else {
-            this.writerOut(", ");
+            this.tokenOutput.writerOut(", ");
         }
-        this.writerOut(Integer.toString(numInGroup));
+        this.tokenOutput.writerOut(Integer.toString(numInGroup));
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
-        this.writerOut("\n");
+        this.tokenOutput.writerOut("\n");
         this.group_element_count++;
         this.nonTerminalScope.push(token.name());
         this.writeNewRow(RowType.group);
@@ -272,7 +277,7 @@ public class CompactTokenListener implements TokenListener {
             return;
         }
 
-        this.printValue(fieldToken, value);
+        this.tokenOutput.printValue(fieldToken.name(), value);
     }
 
     private String determineName(
@@ -284,23 +289,10 @@ public class CompactTokenListener implements TokenListener {
         }
     }
 
-    private void printValue(Token typeToken, Object printableObject) {
-        String field_label = typeToken.name(); //todo:rename to writeValue
-        this.printValue(field_label, printableObject);
-    }
 
-    private void printValue(String field_label, Object printableObject) {
-        this.writerOut(", ");
-        if (this.include_value_labels) {
-            this.writerOut(field_label);
-            this.writerOut("=");
-        }
-        this.writerOut(printableObject);
-        //here is where it prints the deep scope for each value.. we'd like to somehow
-    }
 
     private void writeNewRow(RowType row_type) {
-        this.writeRow(row_type);
+        this.tokenOutput.writeRow(row_type, this.message_count, this.group_header_count, this.group_element_count);
         this.writeTimestamps();
         this.printScope();
     }
@@ -308,52 +300,22 @@ public class CompactTokenListener implements TokenListener {
     public void writeTimestamps() {
         String packet_sequence_number_string = String.format("%d", this.packet_sequence_number);
         String event_count_string = String.format("%d", event_count);
-        this.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.sending_time + ", " + this.transact_time);
+        this.tokenOutput.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.sending_time + ", " + this.transact_time);
     }
 
-    private void writeRow(RowType row_type) {
-
-        this.writerOut(this.message_count);
-        this.writerOut(", ");
-        this.writerOut(this.group_header_count);
-        this.writerOut(", ");
-        this.writerOut(this.group_element_count);
-        this.writerOut(", ");
-        this.writerOut(this.pad(row_type.toString(), 16, ' '));
-    }
 
     private void printScope() {
-        this.writerOut(", ");
+        this.tokenOutput.writerOut(", ");
         final Iterator<String> i = this.nonTerminalScope.descendingIterator();
         while (i.hasNext()) {
             if (this.print_full_scope | (!i.hasNext())) {
-                this.writerOut(i.next());
+                this.tokenOutput.writerOut(i.next());
             } else {
                 i.next();
             }
         }
     }
 
-    private void writerOut(Object o) {
-        String s = o.toString();
-        this.writerOut(s);
-    }
-
-    private void writerOut(String s) {
-        try {
-            this.out.write(s);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String pad(String str, int size, char padChar) {
-        StringBuffer padded = new StringBuffer(str);
-        while (padded.length() < size) {
-            padded.append(padChar);
-        }
-        return padded.toString();
-    }
 
     enum RowType {
         messageheader, groupheader, group

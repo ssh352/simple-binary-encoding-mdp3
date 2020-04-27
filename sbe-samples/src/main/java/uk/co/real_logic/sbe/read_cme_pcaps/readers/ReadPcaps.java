@@ -48,22 +48,22 @@ public class ReadPcaps {
     private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
 
     public static void main(final String[] args) throws Exception {
-        ReadPcapProperties prop=new ReadPcapProperties(args[0]);
+        ReadPcapProperties prop = new ReadPcapProperties(args[0]);
 
-        int message_index=0;
+        int message_index = 0;
 
 
-        DataOffsets offsets= new DataOffsets(prop.data_source);
+        DataOffsets offsets = new DataOffsets(prop.data_source);
         Writer outWriter;
         // Encode up message and schema as if we just got them off the wire.
 
 
-        if(prop.write_to_file){
-            outWriter=new FileWriter(prop.out_file);
+        if (prop.write_to_file) {
+            outWriter = new FileWriter(prop.out_file);
 //            outWriter.write("beginning of file");
             outWriter.flush();
-        } else{
-            outWriter=new PrintWriter(System.out, true);
+        } else {
+            outWriter = new PrintWriter(System.out, true);
 
         }
 
@@ -71,7 +71,7 @@ public class ReadPcaps {
         encodeSchema(encodedSchemaBuffer, prop.schema_file);
         RandomAccessFile aFile = new RandomAccessFile(prop.in_file, "rw");
         FileChannel inChannel = aFile.getChannel();
-        long fileSize=inChannel.size();
+        long fileSize = inChannel.size();
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
         encodedMsgBuffer.flip();  //make buffer ready for read
         // Now lets decode the schema IR so we have IR objects.
@@ -97,9 +97,9 @@ public class ReadPcaps {
             num_lines = num_lines_short;
         }
 
-        long sending_time=0;
-        long packet_sequence_number=0;
-        int lines_read=0;
+        long sending_time = 0;
+        long packet_sequence_number = 0;
+        int lines_read = 0;
 
 
         while (next_offset < buffer.capacity()) {
@@ -135,7 +135,6 @@ public class ReadPcaps {
                     break;
                 } else {
                     TokenListener tokenListener = new CompactTokenListener(outWriter, message_index, packet_sequence_number, sending_time, templateId, true);
-//                    TokenListener tokenListener= new CMEPcapListener(outWriter, true, templateId);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
@@ -147,7 +146,7 @@ public class ReadPcaps {
                 message_index++;
                 outWriter.flush();
                 lines_read = lines_read + 1;
-            } catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("read next message failed");
                 outWriter.flush();
@@ -159,7 +158,6 @@ public class ReadPcaps {
         inChannel.close();
         compare_files();
     }
-
 
 
     private static void encodeSchema(final ByteBuffer byteBuffer, String schema_file) throws Exception {
