@@ -61,7 +61,6 @@ public class ReadPcaps {
 
         if (prop.write_to_file) {
             outWriter = new FileWriter(prop.out_file);
-            outWriter.flush();
         } else {
             outWriter = new PrintWriter(System.out, true);
 

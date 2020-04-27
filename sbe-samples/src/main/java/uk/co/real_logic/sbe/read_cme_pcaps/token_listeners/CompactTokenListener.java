@@ -22,9 +22,7 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.otf.Types;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
@@ -35,7 +33,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class CompactTokenListener implements TokenListener {
     static long event_count;
     private final int template_id;
-    private final Writer out;
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
     CharSequence transact_time;
@@ -50,15 +47,14 @@ public class CompactTokenListener implements TokenListener {
     private final long sending_time;
     private TokenOutput tokenOutput;
 
-    public CompactTokenListener(final Writer out, long message_count, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
+    public CompactTokenListener(final TokenOutput tokenOutput, long message_count, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
         this.template_id = template_id;
         this.sending_time = sending_time;
         this.packet_sequence_number = packet_sequence_number;
         this.message_count = message_count;
-        this.out = out;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
-        this.tokenOutput = new TokenOutput(out, include_value_labels);
+        this.tokenOutput = tokenOutput;
     }
 
 
@@ -119,11 +115,7 @@ public class CompactTokenListener implements TokenListener {
         this.tokenOutput.writerOut("\n");
 
 
-        try {
-            this.out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.tokenOutput.flush();
     }
 
     public void onEncoding(

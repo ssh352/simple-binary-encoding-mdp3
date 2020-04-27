@@ -4,12 +4,10 @@ import java.io.IOException;
 import java.io.Writer;
 
 public class TokenOutput {
-    private final CompactTokenListener compactTokenListener;
     private final Writer out;
     boolean include_value_labels;
 
-    public TokenOutput(CompactTokenListener compactTokenListener, Writer out, boolean include_value_labels) {
-        this.compactTokenListener = compactTokenListener;
+    public TokenOutput(Writer out, boolean include_value_labels) {
         this.out = out;
         this.include_value_labels = include_value_labels;
     }
@@ -25,6 +23,23 @@ public class TokenOutput {
         writerOut(pad(row_type.toString(), 16, ' '));
     }
 
+    public String pad(String str, int size, char padChar) {
+        StringBuffer padded = new StringBuffer(str);
+        while (padded.length() < size) {
+            padded.append(padChar);
+        }
+        return padded.toString();
+    }
+
+    void writeFieldValue(String field_label, String printableObject) {
+        this.writerOut(", ");
+        if (this.include_value_labels) {
+            this.writerOut(field_label);
+            this.writerOut("=");
+        }
+        this.writerOut(printableObject);
+        //here is where it prints the deep scope for each value.. we'd like to somehow
+    }
 
     void writerOut(String s) {
         try {
@@ -34,21 +49,11 @@ public class TokenOutput {
         }
     }
 
-    public String pad(String str, int size, char padChar) {
-        StringBuffer padded = new StringBuffer(str);
-        while (padded.length() < size) {
-            padded.append(padChar);
+    void flush() {
+        try {
+            this.out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return padded.toString();
-    }
-
-    void printValue(String field_label, String printableObject) {
-        this.writerOut(", ");
-        if (this.include_value_labels) {
-            this.writerOut(field_label);
-            this.writerOut("=");
-        }
-        this.writerOut(printableObject);
-        //here is where it prints the deep scope for each value.. we'd like to somehow
     }
 }
