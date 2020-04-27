@@ -12,6 +12,7 @@ import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
+import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.TokenOutput;
 import uk.co.real_logic.sbe.xml.IrGenerator;
 import uk.co.real_logic.sbe.xml.MessageSchema;
 import uk.co.real_logic.sbe.xml.ParserOptions;
@@ -60,12 +61,13 @@ public class ReadPcaps {
 
         if (prop.write_to_file) {
             outWriter = new FileWriter(prop.out_file);
-//            outWriter.write("beginning of file");
             outWriter.flush();
         } else {
             outWriter = new PrintWriter(System.out, true);
 
         }
+
+        TokenOutput tokenOutput = new TokenOutput(outWriter, true);
 
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
         encodeSchema(encodedSchemaBuffer, prop.schema_file);
@@ -134,7 +136,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
-                    TokenListener tokenListener = new CompactTokenListener(outWriter, message_index, packet_sequence_number, sending_time, templateId, true);
+                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, message_index, packet_sequence_number, sending_time, templateId, true);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
