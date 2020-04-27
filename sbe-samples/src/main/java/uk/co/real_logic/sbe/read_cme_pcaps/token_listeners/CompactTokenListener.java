@@ -58,7 +58,7 @@ public class CompactTokenListener implements TokenListener {
         this.out = out;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
-        this.tokenOutput = new TokenOutput(this, out, include_value_labels);
+        this.tokenOutput = new TokenOutput(out, include_value_labels);
     }
 
 
@@ -134,10 +134,10 @@ public class CompactTokenListener implements TokenListener {
             final int actingVersion) {
 
         final CharSequence terminalValue = readEncodingAsString(buffer, index, typeToken, actingVersion);
-
+        String terminalValueString = terminalValue.toString();
         //transact time is special case.. instead of outputting, we want to stash it to output later
         if (!fieldToken.name().equals("TransactTime")) {
-            this.tokenOutput.printValue(fieldToken.name(), terminalValue);
+            this.tokenOutput.writeFieldValue(fieldToken.name(), terminalValueString);
         } else {
             if (!this.transact_time_found) {
                 this.transact_time = terminalValue;
@@ -277,7 +277,7 @@ public class CompactTokenListener implements TokenListener {
             return;
         }
 
-        this.tokenOutput.printValue(fieldToken.name(), value);
+        this.tokenOutput.writeFieldValue(fieldToken.name(), value);
     }
 
     private String determineName(
