@@ -8,7 +8,7 @@ public class PcapBufferManager {
         this.buffer = buffer;
     }
 
-    public UnsafeBuffer getBuffer(){
+    private UnsafeBuffer getBuffer() {
         return this.buffer;
     }
 
