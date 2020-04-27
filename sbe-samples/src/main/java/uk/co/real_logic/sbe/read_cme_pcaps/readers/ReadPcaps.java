@@ -104,16 +104,16 @@ public class ReadPcaps {
         int lines_read=0;
 
 
-        while (bufferManager.nextOffsetValid(next_offset)) {
+        while (next_offset < bufferManager.getBuffer().capacity()) {
 
-            if(lines_read >= num_lines ){
-                System.out.println("Read " + num_lines +" lines");
+            if (lines_read >= num_lines) {
+                System.out.println("Read " + num_lines + " lines");
                 break;
             }
             try {
 
 
-                if((lines_read*1.0/10000==lines_read/10000) ){
+                if ((lines_read * 1.0 / 10000 == lines_read / 10000)) {
                     System.out.println(lines_read);
                     System.out.println("sending_time: " + sending_time);
                 }
