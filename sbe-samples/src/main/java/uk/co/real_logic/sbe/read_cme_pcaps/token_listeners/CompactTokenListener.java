@@ -218,7 +218,7 @@ public class CompactTokenListener implements TokenListener {
             final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
         ++compositeLevel;
 
-        nonTerminalScope.push(determineName(1, fieldToken, tokens, fromIndex) + ".");
+        nonTerminalScope.push(determineName(fieldToken, tokens, fromIndex) + ".");
     }
 
     public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
@@ -276,8 +276,8 @@ public class CompactTokenListener implements TokenListener {
     }
 
     private String determineName(
-            final int thresholdLevel, final Token fieldToken, final List<Token> tokens, final int fromIndex) {
-        if (compositeLevel > thresholdLevel) {
+            final Token fieldToken, final List<Token> tokens, final int fromIndex) {
+        if (compositeLevel > 1) {
             return tokens.get(fromIndex).name();
         } else {
             return fieldToken.name();
