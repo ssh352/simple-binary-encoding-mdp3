@@ -86,8 +86,8 @@ public class ReadPcaps {
         int next_offset = bufferOffset;
 
 
-        final UnsafeBuffer buffer= new UnsafeBuffer(encodedMsgBuffer);
-        final PcapBufferManager bufferManager = new PcapBufferManager(offsets, buffer);
+        final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
+        final PcapBufferManager bufferManager = new PcapBufferManager(buffer);
 
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
         int blockLength;
