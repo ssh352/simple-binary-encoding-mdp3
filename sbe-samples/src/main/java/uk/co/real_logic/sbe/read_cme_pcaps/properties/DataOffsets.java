@@ -14,11 +14,9 @@ public class DataOffsets {
     public final int header_bytes;
     //number of bytes to adjust the packet size to jump from on header to the next
     public final int packet_size_padding;
-    public final String data_source;
     public final ByteOrder message_size_endianness;
 
         public DataOffsets(String data_source){//todo: change data source to enum
-            this.data_source = data_source;
             if(data_source.equals("ICE")){
                 this.starting_offset=40; //what should this be?
                 size_offset=16;
