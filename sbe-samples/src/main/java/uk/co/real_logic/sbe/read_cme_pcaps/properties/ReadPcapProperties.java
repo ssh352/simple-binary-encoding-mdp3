@@ -23,9 +23,8 @@ public class ReadPcapProperties {
             InputStream is=null;
             try {
                 is = new FileInputStream(fileName);
-            }catch (FileNotFoundException ex){
-
-
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
             }
         // load the properties file
         try {
@@ -34,7 +33,7 @@ public class ReadPcapProperties {
             // get the value for app.version key
             System.out.println(prop.getProperty("reader.version"));
         } catch (IOException ex) {
-
+            ex.printStackTrace();
         }
         this.os_string = prop.getProperty("reader.os");
         this.in_file = Paths.get(prop.getProperty("reader.in_file")).toString();

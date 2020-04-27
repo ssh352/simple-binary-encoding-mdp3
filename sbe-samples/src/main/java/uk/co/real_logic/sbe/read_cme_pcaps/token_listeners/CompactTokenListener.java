@@ -33,19 +33,19 @@ import java.util.List;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class CompactTokenListener implements TokenListener {
-    static long event_count = 0;
+    static long event_count;
     private final int template_id;
     private final Writer out;
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
-    CharSequence transact_time = null;
+    CharSequence transact_time;
     long message_count;
-    long group_header_count = 0;
-    long group_element_count = 0;
+    long group_header_count;
+    long group_element_count;
     boolean include_value_labels = true;
-    boolean transact_time_found = false;
+    boolean transact_time_found;
     boolean print_full_scope;
-    private int compositeLevel = 0;
+    private int compositeLevel;
     private long packet_sequence_number;
     private long sending_time;
 
@@ -108,14 +108,14 @@ public class CompactTokenListener implements TokenListener {
 
     public void onBeginMessage(final Token token) {
         this.group_header_count = 0;
-        nonTerminalScope.push(token.name());
+        this.nonTerminalScope.push(token.name());
     }
 
     public void onEndMessage(final Token token) {
-        nonTerminalScope.pop();
-        writerOut("\n");
+        this.nonTerminalScope.pop();
+        this.writerOut("\n");
         try {
-            out.flush();
+            this.out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -132,13 +132,13 @@ public class CompactTokenListener implements TokenListener {
 
         //transact time is special case.. instead of outputting, we want to stash it to output later
         if (!fieldToken.name().equals("TransactTime")) {
-            printValue(fieldToken, terminalValue);
+            this.printValue(fieldToken, terminalValue);
         } else {
-            if (!transact_time_found) {
+            if (!this.transact_time_found) {
                 this.transact_time = terminalValue;
                 this.transact_time_found = true;
                 //waiting to get transact time before writing row header
-                writeNewRow(RowType.messageheader);
+                this.writeNewRow(RowType.messageheader);
 
             }
         }
@@ -170,11 +170,11 @@ public class CompactTokenListener implements TokenListener {
             }
         }
 
-        writerOut(", ");
+        this.writerOut(", ");
         if (value != null) {
-            writerOut(value);
+            this.writerOut(value);
         } else
-            writerOut("null");
+            this.writerOut("null");
     }
 
     public void onBitSet(
@@ -195,7 +195,7 @@ public class CompactTokenListener implements TokenListener {
         for (int i = beginIndex + 1; i < endIndex; i++) {
             //don't display transact time.. it is special case on every row
             if (!tokens.get(i).name().equals("TransactTime")) {
-                if (include_value_labels) {
+                if (this.include_value_labels) {
                     sb.append(tokens.get(i).name() + '=');
                 } else {
                     sb.append(", ");
@@ -208,7 +208,7 @@ public class CompactTokenListener implements TokenListener {
         }
 //        printTimestampsAndTemplateID();
 //        printValue(typeToken, encodedValue);
-        writerOut(sb.toString());
+        this.writerOut(sb.toString());
 
 
         event_count++;
@@ -216,40 +216,40 @@ public class CompactTokenListener implements TokenListener {
 
     public void onBeginComposite(
             final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
-        ++compositeLevel;
+        ++this.compositeLevel;
 
-        nonTerminalScope.push(determineName(fieldToken, tokens, fromIndex) + ".");
+        this.nonTerminalScope.push(this.determineName(fieldToken, tokens, fromIndex) + ".");
     }
 
     public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
-        --compositeLevel;
+        --this.compositeLevel;
 
-        nonTerminalScope.pop();
+        this.nonTerminalScope.pop();
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) {
-        writerOut("\n");
+        this.writerOut("\n");
         this.group_element_count = 0;
         this.group_header_count++;
-        writeNewRow(RowType.groupheader);
-        writerOut(token.name());
-        if (include_value_labels) {
-            writerOut(", Group Header : numInGroup=");
+        this.writeNewRow(RowType.groupheader);
+        this.writerOut(token.name());
+        if (this.include_value_labels) {
+            this.writerOut(", Group Header : numInGroup=");
         } else {
-            writerOut(", ");
+            this.writerOut(", ");
         }
-        writerOut(Integer.toString(numInGroup));
+        this.writerOut(Integer.toString(numInGroup));
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
-        writerOut("\n");
+        this.writerOut("\n");
         this.group_element_count++;
-        nonTerminalScope.push(token.name());
-        writeNewRow(RowType.group);
+        this.nonTerminalScope.push(token.name());
+        this.writeNewRow(RowType.group);
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
-        nonTerminalScope.pop();
+        this.nonTerminalScope.pop();
     }
 
     public void onVarData(
@@ -264,20 +264,20 @@ public class CompactTokenListener implements TokenListener {
             if (null == characterEncoding) {
                 value = length + " bytes of raw data";
             } else {
-                buffer.getBytes(bufferIndex, tempBuffer, 0, length);
-                value = new String(tempBuffer, 0, length, characterEncoding);
+                buffer.getBytes(bufferIndex, this.tempBuffer, 0, length);
+                value = new String(this.tempBuffer, 0, length, characterEncoding);
             }
         } catch (final UnsupportedEncodingException ex) {
             ex.printStackTrace();
             return;
         }
 
-        printValue(fieldToken, value);
+        this.printValue(fieldToken, value);
     }
 
     private String determineName(
             final Token fieldToken, final List<Token> tokens, final int fromIndex) {
-        if (compositeLevel > 1) {
+        if (this.compositeLevel > 1) {
             return tokens.get(fromIndex).name();
         } else {
             return fieldToken.name();
@@ -286,48 +286,48 @@ public class CompactTokenListener implements TokenListener {
 
     private void printValue(Token typeToken, Object printableObject) {
         String field_label = typeToken.name(); //todo:rename to writeValue
-        printValue(field_label, printableObject);
+        this.printValue(field_label, printableObject);
     }
 
     private void printValue(String field_label, Object printableObject) {
-        writerOut(", ");
-        if (include_value_labels) {
-            writerOut(field_label);
-            writerOut("=");
+        this.writerOut(", ");
+        if (this.include_value_labels) {
+            this.writerOut(field_label);
+            this.writerOut("=");
         }
-        writerOut(printableObject);
+        this.writerOut(printableObject);
         //here is where it prints the deep scope for each value.. we'd like to somehow
     }
 
     private void writeNewRow(RowType row_type) {
-        writeRow(row_type);
-        writeTimestamps();
-        printScope();
+        this.writeRow(row_type);
+        this.writeTimestamps();
+        this.printScope();
     }
 
     public void writeTimestamps() {
-        String packet_sequence_number_string = String.format("%d", packet_sequence_number);
+        String packet_sequence_number_string = String.format("%d", this.packet_sequence_number);
         String event_count_string = String.format("%d", event_count);
-        writerOut(", " + template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + sending_time + ", " + transact_time);
+        this.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.sending_time + ", " + this.transact_time);
     }
 
     private void writeRow(RowType row_type) {
 
-        writerOut(message_count);
-        writerOut(", ");
-        writerOut(group_header_count);
-        writerOut(", ");
-        writerOut(group_element_count);
-        writerOut(", ");
-        writerOut(pad(row_type.toString(), 16, ' '));
+        this.writerOut(this.message_count);
+        this.writerOut(", ");
+        this.writerOut(this.group_header_count);
+        this.writerOut(", ");
+        this.writerOut(this.group_element_count);
+        this.writerOut(", ");
+        this.writerOut(this.pad(row_type.toString(), 16, ' '));
     }
 
     private void printScope() {
-        writerOut(", ");
-        final Iterator<String> i = nonTerminalScope.descendingIterator();
+        this.writerOut(", ");
+        final Iterator<String> i = this.nonTerminalScope.descendingIterator();
         while (i.hasNext()) {
-            if (print_full_scope | (!i.hasNext())) {
-                writerOut(i.next());
+            if (this.print_full_scope | (!i.hasNext())) {
+                this.writerOut(i.next());
             } else {
                 i.next();
             }
@@ -336,12 +336,12 @@ public class CompactTokenListener implements TokenListener {
 
     private void writerOut(Object o) {
         String s = o.toString();
-        writerOut(s);
+        this.writerOut(s);
     }
 
     private void writerOut(String s) {
         try {
-            out.write(s);
+            this.out.write(s);
         } catch (IOException e) {
             e.printStackTrace();
         }

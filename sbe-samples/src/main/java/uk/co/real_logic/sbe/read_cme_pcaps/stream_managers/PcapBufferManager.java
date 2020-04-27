@@ -15,7 +15,7 @@ public class PcapBufferManager {
 
 
     public boolean nextOffsetValid(int nextOffset){
-        return nextOffset < buffer.capacity();
+        return nextOffset < this.buffer.capacity();
     }
 
 
