@@ -2,7 +2,6 @@ package uk.co.real_logic.sbe.read_cme_pcaps.readers;
 
 
 import org.agrona.concurrent.UnsafeBuffer;
-import uk.co.real_logic.sbe.counters.RowCounter;
 import uk.co.real_logic.sbe.ir.Ir;
 import uk.co.real_logic.sbe.ir.IrDecoder;
 import uk.co.real_logic.sbe.ir.IrEncoder;
@@ -10,6 +9,8 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
@@ -145,7 +146,7 @@ public class ReadPcaps {
                             msgTokens,
                             tokenListener);
                 }
-                row_counter.increment_message_count();
+                row_counter.increment_count(CounterTypes.MESSAGE_COUNT);
                 outWriter.flush();
                 lines_read = lines_read + 1;
             } catch (Exception e) {

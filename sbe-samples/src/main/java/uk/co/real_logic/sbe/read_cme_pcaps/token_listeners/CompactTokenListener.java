@@ -17,11 +17,12 @@ package uk.co.real_logic.sbe.read_cme_pcaps.token_listeners;
 
 import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.PrimitiveValue;
-import uk.co.real_logic.sbe.counters.RowCounter;
 import uk.co.real_logic.sbe.ir.Encoding;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.otf.Types;
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayDeque;
@@ -105,7 +106,8 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onBeginMessage(final Token token) {
-        this.row_counter.reset_group_header_count();
+        //todo:
+        this.row_counter.reset_count(CounterTypes.GROUP_HEADER_COUNT);
         this.nonTerminalScope.push(token.name());
     }
 
@@ -225,8 +227,8 @@ public class CompactTokenListener implements TokenListener {
 
     public void onGroupHeader(final Token token, final int numInGroup) {
         this.tokenOutput.writerOut("\n");
-        this.row_counter.reset_group_element_count();
-        this.row_counter.increment_group_header_count();
+        this.row_counter.reset_count(CounterTypes.GROUP_ELEMENT_COUNT);
+        this.row_counter.increment_count(CounterTypes.GROUP_HEADER_COUNT);
         this.writeNewRow(RowType.groupheader);
         this.tokenOutput.writerOut(token.name());
         if (this.include_value_labels) {
@@ -239,7 +241,8 @@ public class CompactTokenListener implements TokenListener {
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
         this.tokenOutput.writerOut("\n");
-        this.row_counter.increment_group_element_count();
+        this.row_counter.increment_count(CounterTypes.GROUP_ELEMENT_COUNT);
+        ;
         this.nonTerminalScope.push(token.name());
         this.writeNewRow(RowType.group);
     }
@@ -283,7 +286,7 @@ public class CompactTokenListener implements TokenListener {
 
 
     private void writeNewRow(RowType row_type) {
-        this.tokenOutput.writeRow(row_type, this.row_counter.get_message_count(), this.row_counter.get_group_header_count(), this.row_counter.get_group_element_count());
+        this.tokenOutput.writeRow(row_type, this.row_counter.get_count(CounterTypes.MESSAGE_COUNT), this.row_counter.get_count(CounterTypes.GROUP_HEADER_COUNT), this.row_counter.get_count(CounterTypes.GROUP_ELEMENT_COUNT));
         this.writeTimestamps();
         this.printScope();
     }
