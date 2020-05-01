@@ -17,6 +17,7 @@ package uk.co.real_logic.sbe.read_cme_pcaps.token_listeners;
 
 import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.PrimitiveValue;
+import uk.co.real_logic.sbe.counters.RowCounter;
 import uk.co.real_logic.sbe.ir.Encoding;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
@@ -36,7 +37,6 @@ public class CompactTokenListener implements TokenListener {
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
     CharSequence transact_time;
-    long message_count;
     long group_header_count;
     long group_element_count;
     boolean include_value_labels = true;
@@ -46,15 +46,16 @@ public class CompactTokenListener implements TokenListener {
     private final long packet_sequence_number;
     private final long sending_time;
     private TokenOutput tokenOutput;
+    private RowCounter row_counter;
 
-    public CompactTokenListener(final TokenOutput tokenOutput, long message_count, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
+    public CompactTokenListener(final TokenOutput tokenOutput, RowCounter row_counter, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
         this.template_id = template_id;
         this.sending_time = sending_time;
         this.packet_sequence_number = packet_sequence_number;
-        this.message_count = message_count;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
         this.tokenOutput = tokenOutput;
+        this.row_counter = row_counter;
     }
 
 
@@ -284,7 +285,7 @@ public class CompactTokenListener implements TokenListener {
 
 
     private void writeNewRow(RowType row_type) {
-        this.tokenOutput.writeRow(row_type, this.message_count, this.group_header_count, this.group_element_count);
+        this.tokenOutput.writeRow(row_type, this.row_counter.get_message_count(), this.group_header_count, this.group_element_count);
         this.writeTimestamps();
         this.printScope();
     }
