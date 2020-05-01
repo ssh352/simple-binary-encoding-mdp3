@@ -18,7 +18,6 @@ package uk.co.real_logic.sbe.read_cme_pcaps.token_listeners;
 import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
-import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.decoders.BufferDecoders;
 
@@ -233,7 +232,7 @@ public class CompactTokenListener implements TokenListener {
 
 
     private void writeNewRow(RowType row_type) {
-        this.tokenOutput.writeRow(row_type, this.row_counter.get_count(CounterTypes.MESSAGE_COUNT), this.row_counter.get_count(CounterTypes.GROUP_HEADER_COUNT), this.row_counter.get_count(CounterTypes.GROUP_ELEMENT_COUNT));
+        this.tokenOutput.writeRow(row_type);
         this.writeTimestamps();
         this.printScope();
     }

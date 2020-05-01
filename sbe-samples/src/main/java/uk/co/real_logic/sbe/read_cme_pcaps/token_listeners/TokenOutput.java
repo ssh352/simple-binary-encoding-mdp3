@@ -1,5 +1,6 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.token_listeners;
 
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 
 import java.io.IOException;
@@ -16,13 +17,13 @@ public class TokenOutput {
         this.include_value_labels = include_value_labels;
     }
 
-    public void writeRow(CompactTokenListener.RowType row_type, long message_count, long group_header_count, long group_element_count) {
+    public void writeRow(CompactTokenListener.RowType row_type) {
 
-        writerOut(String.valueOf(message_count));
+        writerOut(String.valueOf(this.row_counter.get_count(CounterTypes.MESSAGE_COUNT)));
         writerOut(", ");
-        writerOut(String.valueOf(group_header_count));
+        writerOut(String.valueOf(this.row_counter.get_count((CounterTypes.GROUP_HEADER_COUNT))));
         writerOut(", ");
-        writerOut(String.valueOf(group_element_count));
+        writerOut(String.valueOf(this.row_counter.get_count((CounterTypes.GROUP_ELEMENT_COUNT))));
         writerOut(", ");
         writerOut(pad(row_type.toString(), 16, ' '));
     }
