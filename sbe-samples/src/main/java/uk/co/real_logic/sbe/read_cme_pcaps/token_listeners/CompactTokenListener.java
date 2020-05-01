@@ -240,8 +240,7 @@ public class CompactTokenListener implements TokenListener {
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
         this.tokenOutput.writerOut("\n");
-        this.row_counter.increment_count(CounterTypes.GROUP_ELEMENT_COUNT);
-        ;
+        this.row_counter.onBeginGroup();
         this.nonTerminalScope.push(token.name());
         this.writeNewRow(RowType.group);
     }

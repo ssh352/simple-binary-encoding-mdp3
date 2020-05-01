@@ -38,5 +38,9 @@ public class RowCounter {
         this.increment_count(CounterTypes.GROUP_HEADER_COUNT);
 
     }
+
+    public void onBeginGroup() {
+        this.increment_count(CounterTypes.GROUP_ELEMENT_COUNT);
+    }
 }
 
