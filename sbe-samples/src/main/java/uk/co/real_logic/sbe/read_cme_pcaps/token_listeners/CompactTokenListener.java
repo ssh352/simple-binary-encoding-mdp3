@@ -37,7 +37,6 @@ public class CompactTokenListener implements TokenListener {
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
     CharSequence transact_time;
-    long group_header_count;
     long group_element_count;
     boolean include_value_labels = true;
     boolean transact_time_found;
@@ -107,7 +106,7 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onBeginMessage(final Token token) {
-        this.group_header_count = 0;
+        this.row_counter.reset_group_header_count();
         this.nonTerminalScope.push(token.name());
     }
 
@@ -228,7 +227,7 @@ public class CompactTokenListener implements TokenListener {
     public void onGroupHeader(final Token token, final int numInGroup) {
         this.tokenOutput.writerOut("\n");
         this.group_element_count = 0;
-        this.group_header_count++;
+        this.row_counter.increment_group_header_count();
         this.writeNewRow(RowType.groupheader);
         this.tokenOutput.writerOut(token.name());
         if (this.include_value_labels) {
@@ -285,7 +284,7 @@ public class CompactTokenListener implements TokenListener {
 
 
     private void writeNewRow(RowType row_type) {
-        this.tokenOutput.writeRow(row_type, this.row_counter.get_message_count(), this.group_header_count, this.group_element_count);
+        this.tokenOutput.writeRow(row_type, this.row_counter.get_message_count(), this.row_counter.get_group_header_count(), this.group_element_count);
         this.writeTimestamps();
         this.printScope();
     }
