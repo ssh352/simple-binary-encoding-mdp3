@@ -67,8 +67,8 @@ public class ReadPcaps {
 
         }
 
-        TokenOutput tokenOutput = new TokenOutput(outWriter, true);
         RowCounter row_counter = new RowCounter();
+        TokenOutput tokenOutput = new TokenOutput(outWriter, row_counter, true);
 
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
         encodeSchema(encodedSchemaBuffer, prop.schema_file);

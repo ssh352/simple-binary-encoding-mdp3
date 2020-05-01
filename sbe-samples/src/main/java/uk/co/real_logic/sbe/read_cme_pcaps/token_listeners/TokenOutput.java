@@ -1,13 +1,17 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.token_listeners;
 
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
+
 import java.io.IOException;
 import java.io.Writer;
 
 public class TokenOutput {
     private final Writer out;
     boolean include_value_labels;
+    RowCounter row_counter;
 
-    public TokenOutput(Writer out, boolean include_value_labels) {
+    public TokenOutput(Writer out, RowCounter row_counter, boolean include_value_labels) {
+        this.row_counter = row_counter;
         this.out = out;
         this.include_value_labels = include_value_labels;
     }
