@@ -26,5 +26,9 @@ public class RowCounter {
         this.row_counters.get(counter_type).reset_count();
     }
 
+    public void onBeginMessage() {
+        this.reset_count(CounterTypes.GROUP_ELEMENT_COUNT);
+        this.reset_count(CounterTypes.GROUP_HEADER_COUNT);
+    }
 }
 
