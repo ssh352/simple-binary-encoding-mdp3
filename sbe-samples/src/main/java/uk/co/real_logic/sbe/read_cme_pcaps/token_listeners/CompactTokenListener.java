@@ -106,7 +106,7 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onBeginMessage(final Token token) {
-        //todo:
+        //todo: raise onBeginMessageInRowCounter
         this.row_counter.reset_count(CounterTypes.GROUP_ELEMENT_COUNT);
         this.row_counter.reset_count(CounterTypes.GROUP_HEADER_COUNT);
         this.nonTerminalScope.push(token.name());
