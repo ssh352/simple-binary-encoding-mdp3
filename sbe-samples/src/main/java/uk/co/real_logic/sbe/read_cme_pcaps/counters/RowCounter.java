@@ -29,6 +29,14 @@ public class RowCounter {
     public void onBeginMessage() {
         this.reset_count(CounterTypes.GROUP_ELEMENT_COUNT);
         this.reset_count(CounterTypes.GROUP_HEADER_COUNT);
+
+
+    }
+
+    public void onGroupHeader() {
+        this.reset_count(CounterTypes.GROUP_ELEMENT_COUNT);
+        this.increment_count(CounterTypes.GROUP_HEADER_COUNT);
+
     }
 }
 
