@@ -86,7 +86,7 @@ public class CompactTokenListener implements TokenListener {
             if (!this.timestampTracker.transactTimeSet()) {
                 this.timestampTracker.setTransact_time(terminalValueString);
                 //waiting to get transact time before writing row header
-                this.writeNewRow(RowType.messageheader);
+                this.tokenOutput.writeNewRow(RowType.messageheader, timestampTracker, makeScopeString());
 
             }
         }
@@ -176,7 +176,7 @@ public class CompactTokenListener implements TokenListener {
     public void onGroupHeader(final Token token, final int numInGroup) {
         this.row_counter.onGroupHeader();
         this.tokenOutput.writerOut("\n");
-        this.writeNewRow(RowType.groupheader);
+        this.tokenOutput.writeNewRow(RowType.groupheader, timestampTracker, makeScopeString());
         this.tokenOutput.writerOut(token.name());
         if (this.include_value_labels) {
             this.tokenOutput.writerOut(", Group Header : numInGroup=");
@@ -190,7 +190,7 @@ public class CompactTokenListener implements TokenListener {
         this.tokenOutput.writerOut("\n");
         this.row_counter.onBeginGroup();
         this.nonTerminalScope.push(token.name());
-        this.writeNewRow(RowType.group);
+        this.tokenOutput.writeNewRow(RowType.group, timestampTracker, makeScopeString());
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
@@ -230,25 +230,18 @@ public class CompactTokenListener implements TokenListener {
     }
 
 
-
-    private void writeNewRow(RowType row_type) {
-        this.tokenOutput.writeRowCounts(row_type);
-        this.tokenOutput.writeTimestamps(timestampTracker);
-        this.printScope();
-    }
-
-
-
-    private void printScope() {
+    private String makeScopeString() {
+        StringBuilder sb = new StringBuilder();
         this.tokenOutput.writerOut(", ");
         final Iterator<String> i = this.nonTerminalScope.descendingIterator();
         while (i.hasNext()) {
             if (this.print_full_scope | (!i.hasNext())) {
-                this.tokenOutput.writerOut(i.next());
+                sb.append(i.next());
             } else {
                 i.next();
             }
         }
+        return sb.toString();
     }
 
 

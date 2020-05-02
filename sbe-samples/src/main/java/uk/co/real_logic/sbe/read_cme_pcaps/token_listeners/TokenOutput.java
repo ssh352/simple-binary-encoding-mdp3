@@ -63,6 +63,13 @@ public class TokenOutput {
         //here is where it prints the deep scope for each value.. we'd like to somehow
     }
 
+
+    public void writeNewRow(CompactTokenListener.RowType row_type, TimestampTracker timestampTracker, String scopeString) {
+        this.writeRowCounts(row_type);
+        this.writeTimestamps(timestampTracker);
+        this.writerOut(scopeString);
+    }
+
     void writerOut(String s) {
         try {
             this.out.write(s);
