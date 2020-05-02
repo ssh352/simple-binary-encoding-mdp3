@@ -155,7 +155,7 @@ public class CompactTokenListener implements TokenListener {
 //        printTimestampsAndTemplateID();
 //        printValue(typeToken, encodedValue);
         this.tokenOutput.writerOut(sb.toString());
-        row_counter.onBeginMessage();
+        row_counter.onBitSetEnd();
     }
 
     public void onBeginComposite(
