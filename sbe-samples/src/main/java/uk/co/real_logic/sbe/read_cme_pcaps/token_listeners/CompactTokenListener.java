@@ -83,7 +83,7 @@ public class CompactTokenListener implements TokenListener {
         if (!fieldToken.name().equals("TransactTime")) {
             this.tokenOutput.writeFieldValue(fieldToken.name(), terminalValueString);
         } else {
-            if (!this.transact_time_found) {
+            if (!this.timestampTracker.transactTimeSet()) {
                 this.transact_time = terminalValue;
                 this.transact_time_found = true;
                 //waiting to get transact time before writing row header

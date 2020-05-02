@@ -6,7 +6,7 @@ public class TimestampTracker {
     long sending_time;
     long transact_time;
     boolean sending_time_set;
-    boolean transact_time_set;
+    boolean transact_time_set = false;
 
     public TimestampTracker() {
     }
@@ -30,5 +30,8 @@ public class TimestampTracker {
         this.transact_time = transact_time;
     }
 
+    public Boolean transactTimeSet() {
+        return transact_time_set;
+    }
 
 }
