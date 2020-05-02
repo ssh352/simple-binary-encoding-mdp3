@@ -84,8 +84,7 @@ public class CompactTokenListener implements TokenListener {
             this.tokenOutput.writeFieldValue(fieldToken.name(), terminalValueString);
         } else {
             if (!this.timestampTracker.transactTimeSet()) {
-                this.transact_time = terminalValue;
-                this.transact_time_found = true;
+                this.timestampTracker.setTransact_time(terminalValueString);
                 //waiting to get transact time before writing row header
                 this.writeNewRow(RowType.messageheader);
 
@@ -233,7 +232,7 @@ public class CompactTokenListener implements TokenListener {
 
 
     private void writeNewRow(RowType row_type) {
-        this.tokenOutput.writeRow(row_type);
+        this.tokenOutput.writeRowCounts(row_type);
         this.writeTimestamps();
         this.printScope();
     }
@@ -241,7 +240,7 @@ public class CompactTokenListener implements TokenListener {
     public void writeTimestamps() {
         String packet_sequence_number_string = String.format("%d", this.packet_sequence_number);
         String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
-        this.tokenOutput.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.timestampTracker.getSending_time() + ", " + this.transact_time);
+        this.tokenOutput.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.timestampTracker.getSending_time() + ", " + this.timestampTracker.getTransact_time());
     }
 
 

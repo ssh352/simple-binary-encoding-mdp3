@@ -17,7 +17,7 @@ public class TokenOutput {
         this.include_value_labels = include_value_labels;
     }
 
-    public void writeRow(CompactTokenListener.RowType row_type) {
+    public void writeRowCounts(CompactTokenListener.RowType row_type) {
 
         writerOut(String.valueOf(this.row_counter.get_count(CounterTypes.MESSAGE_COUNT)));
         writerOut(", ");
