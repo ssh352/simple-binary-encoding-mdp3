@@ -172,8 +172,8 @@ public class CompactTokenListener implements TokenListener {
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) {
-        this.tokenOutput.writerOut("\n");
         this.row_counter.onGroupHeader();
+        this.tokenOutput.writerOut("\n");
         this.writeNewRow(RowType.groupheader);
         this.tokenOutput.writerOut(token.name());
         if (this.include_value_labels) {
