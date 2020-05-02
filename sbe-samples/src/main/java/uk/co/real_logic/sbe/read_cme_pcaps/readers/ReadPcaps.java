@@ -10,6 +10,7 @@ import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.TimestampTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
@@ -124,6 +125,9 @@ public class ReadPcaps {
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
+                TimestampTracker timestampTracker = new TimestampTracker();
+                timestampTracker.setSending_time(sending_time);
+
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
                 blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
@@ -136,7 +140,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
-                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, row_counter, packet_sequence_number, sending_time, templateId, true);
+                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, row_counter, packet_sequence_number, timestampTracker, templateId, true);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,

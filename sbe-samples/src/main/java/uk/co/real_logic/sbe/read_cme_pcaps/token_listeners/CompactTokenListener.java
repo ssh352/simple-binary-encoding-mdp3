@@ -20,6 +20,7 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.TimestampTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.decoders.BufferDecoders;
 
 import java.io.UnsupportedEncodingException;
@@ -38,13 +39,13 @@ public class CompactTokenListener implements TokenListener {
     boolean print_full_scope;
     private int compositeLevel;
     private final long packet_sequence_number;
-    private final long sending_time;
+    private final TimestampTracker timestampTracker;
     private TokenOutput tokenOutput;
     private RowCounter row_counter;
 
-    public CompactTokenListener(final TokenOutput tokenOutput, RowCounter row_counter, long packet_sequence_number, long sending_time, int template_id, boolean include_value_labels) {
+    public CompactTokenListener(final TokenOutput tokenOutput, RowCounter row_counter, long packet_sequence_number, TimestampTracker timestampTracker, int template_id, boolean include_value_labels) {
         this.template_id = template_id;
-        this.sending_time = sending_time;
+        this.timestampTracker = timestampTracker;
         this.packet_sequence_number = packet_sequence_number;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
@@ -240,7 +241,7 @@ public class CompactTokenListener implements TokenListener {
     public void writeTimestamps() {
         String packet_sequence_number_string = String.format("%d", this.packet_sequence_number);
         String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
-        this.tokenOutput.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.sending_time + ", " + this.transact_time);
+        this.tokenOutput.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.timestampTracker.getSending_time() + ", " + this.transact_time);
     }
 
 
