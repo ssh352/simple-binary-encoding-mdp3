@@ -28,6 +28,7 @@ public class TokenOutput {
         writerOut(pad(row_type.toString(), 16, ' '));
     }
 
+
     public String pad(String str, int size, char padChar) {
         StringBuffer padded = new StringBuffer(str);
         while (padded.length() < size) {
