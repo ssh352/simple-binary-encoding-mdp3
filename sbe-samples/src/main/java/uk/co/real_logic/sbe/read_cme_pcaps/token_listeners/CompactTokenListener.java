@@ -65,6 +65,8 @@ public class CompactTokenListener implements TokenListener {
 
 
         this.tokenOutput.flush();
+        row_counter.increment_count(CounterTypes.MESSAGE_COUNT);
+
     }
 
     public void onEncoding(
