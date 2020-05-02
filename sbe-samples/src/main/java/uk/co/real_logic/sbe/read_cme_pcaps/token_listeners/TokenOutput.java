@@ -2,6 +2,7 @@ package uk.co.real_logic.sbe.read_cme_pcaps.token_listeners;
 
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.TimestampTracker;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -9,6 +10,8 @@ import java.io.Writer;
 public class TokenOutput {
     private final Writer out;
     boolean include_value_labels;
+    int templateID;
+    long packetSequenceNumber;
     RowCounter row_counter;
 
     public TokenOutput(Writer out, RowCounter row_counter, boolean include_value_labels) {
@@ -28,6 +31,19 @@ public class TokenOutput {
         writerOut(pad(row_type.toString(), 16, ' '));
     }
 
+    public void setTemplateID(int templateID) {
+        this.templateID = templateID;
+    }
+
+    public void setPacketSequenceNumber(long packetSequenceNumber) {
+        this.packetSequenceNumber = packetSequenceNumber;
+    }
+
+    public void writeTimestamps(TimestampTracker timestampTracker) {
+        String packet_sequence_number_string = String.format("%d", this.packetSequenceNumber);
+        String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
+        this.writerOut(", " + this.templateID + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + timestampTracker.getSending_time() + ", " + timestampTracker.getTransact_time());
+    }
 
     public String pad(String str, int size, char padChar) {
         StringBuffer padded = new StringBuffer(str);

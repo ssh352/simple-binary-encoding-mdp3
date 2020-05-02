@@ -233,15 +233,10 @@ public class CompactTokenListener implements TokenListener {
 
     private void writeNewRow(RowType row_type) {
         this.tokenOutput.writeRowCounts(row_type);
-        this.writeTimestamps();
+        this.tokenOutput.writeTimestamps(timestampTracker);
         this.printScope();
     }
 
-    public void writeTimestamps() {
-        String packet_sequence_number_string = String.format("%d", this.packet_sequence_number);
-        String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
-        this.tokenOutput.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.timestampTracker.getSending_time() + ", " + this.timestampTracker.getTransact_time());
-    }
 
 
     private void printScope() {

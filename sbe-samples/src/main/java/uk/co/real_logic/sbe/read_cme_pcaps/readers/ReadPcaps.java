@@ -121,6 +121,8 @@ public class ReadPcaps {
                 bufferOffset = next_offset;
                 int message_size = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
                 packet_sequence_number = buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
+                tokenOutput.setPacketSequenceNumber(packet_sequence_number);
+
                 sending_time = buffer.getLong(bufferOffset + offsets.sending_time_offset);
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
@@ -129,6 +131,8 @@ public class ReadPcaps {
                 timestampTracker.setSending_time(sending_time);
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
+                tokenOutput.setTemplateID(templateId);
+
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
                 blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
 
