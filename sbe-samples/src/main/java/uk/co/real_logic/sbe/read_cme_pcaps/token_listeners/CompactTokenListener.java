@@ -18,6 +18,7 @@ package uk.co.real_logic.sbe.read_cme_pcaps.token_listeners;
 import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.decoders.BufferDecoders;
 
@@ -28,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 
 public class CompactTokenListener implements TokenListener {
-    static long event_count;
     private final int template_id;
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
@@ -155,9 +155,7 @@ public class CompactTokenListener implements TokenListener {
 //        printTimestampsAndTemplateID();
 //        printValue(typeToken, encodedValue);
         this.tokenOutput.writerOut(sb.toString());
-
-
-        event_count++;
+        row_counter.onBeginMessage();
     }
 
     public void onBeginComposite(
@@ -239,7 +237,7 @@ public class CompactTokenListener implements TokenListener {
 
     public void writeTimestamps() {
         String packet_sequence_number_string = String.format("%d", this.packet_sequence_number);
-        String event_count_string = String.format("%d", event_count);
+        String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
         this.tokenOutput.writerOut(", " + this.template_id + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + this.sending_time + ", " + this.transact_time);
     }
 

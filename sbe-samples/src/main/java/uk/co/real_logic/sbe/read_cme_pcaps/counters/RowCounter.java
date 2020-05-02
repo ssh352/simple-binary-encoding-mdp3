@@ -12,6 +12,7 @@ public class RowCounter {
         this.row_counters.put(CounterTypes.MESSAGE_COUNT, new Counter());
         this.row_counters.put(CounterTypes.GROUP_HEADER_COUNT, new Counter());
         this.row_counters.put(CounterTypes.GROUP_ELEMENT_COUNT, new Counter());
+        this.row_counters.put(CounterTypes.EVENT_COUNT, new Counter());
     }
 
     public void increment_count(CounterTypes counter_type) {
@@ -29,18 +30,19 @@ public class RowCounter {
     public void onBeginMessage() {
         this.reset_count(CounterTypes.GROUP_ELEMENT_COUNT);
         this.reset_count(CounterTypes.GROUP_HEADER_COUNT);
-
-
     }
 
     public void onGroupHeader() {
         this.reset_count(CounterTypes.GROUP_ELEMENT_COUNT);
         this.increment_count(CounterTypes.GROUP_HEADER_COUNT);
-
     }
 
     public void onBeginGroup() {
         this.increment_count(CounterTypes.GROUP_ELEMENT_COUNT);
+    }
+
+    public void onBitSetEnd() {
+        this.increment_count(CounterTypes.EVENT_COUNT);
     }
 }
 
