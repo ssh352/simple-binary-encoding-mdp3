@@ -1,7 +1,7 @@
 package uk.co.real_logic.sbe.tests;
 
 
-import org.apache.commons.io.FileUtils;
+//import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,10 +13,11 @@ public class FileComparison {
     }
 
     public static void compare_files() throws IOException {
-        File reference_file = new File("c:/marketdata/testdata/testingoutputs/earliestworkingreference.txt");
+//        File reference_file = new File("c:/marketdata/testdata/testingoutputs/earliestworkingreference.txt");
+        String reference_file="c:/marketdata/testdata/testingoutputs/earliestworkingreference.txt";
         //  File file2 = new File("c:/marketdata/testdata/testingoutputs/earliestworkingmerge.txt");
-        File latest_output = new File("c:/marketdata/testdata/testingoutputs/latest.txt");
-        boolean isTwoEqual = FileUtils.contentEquals(reference_file, latest_output);
+        String latest_output = "C:/marketdata/testdata/testingoutputs/latest.txt";
+        boolean isTwoEqual = CompareTextFiles.CompareTextFiles(reference_file, latest_output);
         if (isTwoEqual) {
             System.out.println("files equal");
         } else {

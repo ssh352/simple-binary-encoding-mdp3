@@ -232,7 +232,7 @@ public class CompactTokenListener implements TokenListener {
 
     private String makeScopeString() {
         StringBuilder sb = new StringBuilder();
-        this.tokenOutput.writerOut(", ");
+        sb.append(", ");
         final Iterator<String> i = this.nonTerminalScope.descendingIterator();
         while (i.hasNext()) {
             if (this.print_full_scope | (!i.hasNext())) {
