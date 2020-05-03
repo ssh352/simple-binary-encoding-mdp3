@@ -42,7 +42,7 @@ public class TokenOutput {
     public void writeTimestamps(TimestampTracker timestampTracker) {
         String packet_sequence_number_string = String.format("%d", this.packetSequenceNumber);
         String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
-        this.writerOut(", " + this.templateID + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + timestampTracker.getSending_time() + ", " + timestampTracker.getTransact_time());
+        this.writerOut(", " + this.templateID + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + timestampTracker.getSending_time() + ", " + timestampTracker.getTransact_time() + ", ");
     }
 
     public String pad(String str, int size, char padChar) {
