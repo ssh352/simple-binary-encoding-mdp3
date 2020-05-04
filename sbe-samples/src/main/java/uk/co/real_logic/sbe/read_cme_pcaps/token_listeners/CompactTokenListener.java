@@ -21,7 +21,6 @@ import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
-import uk.co.real_logic.sbe.read_cme_pcaps.counters.TimestampTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.decoders.BufferDecoders;
 
 import java.io.UnsupportedEncodingException;

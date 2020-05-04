@@ -11,7 +11,6 @@ import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
-import uk.co.real_logic.sbe.read_cme_pcaps.counters.TimestampTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
@@ -102,10 +101,7 @@ public class ReadPcaps {
             num_lines = num_lines_short;
         }
 
-        long sending_time = 0;
-        long packet_sequence_number = 0;
-        int lines_read = 0;
-
+        int lines_read=0;
 
         while (next_offset < buffer.capacity()) {
 
@@ -116,17 +112,15 @@ public class ReadPcaps {
             try {
 
 
-                if ((lines_read * 1.0 / 10000 == lines_read / 10000)) {
-                    System.out.println(lines_read);
-                    System.out.println("sending_time: " + sending_time);
-                }
                 bufferOffset = next_offset;
                 int message_size = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
-                packet_sequence_number = buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
+                long packet_sequence_number = buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
 
                 long sendingTime = buffer.getLong(bufferOffset + offsets.sending_time_offset);
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
+
+                displayProgress(lines_read, sendingTime);
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
                 PacketInfo packetInfo = new PacketInfo(templateId, packet_sequence_number, sendingTime);
@@ -165,6 +159,13 @@ public class ReadPcaps {
         outWriter.close();
         inChannel.close();
         compare_files();
+    }
+
+    private static void displayProgress(int lines_read, long sendingTime) {
+        if ((lines_read * 1.0 / 10000 == lines_read / 10000)) {
+            System.out.println(lines_read);
+            System.out.println("sending_time: " + sendingTime);
+        }
     }
 
 
