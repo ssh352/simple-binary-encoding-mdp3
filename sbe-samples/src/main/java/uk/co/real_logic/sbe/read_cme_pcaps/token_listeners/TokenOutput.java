@@ -36,9 +36,11 @@ public class TokenOutput {
         String packet_sequence_number_string = String.format("%d", this.packetInfo.getPacketSequenceNumber());
         String templateID= String.format("%d", this.packetInfo.getTemplateID());
         //todo: get rid of event count.. it's redunant with packedid
-        String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
-        this.writerOut(", " + templateID + ", " + packet_sequence_number_string + ", " + event_count_string + ", ");
-        this.writerOut(packetInfo.getSendingTime() + ", " + packetInfo.getTransactTime());
+        this.writeColumnValue(templateID);
+        this.writeColumnValue(packet_sequence_number_string) ;
+        this.writeColumnValue(String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT)));
+        this.writeColumnValue(packetInfo.getSendingTime());
+        this.writeColumnValue(packetInfo.getTransactTime());
     }
 
     public String pad(String str, int size, char padChar) {
@@ -50,12 +52,13 @@ public class TokenOutput {
     }
 
     void writeFieldValue(String field_label, String printableObject) {
-        this.writerOut(", ");
+        StringBuilder sb = new StringBuilder();
         if (this.include_value_labels) {
-            this.writerOut(field_label);
-            this.writerOut("=");
+            sb.append(field_label);
+            sb.append("=");
         }
-        this.writerOut(printableObject);
+        sb.append(printableObject);
+        this.writeColumnValue(sb.toString());
         //here is where it prints the deep scope for each value.. we'd like to somehow
     }
 
