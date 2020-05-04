@@ -22,12 +22,9 @@ public class TokenOutput {
     public void writeRowCounts(CompactTokenListener.RowType row_type) {
 
         writerOut(String.valueOf(this.row_counter.get_count(CounterTypes.MESSAGE_COUNT)));
-        writerOut(", ");
-        writerOut(String.valueOf(this.row_counter.get_count((CounterTypes.GROUP_HEADER_COUNT))));
-        writerOut(", ");
-        writerOut(String.valueOf(this.row_counter.get_count((CounterTypes.GROUP_ELEMENT_COUNT))));
-        writerOut(", ");
-        writerOut(pad(row_type.toString(), 16, ' '));
+        writeColumnValue(String.valueOf(this.row_counter.get_count((CounterTypes.GROUP_HEADER_COUNT))));
+        writeColumnValue(String.valueOf(this.row_counter.get_count((CounterTypes.GROUP_ELEMENT_COUNT))));
+        writeColumnValue(pad(row_type.toString(), 16, ' '));
     }
 
     public void setPacketInfo(PacketInfo packetInfo){
@@ -69,6 +66,10 @@ public class TokenOutput {
         this.writerOut(scopeString);
     }
 
+    void writeColumnValue(String columnValue){
+        writerOut(", ");
+        writerOut(columnValue);
+    }
 
     void writerOut(String s) {
         try {
