@@ -137,26 +137,22 @@ public class CompactTokenListener implements TokenListener {
         final long encodedValue = BufferDecoders.readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
         //     toWriter(determineName(0, fieldToken, tokens, beginIndex)).append(':');
-
+//        tokenOutput.writerOut("bitsetsbbegin");
         //hold value of string for a bit, so we can get the transact time from the header
         StringBuilder sb = new StringBuilder();
         for (int i = beginIndex + 1; i < endIndex; i++) {
-            //don't display transact time.. it is special case on every row
-            if (!tokens.get(i).name().equals("TransactTime")) {
                 if (this.include_value_labels) {
                     sb.append(tokens.get(i).name() + '=');
                 } else {
                     sb.append(", ");
                 }
-            }
             final long bitPosition = tokens.get(i).encoding().constValue().longValue();
             final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
 
             sb.append(flag);
         }
-//        printTimestampsAndTemplateID();
-//        printValue(typeToken, encodedValue);
-        this.tokenOutput.writerOut(sb.toString());
+        tokenOutput.writerOut(sb.toString());
+ //       tokenOutput.writerOut("bitsetsbend");
         row_counter.onBitSetEnd();
     }
 
