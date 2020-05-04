@@ -36,12 +36,13 @@ public class TokenOutput {
     }
 
 
-    public void writePacketInfo(TimestampTracker timestampTracker) {
+    public void writePacketInfo() {
         String packet_sequence_number_string = String.format("%d", this.packetInfo.getPacketSequenceNumber());
         String templateID= String.format("%d", this.packetInfo.getTemplateID());
         //todo: get rid of event count.. it's redunant with packedid
         String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
-        this.writerOut(", " + templateID + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + timestampTracker.getSending_time() + ", " + timestampTracker.getTransact_time());
+        this.writerOut(", " + templateID + ", " + packet_sequence_number_string + ", " + event_count_string + ", ");
+        this.writerOut(packetInfo.getSendingTime() + ", " + packetInfo.getTransactTime());
     }
 
     public String pad(String str, int size, char padChar) {
@@ -63,16 +64,12 @@ public class TokenOutput {
     }
 
 
-    public void writeRowHeader(CompactTokenListener.RowType row_type, TimestampTracker timestampTracker, String scopeString) {
+    public void writeRowHeader(CompactTokenListener.RowType row_type, PacketInfo timestampTracker, String scopeString) {
         this.writeRowCounts(row_type);
-        this.writePacketInfo(packetInfo);
-        this.writePacketInfo(timestampTracker);
+        this.writePacketInfo();
         this.writerOut(scopeString);
     }
 
-    private void writePacketInfo(PacketInfo packetInfo) {
-
-    }
 
     void writerOut(String s) {
         try {

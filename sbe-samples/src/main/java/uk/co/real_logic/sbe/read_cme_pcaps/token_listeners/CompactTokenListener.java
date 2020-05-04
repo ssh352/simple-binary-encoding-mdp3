@@ -33,19 +33,15 @@ import java.util.List;
 public class CompactTokenListener implements TokenListener {
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
-    CharSequence transact_time;
     boolean include_value_labels = true;
-    boolean transact_time_found;
     boolean print_full_scope;
     private int compositeLevel;
-    private final TimestampTracker timestampTracker;
     private TokenOutput tokenOutput;
     private RowCounter row_counter;
     final private PacketInfo packetInfo;
 
-    public CompactTokenListener(final TokenOutput tokenOutput, RowCounter row_counter, PacketInfo packetInfo, TimestampTracker timestampTracker,  boolean include_value_labels) {
+    public CompactTokenListener(final TokenOutput tokenOutput, RowCounter row_counter, PacketInfo packetInfo,   boolean include_value_labels) {
         this.packetInfo=packetInfo;
-        this.timestampTracker = timestampTracker;
         this.include_value_labels = include_value_labels;
         this.print_full_scope = true;
         this.tokenOutput = tokenOutput;
@@ -82,10 +78,10 @@ public class CompactTokenListener implements TokenListener {
         if (!fieldToken.name().equals("TransactTime")) {
             this.tokenOutput.writeFieldValue(fieldToken.name(), terminalValueString);
         } else {
-            if (!this.timestampTracker.transactTimeSet()) {
-                this.timestampTracker.setTransact_time(terminalValueString);
+            if (!this.packetInfo.transactTimeSet()) {
+                this.packetInfo.setTransactTime(terminalValueString);
                 //waiting to get transact time before writing row header
-                this.tokenOutput.writeRowHeader(RowType.messageheader, timestampTracker, makeScopeString());
+                this.tokenOutput.writeRowHeader(RowType.messageheader, packetInfo,  makeScopeString());
 
             }
         }
@@ -165,7 +161,7 @@ public class CompactTokenListener implements TokenListener {
     public void onGroupHeader(final Token token, final int numInGroup) {
         this.row_counter.onGroupHeader();
         this.tokenOutput.writerOut("\n");
-        this.tokenOutput.writeRowHeader(RowType.groupheader, timestampTracker, makeScopeString());
+        this.tokenOutput.writeRowHeader(RowType.groupheader, packetInfo, makeScopeString());
         this.tokenOutput.writerOut(token.name());
         if (this.include_value_labels) {
             this.tokenOutput.writerOut(", Group Header : numInGroup=");
@@ -179,7 +175,7 @@ public class CompactTokenListener implements TokenListener {
         this.tokenOutput.writerOut("\n");
         this.row_counter.onBeginGroup();
         this.nonTerminalScope.push(token.name());
-        this.tokenOutput.writeRowHeader(RowType.group, timestampTracker, makeScopeString());
+        this.tokenOutput.writeRowHeader(RowType.group, packetInfo, makeScopeString());
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {

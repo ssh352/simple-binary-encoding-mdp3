@@ -124,15 +124,12 @@ public class ReadPcaps {
                 int message_size = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
                 packet_sequence_number = buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
 
-                sending_time = buffer.getLong(bufferOffset + offsets.sending_time_offset);
+                long sendingTime = buffer.getLong(bufferOffset + offsets.sending_time_offset);
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
-                TimestampTracker timestampTracker = new TimestampTracker();
-                timestampTracker.setSending_time(sending_time);
-
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
-                PacketInfo packetInfo = new PacketInfo(templateId, packet_sequence_number);
+                PacketInfo packetInfo = new PacketInfo(templateId, packet_sequence_number, sendingTime);
                 tokenOutput.setPacketInfo(packetInfo);
 
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
@@ -146,7 +143,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
-                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, row_counter, packetInfo, timestampTracker,  true);
+                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, row_counter, packetInfo,   true);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
