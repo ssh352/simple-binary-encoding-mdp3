@@ -20,7 +20,6 @@ public class TokenOutput {
     }
 
     public void writeRowCounts(CompactTokenListener.RowType row_type) {
-
         writerOut(String.valueOf(this.row_counter.get_count(CounterTypes.MESSAGE_COUNT)));
         writeColumnValue(String.valueOf(this.row_counter.get_count((CounterTypes.GROUP_HEADER_COUNT))));
         writeColumnValue(String.valueOf(this.row_counter.get_count((CounterTypes.GROUP_ELEMENT_COUNT))));
