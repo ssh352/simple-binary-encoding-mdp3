@@ -14,7 +14,7 @@ public class FileComparison {
 
     public static void compare_files() throws IOException {
 //        File reference_file = new File("c:/marketdata/testdata/testingoutputs/earliestworkingreference.txt");
-        String reference_file="c:/marketdata/testdata/testingoutputs/earliestworkingreference.txt";
+        String reference_file="c:/marketdata/testdata/testingoutputs/latestreferencefile.txt";
         //  File file2 = new File("c:/marketdata/testdata/testingoutputs/earliestworkingmerge.txt");
         String latest_output = "C:/marketdata/testdata/testingoutputs/latest.txt";
         boolean isTwoEqual = CompareTextFiles.CompareTextFiles(reference_file, latest_output);

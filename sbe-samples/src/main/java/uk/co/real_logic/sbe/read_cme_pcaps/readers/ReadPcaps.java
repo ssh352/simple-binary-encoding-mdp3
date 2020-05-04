@@ -9,6 +9,7 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
+import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.TimestampTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
@@ -122,7 +123,6 @@ public class ReadPcaps {
                 bufferOffset = next_offset;
                 int message_size = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
                 packet_sequence_number = buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
-                tokenOutput.setPacketSequenceNumber(packet_sequence_number);
 
                 sending_time = buffer.getLong(bufferOffset + offsets.sending_time_offset);
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
@@ -132,7 +132,8 @@ public class ReadPcaps {
                 timestampTracker.setSending_time(sending_time);
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
-                tokenOutput.setTemplateID(templateId);
+                PacketInfo packetInfo = new PacketInfo(templateId, packet_sequence_number);
+                tokenOutput.setPacketInfo(packetInfo);
 
                 final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
                 blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
@@ -145,7 +146,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
-                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, row_counter, packet_sequence_number, timestampTracker, templateId, true);
+                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, row_counter, packetInfo, timestampTracker,  true);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
