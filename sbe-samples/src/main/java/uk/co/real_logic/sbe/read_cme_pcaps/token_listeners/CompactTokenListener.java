@@ -141,10 +141,9 @@ public class CompactTokenListener implements TokenListener {
         //hold value of string for a bit, so we can get the transact time from the header
         StringBuilder sb = new StringBuilder();
         for (int i = beginIndex + 1; i < endIndex; i++) {
+            sb.append(", ");
                 if (this.include_value_labels) {
                     sb.append(tokens.get(i).name() + '=');
-                } else {
-                    sb.append(", ");
                 }
             final long bitPosition = tokens.get(i).encoding().constValue().longValue();
             final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
