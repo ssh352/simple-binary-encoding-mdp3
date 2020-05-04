@@ -62,7 +62,7 @@ public class TokenOutput {
         //here is where it prints the deep scope for each value.. we'd like to somehow
     }
 
-
+    //todo: make row count adn packet info implement base class that has a .toString
     public void writeRowHeader(CompactTokenListener.RowType row_type, PacketInfo timestampTracker, String scopeString) {
         this.writeRowCounts(row_type);
         this.writePacketInfo();
