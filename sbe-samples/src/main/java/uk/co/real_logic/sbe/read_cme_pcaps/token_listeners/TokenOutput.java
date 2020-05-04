@@ -39,6 +39,7 @@ public class TokenOutput {
     public void writePacketInfo(TimestampTracker timestampTracker) {
         String packet_sequence_number_string = String.format("%d", this.packetInfo.getPacketSequenceNumber());
         String templateID= String.format("%d", this.packetInfo.getTemplateID());
+        //todo: get rid of event count.. it's redunant with packedid
         String event_count_string = String.format("%d", this.row_counter.get_count(CounterTypes.EVENT_COUNT));
         this.writerOut(", " + templateID + ", " + packet_sequence_number_string + ", " + event_count_string + ", " + timestampTracker.getSending_time() + ", " + timestampTracker.getTransact_time());
     }
