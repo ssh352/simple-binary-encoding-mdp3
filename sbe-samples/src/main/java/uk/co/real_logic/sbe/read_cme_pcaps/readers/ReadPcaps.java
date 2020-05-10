@@ -13,6 +13,7 @@ import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
+import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CleanTokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CompactTokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.TokenOutput;
 import uk.co.real_logic.sbe.xml.IrGenerator;
@@ -37,7 +38,7 @@ public class ReadPcaps {
 
     public static void main(final String[] args) throws Exception {
 //        ReadPcapProperties prop = new ReadPcapProperties(args[0]);
-        ReadPcapProperties prop = new ReadPcapProperties("C:\\marketdata\\testdata\\configs\\latest.config");
+        ReadPcapProperties prop = new ReadPcapProperties("C:\\marketdata\\testdata\\configs\\cleanlistener.config");
 
 
 
@@ -122,7 +123,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
-                    TokenListener tokenListener = new CompactTokenListener(tokenOutput, row_counter, packetInfo,   true);
+                    TokenListener tokenListener = new CleanTokenListener(outWriter);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
