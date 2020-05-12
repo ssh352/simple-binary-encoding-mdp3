@@ -233,6 +233,7 @@ public class CleanTokenListener implements TokenListener {
         }
     }
 
+
     private static CharSequence readEncodingAsString(
             final DirectBuffer buffer, final int index, final Token typeToken, final int actingVersion) {
         final PrimitiveValue constOrNotPresentValue = constOrNotPresentValue(typeToken, actingVersion);
