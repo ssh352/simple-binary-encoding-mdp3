@@ -213,6 +213,17 @@ public class CleanTokenListener implements TokenListener {
         }
     }
 
+
+    @Override
+    public void writeString(String output) {
+        try {
+            this.out.append(output);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private String determineName(
             final int thresholdLevel, final Token fieldToken, final List<Token> tokens, final int fromIndex) {
         if (this.compositeLevel > thresholdLevel) {

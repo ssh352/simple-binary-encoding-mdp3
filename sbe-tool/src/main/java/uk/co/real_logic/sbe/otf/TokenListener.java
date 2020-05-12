@@ -152,4 +152,6 @@ public interface TokenListener
      * @param typeToken   of the variable data. Needed to determine character encoding of the variable data.
      */
     void onVarData(Token fieldToken, DirectBuffer buffer, int bufferIndex, int length, Token typeToken) throws IOException;
+
+    void writeString(String output);
 }

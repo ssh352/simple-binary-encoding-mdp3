@@ -19,6 +19,7 @@ import org.agrona.DirectBuffer;
 import uk.co.real_logic.sbe.ir.Token;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.List;
 
 import static uk.co.real_logic.sbe.ir.Signal.BEGIN_FIELD;
@@ -49,17 +50,24 @@ public class OtfMessageDecoder
      * @param listener      to callback for decoding the primitive values as discovered in the structure.
      * @return the index in the underlying buffer after decoding.
      */
+
+
     public static int decode(
+
         final DirectBuffer buffer,
         final int offset,
         final int actingVersion,
         final int blockLength,
         final List<Token> msgTokens,
         final TokenListener listener) throws IOException {
+        //do whatever you do when beginning message.. at the least push message name into
+        //top of scope. all messages share same table, labeled with (?) as the main key
         listener.onBeginMessage(msgTokens.get(0));
 
         int i = offset;
         final int numTokens = msgTokens.size();
+        //go through fields of header.. not sure how the number is determined. This is a table that
+        // is separate for each message type.
         final int tokenIdx = decodeFields(buffer, i, actingVersion, msgTokens, 1, numTokens, listener);
         i += blockLength;
 
@@ -68,10 +76,7 @@ public class OtfMessageDecoder
 
         i = decodeData(
             buffer,
-            bufferOffset(packedValues),
-            msgTokens,
-            tokenIndex(packedValues),
-            numTokens,
+            bufferOffset(packedValues), msgTokens, tokenIndex(packedValues), numTokens,
             actingVersion,
             listener);
 
@@ -88,24 +93,38 @@ public class OtfMessageDecoder
         final int tokenIndex,
         final int numTokens,
         final TokenListener listener) throws IOException {
+
         int i = tokenIndex;
 
+
+        //this is (not) the number of fields in the current decode.. it is a global max. The break comes if
+        //the field name after the jump is not a begin field
         while (i < numTokens)
+        //loopthrough tokens.
         {
+            listener.writeString("writing from decode fields ");
+            listener.writeString("i=" + i + " ");
+            listener.writeString("buffer offset " + bufferOffset + " ");
+            listener.writeString("\n");
             final Token fieldToken = tokens.get(i);
+            // read all fields in the current scope
             if (BEGIN_FIELD != fieldToken.signal())
             {
                 break;
             }
-
+            //make next field index from number of tokens in field (this is in begin fields
             final int nextFieldIdx = i + fieldToken.componentTokenCount();
+            //advance to first token composing field.. could be multiple types
             i++;
 
+            //get the type (eg enum, composite, etc.. as well as the initial offest.
             final Token typeToken = tokens.get(i);
             final int offset = typeToken.offset();
 
             switch (typeToken.signal())
             {
+                //all of these are things that can be in a field. probably want to use these to convert
+                //values to name/type/value tuples.. but perhaps not to do anything about changing tables
                 case BEGIN_COMPOSITE:
                     decodeComposite(
                         fieldToken,
@@ -135,10 +154,11 @@ public class OtfMessageDecoder
                     }
                     break;
             }
-
+            //jump ahead to next thing that needs to be decoded
             i = nextFieldIdx;
         }
-
+        //return index of where the next thing should start
+        //possibly this should be used in decode packet..
         return i;
     }
 
@@ -153,6 +173,7 @@ public class OtfMessageDecoder
         while (tokenIdx < numTokens)
         {
             final Token token = tokens.get(tokenIdx);
+            //only want to process starting at beginning of group
             if (BEGIN_GROUP != token.signal())
             {
                 break;
@@ -183,6 +204,8 @@ public class OtfMessageDecoder
 
             final int beginFieldsIdx = tokenIdx + dimensionTypeComposite.componentTokenCount() + 1;
 
+            // basically to advance sciop of group header.. name of group header, number of tokens
+            // thus suggests all group headers can be in one table.
             listener.onGroupHeader(token, numInGroup);
 
             for (int i = 0; i < numInGroup; i++)
