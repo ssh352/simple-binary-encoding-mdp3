@@ -101,9 +101,19 @@ public class ReadPcaps {
                 int message_size = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
                 long packet_sequence_number = buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
 
+                //trying to print fields by schema/field
+
+
                 long sendingTime = buffer.getLong(bufferOffset + offsets.sending_time_offset);
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
+
+                outWriter.append("from readpcaps, message_size: " + message_size + "\n");
+                outWriter.append("from readpcaps, packet sequence number: " + packet_sequence_number + "\n");
+                outWriter.append("from readpcaps, sending time: " + sendingTime + "\n");
+                outWriter.append("from readpcaps, buffer offset: " + bufferOffset + "\n");
+                outWriter.append("from readpcaps, next offset: " + next_offset + "\n");
+
 
                 displayProgress(lines_read, sendingTime);
 
