@@ -10,6 +10,7 @@ import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
+import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TableOutput;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
@@ -42,16 +43,20 @@ public class ReadPcaps {
 
 
         DataOffsets offsets = new DataOffsets(prop.data_source);
-        Writer outWriter;
         // Encode up message and schema as if we just got them off the wire.
 
 
+        TableOutput tableOutput;
+
         if (prop.write_to_file) {
-            outWriter = new FileWriter(prop.out_file);
+            TableOutput tableOutput1=new TableOutput(new FileWriter("C:\\marketdata\\testdata\\tableoutputs\\readpcaptable.txt"));
         } else {
-            outWriter = new PrintWriter(System.out, true);
+            TableOutput tableOutput1=new TableOutput(new PrintWriter(System.out, true));
 
         }
+
+       File file;
+       Writer outWriter= new FileWriter("C:\\marketdata\\testdata\\tableoutputs\\residualoutput.txt");
 
         RowCounter row_counter = new RowCounter();
         TokenOutput tokenOutput = new TokenOutput(outWriter, row_counter, true);
