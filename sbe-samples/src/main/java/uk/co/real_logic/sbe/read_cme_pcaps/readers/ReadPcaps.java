@@ -49,9 +49,9 @@ public class ReadPcaps {
         TableOutput tableOutput;
 
         if (prop.write_to_file) {
-            TableOutput tableOutput1=new TableOutput(new FileWriter("C:\\marketdata\\testdata\\tableoutputs\\readpcaptable.txt"));
+            tableOutput=new TableOutput(new FileWriter("C:\\marketdata\\testdata\\tableoutputs\\readpcaptable.txt"));
         } else {
-            TableOutput tableOutput1=new TableOutput(new PrintWriter(System.out, true));
+            tableOutput=new TableOutput(new PrintWriter(System.out, true));
 
         }
 
@@ -113,11 +113,12 @@ public class ReadPcaps {
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
-                outWriter.append("from readpcaps, message_size: " + message_size + "\n");
-                outWriter.append("from readpcaps, packet sequence number: " + packet_sequence_number + "\n");
-                outWriter.append("from readpcaps, sending time: " + sendingTime + "\n");
-                outWriter.append("from readpcaps, buffer offset: " + bufferOffset + "\n");
-                outWriter.append("from readpcaps, next offset: " + next_offset + "\n");
+                tableOutput.append("readpcaps", "message_size", String.valueOf(message_size));
+                tableOutput.append("readpcaps",  "packet_sequence_number",  String.valueOf(packet_sequence_number));
+                tableOutput.append("readpcaps",  "sendingTime", String.valueOf(sendingTime));
+                tableOutput.append("readpcaps",  " bufferOffset", String.valueOf(bufferOffset));
+                tableOutput.append("readpcaps",   "next_offset", String.valueOf(message_size));
+                tableOutput.rowComplete();
 
 
                 displayProgress(lines_read, sendingTime);
