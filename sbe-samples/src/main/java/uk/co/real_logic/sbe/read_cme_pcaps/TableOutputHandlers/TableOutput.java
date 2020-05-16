@@ -6,7 +6,6 @@ import java.io.Writer;
 public class TableOutput {
 
     private Writer writer;
-    private boolean first_column=true;
     private boolean first_row=true;
     private StringBuilder columnValues = new StringBuilder();
     private StringBuilder columnHeaders = new StringBuilder();
@@ -41,7 +40,6 @@ public class TableOutput {
         //setLength clears stringbuilder buffer
         this.columnValues.setLength(0);
         this.writer.flush();
-        this.first_column=true;
     }
 
 

@@ -113,11 +113,11 @@ public class ReadPcaps {
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
-                tableOutput.append("readpcaps", "message_size", String.valueOf(message_size));
-                tableOutput.append("readpcaps",  "packet_sequence_number",  String.valueOf(packet_sequence_number));
-                tableOutput.append("readpcaps",  "sendingTime", String.valueOf(sendingTime));
-                tableOutput.append("readpcaps",  " bufferOffset", String.valueOf(bufferOffset));
-                tableOutput.append("readpcaps",   "next_offset", String.valueOf(message_size));
+                tableOutput.append("packet_headers", "message_size", String.valueOf(message_size));
+                tableOutput.append("packet_headers",  "packet_sequence_number",  String.valueOf(packet_sequence_number));
+                tableOutput.append("packet_headers",  "sendingTime", String.valueOf(sendingTime));
+                tableOutput.append("packet_headers",  " bufferOffset", String.valueOf(bufferOffset));
+                tableOutput.append("packet_headers",   "next_offset", String.valueOf(message_size));
                 tableOutput.rowComplete();
 
 
