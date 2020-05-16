@@ -61,9 +61,11 @@ public class ReadPcaps {
         boolean compareToPreviousFiles=false;
         TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\");
         tablesHandler.addTable("packetheaders");
+        tablesHandler.addTable("messageheaders");
+        tablesHandler.addTable("groupheaders");
 
 
-       Writer outWriter= new FileWriter("C:\\marketdata\\testdata\\tableoutputs\\residualoutput.txt");
+       Writer outWriter= new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
 
         RowCounter row_counter = new RowCounter();
         TokenOutput tokenOutput = new TokenOutput(outWriter, row_counter, true);

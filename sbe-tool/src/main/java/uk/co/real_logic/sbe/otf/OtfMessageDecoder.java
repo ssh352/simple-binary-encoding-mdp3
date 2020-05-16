@@ -162,6 +162,7 @@ public class OtfMessageDecoder
         return i;
     }
 
+    //includes both group header and grop elements
     private static long decodeGroups(
         final DirectBuffer buffer,
         int bufferOffset,
@@ -172,8 +173,13 @@ public class OtfMessageDecoder
         final TokenListener listener) throws IOException {
         while (tokenIdx < numTokens)
         {
+            listener.writeString("writing from decode groups ");
+            listener.writeString("tokenidx=" + tokenIdx + " ");
+            listener.writeString("buffer offset " + bufferOffset + " ");
+            listener.writeString("\n");
             final Token token = tokens.get(tokenIdx);
             //only want to process starting at beginning of group
+            //possibly these fields pop up and down from headers, to group headers, to group elements
             if (BEGIN_GROUP != token.signal())
             {
                 break;
@@ -189,6 +195,7 @@ public class OtfMessageDecoder
                 blockLengthToken.encoding().byteOrder()) : 0;
 
             final Token numInGroupToken = tokens.get(tokenIdx + 3);
+            //todo: write this numInGroup into groupheader table, here or elsewhere
             final int numInGroup = isPresent ? Types.getInt(
                 buffer,
                 bufferOffset + numInGroupToken.offset(),

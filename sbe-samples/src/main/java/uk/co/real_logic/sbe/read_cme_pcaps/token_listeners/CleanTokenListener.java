@@ -38,15 +38,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class CleanTokenListener implements TokenListener {
     private int compositeLevel;
     private final Writer out;
+    //todo: possibly change namedscope to hold names without dots
+    //todo: possible explicitly track lecel of depth/type of table
     private final Deque<String> namedScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
 
 
     public CleanTokenListener(Writer outWriter) {
+        //todo: take tableshandler as additional input
         this.out=outWriter;
     }
 
     public void onBeginMessage(final Token token) {
+        //todo: put name of template into messageheaders table
         this.namedScope.push(token.name() + ".");
     }
 
@@ -165,6 +169,7 @@ public class CleanTokenListener implements TokenListener {
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) {
+        //todo: write all values of group header table
         this.printScope();
         try {
             this.out.append(token.name())
