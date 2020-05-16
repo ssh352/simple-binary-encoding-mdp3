@@ -38,7 +38,6 @@ public class CleanTokenListener implements TokenListener {
     private final TablesHandler tablesHandler;
     //todo: possibly change namedscope to hold names without dots
     //todo: possible explicitly track lecel of depth/type of table
-    private final Deque<String> namedScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
 
     private ScopeLevel scopeLevel;
