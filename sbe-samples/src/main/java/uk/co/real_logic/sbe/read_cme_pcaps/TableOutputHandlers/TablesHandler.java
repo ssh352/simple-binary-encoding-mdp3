@@ -10,7 +10,7 @@ public class TablesHandler {
     HashMap<String, SingleTableOutput> singleTablesOutput= new HashMap<>();
     String path;
     Writer residualOutput;
-    private ScopeLevel scopeLevel;
+    private ScopeTracker scopeTracker = new ScopeTracker();
     //todo: get rid of reference to explicit outwriter in token listener.. override append
     //eventually get rid of residualOutput
     public TablesHandler(String path, Writer residualOutput){
