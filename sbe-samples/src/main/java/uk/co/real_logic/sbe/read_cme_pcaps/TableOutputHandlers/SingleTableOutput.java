@@ -1,20 +1,21 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 
-public class TableOutput {
+public class SingleTableOutput {
 
     private Writer writer;
     private boolean first_row=true;
     private StringBuilder columnValues = new StringBuilder();
     private StringBuilder columnHeaders = new StringBuilder();
 
-    public TableOutput(Writer writer) {
-        this.writer=writer;
+    public SingleTableOutput(String path, String tableName) throws IOException {
+        this.writer=new FileWriter(path + tableName);
     }
 
-    public void append(String table, String columnName,String columnValue)  {
+    public void append(String columnName, String columnValue)  {
         if(this.first_row){
             this.appendColumn(this.columnHeaders, columnName);
         }
@@ -29,7 +30,7 @@ public class TableOutput {
     }
 
 
-    public void rowComplete() throws IOException {
+    public void completeRow() throws IOException {
         if(first_row){
             this.writer.append(columnHeaders.toString());
             this.writer.append("\n");

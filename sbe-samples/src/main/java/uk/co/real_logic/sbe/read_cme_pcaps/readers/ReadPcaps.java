@@ -10,7 +10,8 @@ import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
-import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TableOutput;
+import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.SingleTableOutput;
+import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
@@ -44,18 +45,24 @@ public class ReadPcaps {
 
         DataOffsets offsets = new DataOffsets(prop.data_source);
         // Encode up message and schema as if we just got them off the wire.
+/*
 
-
-        TableOutput tableOutput;
+        SingleTableOutput singleTableOutput;
 
         if (prop.write_to_file) {
-            tableOutput=new TableOutput(new FileWriter("C:\\marketdata\\testdata\\tableoutputs\\readpcaptable.txt"));
+            singleTableOutput =new SingleTableOutput(new FileWriter("C:\\marketdata\\testdata\\tableoutputs\\readpcaptable.txt"));
         } else {
-            tableOutput=new TableOutput(new PrintWriter(System.out, true));
+            singleTableOutput =new SingleTableOutput(new PrintWriter(System.out, true));
 
         }
-
        File file;
+*/
+
+        boolean compareToPreviousFiles=false;
+        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\");
+        tablesHandler.addTable("packetheaders");
+
+
        Writer outWriter= new FileWriter("C:\\marketdata\\testdata\\tableoutputs\\residualoutput.txt");
 
         RowCounter row_counter = new RowCounter();
@@ -113,12 +120,12 @@ public class ReadPcaps {
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
-                tableOutput.append("packet_headers", "message_size", String.valueOf(message_size));
-                tableOutput.append("packet_headers",  "packet_sequence_number",  String.valueOf(packet_sequence_number));
-                tableOutput.append("packet_headers",  "sendingTime", String.valueOf(sendingTime));
-                tableOutput.append("packet_headers",  " bufferOffset", String.valueOf(bufferOffset));
-                tableOutput.append("packet_headers",   "next_offset", String.valueOf(message_size));
-                tableOutput.rowComplete();
+                tablesHandler.append("packetheaders","message_size", String.valueOf(message_size));
+                tablesHandler.append("packetheaders","packet_sequence_number",  String.valueOf(packet_sequence_number));
+                tablesHandler.append("packetheaders","sendingTime", String.valueOf(sendingTime));
+                tablesHandler.append("packetheaders"," bufferOffset", String.valueOf(bufferOffset));
+                tablesHandler.append("packetheaders","next_offset", String.valueOf(message_size));
+                tablesHandler.completeRow("packetheaders");
 
 
                 displayProgress(lines_read, sendingTime);
@@ -159,7 +166,9 @@ public class ReadPcaps {
         }
         outWriter.close();
         inChannel.close();
-        compare_files();
+        if (compareToPreviousFiles) {
+            compare_files();
+        }
     }
 
     private static void displayProgress(int lines_read, long sendingTime) {
