@@ -21,13 +21,10 @@ import uk.co.real_logic.sbe.ir.Encoding;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.otf.Types;
-import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
-import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
+import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
@@ -35,29 +32,32 @@ import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+
 public class CleanTokenListener implements TokenListener {
     private int compositeLevel;
-    private final Writer out;
+    private final TablesHandler tablesHandler;
     //todo: possibly change namedscope to hold names without dots
     //todo: possible explicitly track lecel of depth/type of table
     private final Deque<String> namedScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
 
+    private ScopeLevel scopeLevel;
 
-    public CleanTokenListener(Writer outWriter) {
+    public CleanTokenListener(TablesHandler tablesHandler) {
         //todo: take tableshandler as additional input
-        this.out=outWriter;
+        this.tablesHandler =tablesHandler;
     }
 
     public void onBeginMessage(final Token token) {
-        //todo: put name of template into messageheaders table
-        this.namedScope.push(token.name() + ".");
+        //todo: put name of template into messageheaders tablea
+        this.scopeLevel=ScopeLevel.MESSAGE_HEADER;
+        this.namedScope.push(token.name());
     }
 
     public void onEndMessage(final Token token) {
         this.namedScope.pop();
         try {
-            this.out.flush();
+            this.tablesHandler.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -73,9 +73,9 @@ public class CleanTokenListener implements TokenListener {
 
         this.printScope();
         try {
-            this.out.append(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name())
-                    .append('=')
-                    .append(value);
+            this.tablesHandler.append(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name())
+                    .append("=")
+                    .append((String) value);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -109,8 +109,8 @@ public class CleanTokenListener implements TokenListener {
 
         this.printScope();
         try {
-            this.out.append(this.determineName(0, fieldToken, tokens, beginIndex))
-                    .append('=')
+            this.tablesHandler.append(this.determineName(0, fieldToken, tokens, beginIndex))
+                    .append("=")
                     .append(value);
         } catch (IOException e) {
             e.printStackTrace();
@@ -131,14 +131,14 @@ public class CleanTokenListener implements TokenListener {
 
         this.printScope();
         try {
-            this.out.append(this.determineName(0, fieldToken, tokens, beginIndex)).append(':');
+            this.tablesHandler.append(this.determineName(0, fieldToken, tokens, beginIndex)).append(":");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         for (int i = beginIndex + 1; i < endIndex; i++) {
             try {
-                this.out.append(' ').append(tokens.get(i).name()).append('=');
+                this.tablesHandler.append(" ").append(tokens.get(i).name()).append("=");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -147,7 +147,7 @@ public class CleanTokenListener implements TokenListener {
             final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
 
             try {
-                this.out.append(Boolean.toString(flag));
+                this.tablesHandler.append(Boolean.toString(flag));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -159,7 +159,7 @@ public class CleanTokenListener implements TokenListener {
             final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
         ++this.compositeLevel;
 
-        this.namedScope.push(this.determineName(1, fieldToken, tokens, fromIndex) + ".");
+        this.namedScope.push(this.determineName(1, fieldToken, tokens, fromIndex));
     }
 
     public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
@@ -172,7 +172,7 @@ public class CleanTokenListener implements TokenListener {
         //todo: write all values of group header table
         this.printScope();
         try {
-            this.out.append(token.name())
+            this.tablesHandler.append(token.name())
                     .append(" Group Header : numInGroup=")
                     .append(Integer.toString(numInGroup)).append("\n");
         } catch (IOException e) {
@@ -181,7 +181,7 @@ public class CleanTokenListener implements TokenListener {
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
-        this.namedScope.push(token.name() + ".");
+        this.namedScope.push(token.name());
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
@@ -210,8 +210,8 @@ public class CleanTokenListener implements TokenListener {
 
         this.printScope();
         try {
-            this.out.append(fieldToken.name())
-                    .append('=')
+            this.tablesHandler.append(fieldToken.name())
+                    .append("=")
                     .append(value);
         } catch (IOException e) {
             e.printStackTrace();
@@ -222,7 +222,7 @@ public class CleanTokenListener implements TokenListener {
     @Override
     public void writeString(String output) {
         try {
-            this.out.append(output);
+            this.tablesHandler.append(output);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -288,7 +288,8 @@ public class CleanTokenListener implements TokenListener {
         final Iterator<String> i = this.namedScope.descendingIterator();
         while (i.hasNext()) {
             try {
-                this.out.append(i.next());
+                this.tablesHandler.append(i.next());
+                this.tablesHandler.append(".");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -296,7 +297,7 @@ public class CleanTokenListener implements TokenListener {
     }
     private void addNewLine() {
         try {
-            this.out.append("\n");
+            this.tablesHandler.append("\n");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -59,16 +59,17 @@ public class ReadPcaps {
 */
 
         boolean compareToPreviousFiles=false;
-        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\");
+        Writer residualOutWriter= new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
+
+        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\", residualOutWriter);
         tablesHandler.addTable("packetheaders");
         tablesHandler.addTable("messageheaders");
         tablesHandler.addTable("groupheaders");
 
 
-       Writer outWriter= new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
 
         RowCounter row_counter = new RowCounter();
-        TokenOutput tokenOutput = new TokenOutput(outWriter, row_counter, true);
+        TokenOutput tokenOutput = new TokenOutput(residualOutWriter, row_counter, true);
 
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
         encodeSchema(encodedSchemaBuffer, prop.schema_file);
@@ -147,7 +148,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
-                    TokenListener tokenListener = new CleanTokenListener(outWriter);
+                    TokenListener tokenListener = new CleanTokenListener(tablesHandler);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
@@ -156,17 +157,17 @@ public class ReadPcaps {
                             msgTokens,
                             tokenListener);
                 }
-                outWriter.flush();
+                tablesHandler.flush();
                 lines_read = lines_read + 1;
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("read next message failed");
-                outWriter.flush();
+                tablesHandler.flush();
             }
 
 
         }
-        outWriter.close();
+        tablesHandler.close();
         inChannel.close();
         if (compareToPreviousFiles) {
             compare_files();
