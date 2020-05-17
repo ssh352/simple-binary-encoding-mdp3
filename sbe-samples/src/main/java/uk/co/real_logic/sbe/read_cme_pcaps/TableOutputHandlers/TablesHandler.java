@@ -20,6 +20,7 @@ public class TablesHandler {
     }
 
 
+
     public void addTable( String tableName) throws IOException {
         SingleTableOutput newTableOutput= new SingleTableOutput(this.path, tableName);
         singleTablesOutput.put(tableName, newTableOutput) ;
