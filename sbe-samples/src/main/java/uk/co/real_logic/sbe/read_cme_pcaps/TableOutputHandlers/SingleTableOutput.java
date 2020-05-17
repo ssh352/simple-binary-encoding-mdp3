@@ -44,4 +44,7 @@ public class SingleTableOutput {
     }
 
 
+    public void close() throws IOException {
+        this.writer.close();
+    }
 }

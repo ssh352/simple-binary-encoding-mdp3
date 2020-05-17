@@ -10,13 +10,13 @@ public class TablesHandler {
     HashMap<String, SingleTableOutput> singleTablesOutput= new HashMap<>();
     String path;
     Writer residualOutput;
-    private ScopeTracker scopeTracker = new ScopeTracker();
+    private ScopeTracker scopeTracker;
     //todo: get rid of reference to explicit outwriter in token listener.. override append
     //eventually get rid of residualOutput
-    public TablesHandler(String path, Writer residualOutput){
-        this.scopeLevel=ScopeLevel.PACKET_HEADER;
+    public TablesHandler(String path, Writer residualOutput, ScopeTracker scopeTracker){
         this.path=path;
         this.residualOutput=residualOutput;
+        this.scopeTracker=scopeTracker;
     }
 
 
@@ -28,7 +28,7 @@ public class TablesHandler {
 
     }
 
-    public void append(String tableName, String columnName, String value){
+    public void appendToTable(String tableName, String columnName, String value){
         singleTablesOutput.get(tableName).append(columnName, value);
     }
 
@@ -40,8 +40,16 @@ public class TablesHandler {
         this.residualOutput.flush();
     }
 
+    public void appendToCurrentScope(String columnName, String value){
+        if(scopeTracker.getCurrentScope()==ScopeLevel.MESSAGE_HEADER){
+            this.appendToTable("messageheaders", columnName, value);
+        }
+        else{
+            this.appendToResidual(value);
+        }
+    }
 
-    public void append(String value)  {
+    public void appendToResidual(String value)  {
         try {
             this.residualOutput.append(value);
         } catch (IOException e) {
@@ -51,5 +59,22 @@ public class TablesHandler {
 
     public void close() throws IOException {
         this.residualOutput.close();
+        for(SingleTableOutput singleTableOutput: singleTablesOutput.values()){
+           singleTableOutput.close();
+        }
     }
+
+    public void appendScope() {
+        this.appendToResidual(scopeTracker.toString());
+    }
+
+    public void startMessageHeader(){
+        this.scopeTracker.scopeLevel=ScopeLevel.MESSAGE_HEADER;
+    }
+
+    public void endMessageHeader() throws IOException {
+        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+            this.singleTablesOutput.get("messageheaders").completeRow();
+    }
+
 }

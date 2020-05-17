@@ -10,7 +10,7 @@ import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
-import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.SingleTableOutput;
+import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.ScopeTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
@@ -58,10 +58,10 @@ public class ReadPcaps {
        File file;
 */
 
-        boolean compareToPreviousFiles=false;
+        boolean compareToPreviousFiles=true;
         Writer residualOutWriter= new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
-
-        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\", residualOutWriter);
+        ScopeTracker scopeTracker = new ScopeTracker();
+        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\", residualOutWriter, scopeTracker);
         tablesHandler.addTable("packetheaders");
         tablesHandler.addTable("messageheaders");
         tablesHandler.addTable("groupheaders");
@@ -123,11 +123,11 @@ public class ReadPcaps {
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
-                tablesHandler.append("packetheaders","message_size", String.valueOf(message_size));
-                tablesHandler.append("packetheaders","packet_sequence_number",  String.valueOf(packet_sequence_number));
-                tablesHandler.append("packetheaders","sendingTime", String.valueOf(sendingTime));
-                tablesHandler.append("packetheaders"," bufferOffset", String.valueOf(bufferOffset));
-                tablesHandler.append("packetheaders","next_offset", String.valueOf(message_size));
+                tablesHandler.appendToTable("packetheaders","message_size", String.valueOf(message_size));
+                tablesHandler.appendToTable("packetheaders","packet_sequence_number",  String.valueOf(packet_sequence_number));
+                tablesHandler.appendToTable("packetheaders","sendingTime", String.valueOf(sendingTime));
+                tablesHandler.appendToTable("packetheaders"," bufferOffset", String.valueOf(bufferOffset));
+                tablesHandler.appendToTable("packetheaders","next_offset", String.valueOf(message_size));
                 tablesHandler.completeRow("packetheaders");
 
 
@@ -148,7 +148,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
-                    TokenListener tokenListener = new CleanTokenListener(tablesHandler);
+                    TokenListener tokenListener = new CleanTokenListener(tablesHandler, scopeTracker);
                     OtfMessageDecoder.decode(
                             buffer,
                             bufferOffset,
@@ -170,7 +170,9 @@ public class ReadPcaps {
         tablesHandler.close();
         inChannel.close();
         if (compareToPreviousFiles) {
-            compare_files();
+            String reference_file="c:/marketdata/testdata/separatetables/residualoutput_5_27.txt";
+            String latest_output = "c:/marketdata/testdata/separatetables/residualoutput.txt";
+            compare_files(reference_file, latest_output);
         }
     }
 

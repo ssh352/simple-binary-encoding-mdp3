@@ -21,13 +21,11 @@ import uk.co.real_logic.sbe.ir.Encoding;
 import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.otf.Types;
+import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.ScopeTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Iterator;
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -40,21 +38,20 @@ public class CleanTokenListener implements TokenListener {
     //todo: possible explicitly track lecel of depth/type of table
     private final byte[] tempBuffer = new byte[1024];
 
-    private ScopeLevel scopeLevel;
-
-    public CleanTokenListener(TablesHandler tablesHandler) {
+    private ScopeTracker scopeTracker;
+    public CleanTokenListener(TablesHandler tablesHandler, ScopeTracker scopeTracker) {
         //todo: take tableshandler as additional input
         this.tablesHandler =tablesHandler;
+        this.scopeTracker=scopeTracker;
     }
 
     public void onBeginMessage(final Token token) {
         //todo: put name of template into messageheaders tablea
-        this.scopeLevel=ScopeLevel.MESSAGE_HEADER;
-        this.namedScope.push(token.name());
+        this.tablesHandler.startMessageHeader();
+
     }
 
     public void onEndMessage(final Token token) {
-        this.namedScope.pop();
         try {
             this.tablesHandler.flush();
         } catch (IOException e) {
@@ -70,10 +67,10 @@ public class CleanTokenListener implements TokenListener {
             final int actingVersion) {
         final CharSequence value = readEncodingAsString(buffer, index, typeToken, actingVersion);
 
-        this.printScope();
-        this.tablesHandler.append(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name());
-        this.tablesHandler.append("=");
-        this.tablesHandler.append(String.valueOf(value));
+        this.tablesHandler.appendScope();
+        this.tablesHandler.appendToCurrentScope(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name());
+        this.tablesHandler.appendToCurrentScope("=");
+        this.tablesHandler.appendToCurrentScope(String.valueOf(value));
         this.addNewLine();
     }
 
@@ -102,10 +99,10 @@ public class CleanTokenListener implements TokenListener {
             }
         }
 
-        this.printScope();
-        this.tablesHandler.append(this.determineName(0, fieldToken, tokens, beginIndex));
-        this.tablesHandler.append("=");
-        this.tablesHandler.append(value);
+        this.tablesHandler.appendScope();;
+        this.tablesHandler.appendToCurrentScope(this.determineName(0, fieldToken, tokens, beginIndex));
+        this.tablesHandler.appendToCurrentScope("=");
+        this.tablesHandler.appendToCurrentScope(value);
         this.addNewLine();
     }
 
@@ -120,19 +117,19 @@ public class CleanTokenListener implements TokenListener {
         final Token typeToken = tokens.get(beginIndex + 1);
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
-        this.printScope();
-        this.tablesHandler.append(this.determineName(0, fieldToken, tokens, beginIndex));
-        this.tablesHandler.append(":");
+        this.tablesHandler.appendScope();
+        this.tablesHandler.appendToCurrentScope(this.determineName(0, fieldToken, tokens, beginIndex));
+        this.tablesHandler.appendToCurrentScope(":");
 
         for (int i = beginIndex + 1; i < endIndex; i++) {
-            this.tablesHandler.append(" ");
-            this.tablesHandler.append(tokens.get(i).name());
-            this.tablesHandler.append("=");
+            this.tablesHandler.appendToCurrentScope(" ");
+            this.tablesHandler.appendToCurrentScope(tokens.get(i).name());
+            this.tablesHandler.appendToCurrentScope("=");
 
             final long bitPosition = tokens.get(i).encoding().constValue().longValue();
             final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
 
-            this.tablesHandler.append(Boolean.toString(flag));
+            this.tablesHandler.appendToCurrentScope(Boolean.toString(flag));
         }
         this.addNewLine();
     }
@@ -141,30 +138,31 @@ public class CleanTokenListener implements TokenListener {
             final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
         ++this.compositeLevel;
 
-        this.namedScope.push(this.determineName(1, fieldToken, tokens, fromIndex));
+        this.scopeTracker.pushScope(this.determineName(1, fieldToken, tokens, fromIndex));
     }
 
     public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
         --this.compositeLevel;
 
-        this.namedScope.pop();
+        this.scopeTracker.popScope();
     }
 
-    public void onGroupHeader(final Token token, final int numInGroup) {
+    public void onGroupHeader(final Token token, final int numInGroup) throws IOException {
+        this.tablesHandler.endMessageHeader();
         //todo: write all values of group header table
-        this.printScope();
-        this.tablesHandler.append(token.name());
-        this.tablesHandler.append(" Group Header : numInGroup=");
-        this.tablesHandler.append(Integer.toString(numInGroup));
-        this.tablesHandler.append("\n");
+        this.tablesHandler.appendToResidual(scopeTracker.toString());
+        this.tablesHandler.appendToResidual(token.name());
+        this.tablesHandler.appendToResidual(" Group Header : numInGroup=");
+        this.tablesHandler.appendToResidual(Integer.toString(numInGroup));
+        this.tablesHandler.appendToResidual("\n");
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
-        this.namedScope.push(token.name());
+        this.scopeTracker.pushScope(token.name());
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
-        this.namedScope.pop();
+        this.scopeTracker.popScope();
     }
 
     public void onVarData(
@@ -187,16 +185,14 @@ public class CleanTokenListener implements TokenListener {
             return;
         }
 
-        this.printScope();
-        this.tablesHandler.append(fieldToken.name());
-        this.tablesHandler.append("=");
-        this.tablesHandler.append(value);
+        this.tablesHandler.appendScope();
+        this.tablesHandler.appendToCurrentScope(fieldToken.name(), value);
     }
 
 
     @Override
     public void writeString(String output) {
-        this.tablesHandler.append(output);
+        this.tablesHandler.appendToCurrentScope("", output);
 
     }
 
@@ -255,14 +251,7 @@ public class CleanTokenListener implements TokenListener {
         return null;
     }
 
-    private void printScope() {
-        final Iterator<String> i = this.namedScope.descendingIterator();
-        while (i.hasNext()) {
-            this.tablesHandler.append(i.next());
-            this.tablesHandler.append(".");
-        }
-    }
     private void addNewLine() {
-        this.tablesHandler.append("\n");
+        this.tablesHandler.appendToResidual("\n");
     }
 }
