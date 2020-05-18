@@ -103,7 +103,7 @@ public class TablesHandler {
     }
     public void endGroup(){
         this.appendToResidual("tableshandlerendgroup " );
-        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+//        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
 //        this.scopeTracker.scopeName="unknown";
     }
 
