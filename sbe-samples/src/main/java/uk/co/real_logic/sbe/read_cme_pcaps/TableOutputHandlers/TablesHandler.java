@@ -108,4 +108,12 @@ public class TablesHandler {
 //        this.scopeTracker.scopeName="unknown";
     }
 
+    public void beginPacketHeader() {
+        this.scopeTracker.scopeLevel=ScopeLevel.PACKET_HEADER;
+
+    }
+
+    public void endPacketHeader() {
+        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+    }
 }

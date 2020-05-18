@@ -123,12 +123,15 @@ public class ReadPcaps {
                 next_offset = message_size + bufferOffset + offsets.packet_size_padding;
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
+
+                tablesHandler.beginPacketHeader();
                 tablesHandler.appendToTable("packetheaders","message_size", String.valueOf(message_size));
                 tablesHandler.appendToTable("packetheaders","packet_sequence_number",  String.valueOf(packet_sequence_number));
                 tablesHandler.appendToTable("packetheaders","sendingTime", String.valueOf(sendingTime));
                 tablesHandler.appendToTable("packetheaders"," bufferOffset", String.valueOf(bufferOffset));
                 tablesHandler.appendToTable("packetheaders","next_offset", String.valueOf(message_size));
                 tablesHandler.completeRow("packetheaders");
+                tablesHandler.endPacketHeader();
 
 
                 displayProgress(lines_read, sendingTime);
