@@ -58,7 +58,7 @@ public class ReadPcaps {
        File file;
 */
 
-        boolean compareToPreviousFiles=true;
+        boolean compareToPreviousFiles=false;
         Writer residualOutWriter= new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
         ScopeTracker scopeTracker = new ScopeTracker();
         TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\", residualOutWriter, scopeTracker);
