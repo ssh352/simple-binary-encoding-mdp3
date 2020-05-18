@@ -101,6 +101,7 @@ public class TablesHandler {
        this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
     }
+
     public void endGroup(){
         this.appendToResidual("tableshandlerendgroup " );
 //        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
