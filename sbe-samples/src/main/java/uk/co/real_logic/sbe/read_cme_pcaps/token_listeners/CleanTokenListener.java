@@ -97,9 +97,7 @@ public class CleanTokenListener implements TokenListener {
             }
         }
 
-        this.tablesHandler.appendScope();;
         this.tablesHandler.appendToCurrentScope(this.determineName(0, fieldToken, tokens, beginIndex), value);
-        this.addNewLine();
     }
 
     public void onBitSet(
