@@ -133,7 +133,6 @@ public class ReadPcaps {
                 tablesHandler.completeRow("packetheaders");
                 tablesHandler.endPacketHeader();
 
-
                 displayProgress(lines_read, sendingTime);
 
                 final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
