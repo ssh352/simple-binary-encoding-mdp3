@@ -95,11 +95,14 @@ public class TablesHandler {
     }
 
     public void beginGroup(String tokenName) throws IOException {
+        this.appendToResidual("tableshandlerbegingroup " );
+
 //       this.addTable(tokenName);
 //       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
     }
     public void endGroup(){
+        this.appendToResidual("tableshandlerendgroup " );
 //        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
 //        this.scopeTracker.scopeName="unknown";
     }
