@@ -99,12 +99,12 @@ public class TablesHandler {
         this.appendToResidual(this.scopeTracker.getCurrentScopeString());
 //       this.addTable(tokenName);
 
-//       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
+       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
     }
     public void endGroup(){
         this.appendToResidual("tableshandlerendgroup " );
-//        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
 //        this.scopeTracker.scopeName="unknown";
     }
 
