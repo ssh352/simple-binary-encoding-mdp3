@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
 
+import static uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.ScopeLevel.*;
+
 public class TablesHandler {
     HashMap<String, SingleTableOutput> singleTablesOutput= new HashMap<>();
     String path;
@@ -42,15 +44,28 @@ public class TablesHandler {
     }
 
     public void appendToCurrentScope(String columnName, String value){
-        if(scopeTracker.getCurrentScope()!=ScopeLevel.UNKNOWN){
-            if(scopeTracker.getCurrentScope()==ScopeLevel.GROUP_ENTRIES){
-                this.appendToTable(this.scopeTracker.getCurrentScopeString(), columnName, value);
-            } else{
-                this.appendToTable(this.scopeTracker.scopeName, columnName, value);
-            }
-        }
-        else{
-            this.appendToResidual(columnName + "/" + value);
+        switch(scopeTracker.getCurrentScope()){
+            case PACKET_HEADER:
+                this.appendToTable("packetheaders", columnName, value);
+                break;
+            case MESSAGE_HEADER:
+                this.appendToTable("messageheaders", columnName, value);
+                break;
+            case GROUP_HEADER:
+                this.appendToTable("groupheaders", columnName, value);
+                break;
+            case GROUP_ENTRIES:
+                this.appendToResidual("GroupEntry\n");
+                this.appendToResidual(columnName);
+                this.appendToResidual("/");
+                this.appendToResidual(value);
+                this.appendToResidual("\n");
+            case UNKNOWN:
+                this.appendToResidual("Unknown\n");
+                this.appendToResidual(columnName);
+                this.appendToResidual("/");
+                this.appendToResidual(value);
+                this.appendToResidual("\n");
         }
     }
 
@@ -74,22 +89,22 @@ public class TablesHandler {
     }
 
     public void startMessageHeader(){
-        this.scopeTracker.scopeLevel=ScopeLevel.MESSAGE_HEADER;
+        this.scopeTracker.scopeLevel= MESSAGE_HEADER;
         this.scopeTracker.scopeName="messageheaders";
     }
 
     public void endMessageHeader() throws IOException {
         this.singleTablesOutput.get("messageheaders").completeRow();
-        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+        this.scopeTracker.scopeLevel= UNKNOWN;
         this.scopeTracker.scopeName="unknown";
     }
 
     public void beginGroupHeader(){
         this.scopeTracker.scopeName="groupheaders";
-        this.scopeTracker.scopeLevel=ScopeLevel.GROUP_HEADER;
+        this.scopeTracker.scopeLevel= GROUP_HEADER;
     }
     public void endGroupHeader() throws IOException {
-        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+        this.scopeTracker.scopeLevel= UNKNOWN;
         this.singleTablesOutput.get("groupheaders").completeRow();
         this.scopeTracker.scopeName="unknown";
     }
@@ -109,11 +124,11 @@ public class TablesHandler {
     }
 
     public void beginPacketHeader() {
-        this.scopeTracker.scopeLevel=ScopeLevel.PACKET_HEADER;
+        this.scopeTracker.scopeLevel= PACKET_HEADER;
 
     }
 
     public void endPacketHeader() {
-        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+        this.scopeTracker.scopeLevel= UNKNOWN;
     }
 }
