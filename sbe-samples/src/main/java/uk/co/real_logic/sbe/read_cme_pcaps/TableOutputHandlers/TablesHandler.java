@@ -96,12 +96,12 @@ public class TablesHandler {
 
     public void beginGroup(String tokenName) throws IOException {
 //       this.addTable(tokenName);
-       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
+//       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
     }
     public void endGroup(){
-        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
-        this.scopeTracker.scopeName="unknown";
+//        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+//        this.scopeTracker.scopeName="unknown";
     }
 
 }
