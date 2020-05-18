@@ -148,11 +148,13 @@ public class CleanTokenListener implements TokenListener {
         this.tablesHandler.endGroupHeader();
     }
 
-    public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) {
+    public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) throws IOException {
         this.scopeTracker.pushScope(token.name());
+        this.tablesHandler.beginGroup(token.name());
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
+        this.tablesHandler.endGroup();
         this.scopeTracker.popScope();
     }
 

@@ -10,6 +10,7 @@ public class ScopeTracker {
 
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     public ScopeLevel scopeLevel;
+    public String scopeName;
     public ScopeTracker(){
 
     }
@@ -26,7 +27,7 @@ public class ScopeTracker {
         return scopeLevel;
     }
 
-    public String toString() {
+    public String getCurrentScopeString() {
         StringBuilder sb = new StringBuilder();
         final Iterator<String> i = nonTerminalScope.descendingIterator();
         while (i.hasNext()) {

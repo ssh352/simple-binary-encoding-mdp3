@@ -42,8 +42,12 @@ public class TablesHandler {
     }
 
     public void appendToCurrentScope(String columnName, String value){
-        if(scopeTracker.getCurrentScope()==ScopeLevel.MESSAGE_HEADER){
-            this.appendToTable("messageheaders", columnName, value);
+        if(scopeTracker.getCurrentScope()!=ScopeLevel.UNKNOWN){
+            if(scopeTracker.getCurrentScope()==ScopeLevel.GROUP_ENTRIES){
+                this.appendToTable(this.scopeTracker.getCurrentScopeString(), columnName, value);
+            } else{
+                this.appendToTable(this.scopeTracker.scopeName, columnName, value);
+            }
         }
         else{
             this.appendToResidual(columnName + "/" + value);
@@ -66,28 +70,38 @@ public class TablesHandler {
     }
 
     public void appendScope() {
-        this.appendToResidual(scopeTracker.toString());
+        this.appendToResidual(scopeTracker.getCurrentScopeString());
     }
 
     public void startMessageHeader(){
         this.scopeTracker.scopeLevel=ScopeLevel.MESSAGE_HEADER;
+        this.scopeTracker.scopeName="messageheaders";
     }
 
     public void endMessageHeader() throws IOException {
         this.singleTablesOutput.get("messageheaders").completeRow();
         this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+        this.scopeTracker.scopeName="unknown";
     }
 
     public void beginGroupHeader(){
+        this.scopeTracker.scopeName="groupheaders";
         this.scopeTracker.scopeLevel=ScopeLevel.GROUP_HEADER;
     }
     public void endGroupHeader() throws IOException {
         this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
         this.singleTablesOutput.get("groupheaders").completeRow();
+        this.scopeTracker.scopeName="unknown";
     }
 
-    public void beginGroup(){
-       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRY;
+    public void beginGroup(String tokenName) throws IOException {
+       this.addTable(tokenName);
+       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
+       this.scopeTracker.scopeName=tokenName;
+    }
+    public void endGroup(){
+        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+        this.scopeTracker.scopeName="unknown";
     }
 
 }

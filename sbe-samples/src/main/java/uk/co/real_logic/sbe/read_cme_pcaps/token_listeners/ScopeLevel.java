@@ -4,6 +4,6 @@ public enum ScopeLevel {
     PACKET_HEADER,
     MESSAGE_HEADER,
     GROUP_HEADER,
-    GROUP_ENTRY,
+    GROUP_ENTRIES,
     UNKNOWN
 }
