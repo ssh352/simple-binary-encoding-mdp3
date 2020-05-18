@@ -45,7 +45,7 @@ public class TablesHandler {
             this.appendToTable("messageheaders", columnName, value);
         }
         else{
-            this.appendToResidual(value);
+            this.appendToResidual(columnName + "/" + value);
         }
     }
 
@@ -73,8 +73,16 @@ public class TablesHandler {
     }
 
     public void endMessageHeader() throws IOException {
+        this.singleTablesOutput.get("messageheaders").completeRow();
         this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
-            this.singleTablesOutput.get("messageheaders").completeRow();
+    }
+
+    public void beginGroupHeader(){
+        this.scopeTracker.scopeLevel=ScopeLevel.GROUP_HEADER;
+    }
+    public void endGroupHeader() throws IOException {
+        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
+        this.singleTablesOutput.get("groupheaders").completeRow();
     }
 
 }
