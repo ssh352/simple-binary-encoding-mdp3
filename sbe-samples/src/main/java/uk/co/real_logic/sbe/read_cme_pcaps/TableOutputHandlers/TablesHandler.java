@@ -86,4 +86,8 @@ public class TablesHandler {
         this.singleTablesOutput.get("groupheaders").completeRow();
     }
 
+    public void beginGroup(){
+       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRY;
+    }
+
 }
