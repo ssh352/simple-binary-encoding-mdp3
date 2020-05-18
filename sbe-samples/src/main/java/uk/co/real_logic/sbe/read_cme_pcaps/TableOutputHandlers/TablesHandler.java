@@ -98,7 +98,6 @@ public class TablesHandler {
         this.appendToResidual("tableshandlerbegingroup " );
         this.appendToResidual(this.scopeTracker.getCurrentScopeString());
 //       this.addTable(tokenName);
-
        this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
     }
