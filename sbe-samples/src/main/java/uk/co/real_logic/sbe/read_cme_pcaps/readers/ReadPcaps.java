@@ -148,6 +148,7 @@ public class ReadPcaps {
                 if (bufferOffset + blockLength >= fileSize) {
                     break;
                 } else {
+                    tablesHandler.addTable(msgTokens.get(0).applicableTypeName());
                     TokenListener tokenListener = new CleanTokenListener(tablesHandler, scopeTracker);
                     OtfMessageDecoder.decode(
                             buffer,

@@ -22,8 +22,9 @@ public class TablesHandler {
 
 
     public void addTable( String tableName) throws IOException {
+        if(!singleTablesOutput.containsKey(tableName)){
         SingleTableOutput newTableOutput= new SingleTableOutput(this.path, tableName);
-        singleTablesOutput.put(tableName, newTableOutput) ;
+        singleTablesOutput.put(tableName, newTableOutput) ;}
 //        singleTablesOutput.put(tableName, new SingleTableOutput(this.path, tableName)) ;
 
     }
