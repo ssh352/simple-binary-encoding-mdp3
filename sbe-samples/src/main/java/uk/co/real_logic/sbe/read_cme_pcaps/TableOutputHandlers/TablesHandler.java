@@ -96,7 +96,7 @@ public class TablesHandler {
 
     public void beginGroup(String tokenName) throws IOException {
         this.appendToResidual("tableshandlerbegingroup " );
-
+        this.appendToResidual(this.scopeTracker.toString());
 //       this.addTable(tokenName);
 //       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
