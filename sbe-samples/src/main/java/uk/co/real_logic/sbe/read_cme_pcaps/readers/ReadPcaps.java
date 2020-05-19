@@ -159,12 +159,10 @@ public class ReadPcaps {
                             msgTokens,
                             tokenListener);
                 }
-                tablesHandler.flush();
                 lines_read = lines_read + 1;
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("read next message failed");
-                tablesHandler.flush();
             }
 
 

@@ -54,11 +54,6 @@ public class CleanTokenListener implements TokenListener {
     }
 
     public void onEndMessage(final Token token) {
-        try {
-            this.tablesHandler.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public void onEncoding(
@@ -179,12 +174,12 @@ public class CleanTokenListener implements TokenListener {
         this.tablesHandler.appendToCurrentScope(fieldToken.name(), value);
     }
 
-
     @Override
     public void writeString(String output) {
-        this.tablesHandler.appendToResidual(output);
 
     }
+
+
 
     private String determineName(
             final int thresholdLevel, final Token fieldToken, final List<Token> tokens, final int fromIndex) {

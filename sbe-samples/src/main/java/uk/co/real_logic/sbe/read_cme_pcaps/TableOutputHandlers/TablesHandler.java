@@ -12,13 +12,11 @@ public class TablesHandler {
     HashMap<String, SingleTableOutput> singleTablesOutput= new HashMap<>();
     String currentTable;
     String path;
-    Writer residualOutput;
     private ScopeTracker scopeTracker;
     //todo: get rid of reference to explicit outwriter in token listener.. override append
     //eventually get rid of residualOutput
     public TablesHandler(String path, Writer residualOutput, ScopeTracker scopeTracker){
         this.path=path;
-        this.residualOutput=residualOutput;
         this.scopeTracker=scopeTracker;
     }
 
@@ -40,9 +38,6 @@ public class TablesHandler {
         singleTablesOutput.get(tableName).completeRow();
     };
 
-    public void flush() throws IOException {
-        this.residualOutput.flush();
-    }
 
 
 
@@ -66,36 +61,22 @@ public class TablesHandler {
             case GROUP_ENTRIES:
                 this.currentTable=scopeTracker.getNonTerminalScope();
     //            this.appendToResidual("GroupEntry\n");
-                this.appendToResidual("\n");
-                this.appendToResidual("group entry current scope string: ");
-                this.appendToResidual(scopeTracker.getNonTerminalScope());
-                this.appendToResidual("\n");
-                this.appendToResidual(columnName);
-                this.appendToResidual("/");
-                this.appendToResidual(value);
-                this.appendToResidual("\n");
                 this.appendToTable( columnName,value);
                 break;
             case UNKNOWN:
-                this.appendToResidual("Unknown\n");
-                this.appendToResidual(columnName);
-                this.appendToResidual("/");
-                this.appendToResidual(value);
-                this.appendToResidual("\n");
                 break;
         }
     }
 
-    public void appendToResidual(String value)  {
+/*    public void appendToResidual(String value)  {
         try {
             this.residualOutput.append(value);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
+*/
     public void close() throws IOException {
-        this.residualOutput.close();
         for(SingleTableOutput singleTableOutput: singleTablesOutput.values()){
            singleTableOutput.close();
         }
@@ -127,19 +108,15 @@ public class TablesHandler {
     }
 
     public void beginGroup(String tokenName) throws IOException {
-        this.appendToResidual("tableshandler\nbegingroup\n " );
-        this.appendToResidual("currentScope: " + this.scopeTracker.getNonTerminalScope() + "/n");
        this.addTable(this.scopeTracker.getNonTerminalScope());
        this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
     }
 
     public void endGroup() throws IOException {
-        this.appendToResidual("tableshandler\nendgroup\n " );
-//        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
         this.singleTablesOutput.get(this.currentTable).completeRow();
         this.scopeTracker.scopeName="unknown";
-        this.scopeTracker.clearScope();
+        this.scopeTracker.clearGroups();
     }
 
     public void beginPacketHeader() {
