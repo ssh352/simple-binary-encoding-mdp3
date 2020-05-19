@@ -9,12 +9,15 @@ import java.util.List;
 
 public class CompareTextFiles
 {
-    public static boolean CompareTextFiles(String filename1, String filename2) throws IOException
-    {
+    public static boolean CompareTextFiles(String filename1, String filename2) throws IOException {
+        BufferedReader reader1;
+        BufferedReader reader2;
+        System.out.println("opening file1: " + filename1);
+        reader1 = new BufferedReader(new FileReader(filename1));
 
-        BufferedReader reader1 = new BufferedReader(new FileReader(filename1));
+        System.out.println("opening file2: " + filename2);
+        reader2 = new BufferedReader(new FileReader(filename2));
 
-        BufferedReader reader2 = new BufferedReader(new FileReader(filename2));
 
         String line1 = reader1.readLine();
 
@@ -24,8 +27,7 @@ public class CompareTextFiles
 
         int lineNum = 1;
 
-        while (line1 != null || line2 != null)
-        {
+        while (line1 != null || line2 != null) {
 
 
             byte[] line1Bytes = line1.getBytes(StandardCharsets.UTF_8);
@@ -34,16 +36,11 @@ public class CompareTextFiles
             byte[] line2Bytes = line2.getBytes(StandardCharsets.UTF_8);
             String line2utf = new String(line2Bytes, StandardCharsets.UTF_8);
 
-            if(line1 == null || line2 == null)
-            {
+            if (line1 == null || line2 == null) {
                 areEqual = false;
 
                 break;
-            }
-
-
-            else if(!line1utf.equals(line2utf))
-            {
+            } else if (!line1utf.equals(line2utf)) {
 
                 areEqual = false;
                 System.out.println("found unequal line");
@@ -57,15 +54,12 @@ public class CompareTextFiles
             lineNum++;
         }
 
-        if(areEqual)
-        {
+        if (areEqual) {
             System.out.println("Two files have same content.");
-        }
-        else
-        {
-            System.out.println("Two files have different content. They differ at line "+lineNum + "\n");
+        } else {
+            System.out.println("Two files have different content. They differ at line " + lineNum + "\n");
 
-            System.out.println("File1 has "+line1+" and File2 has "+line2+" at line "+lineNum);
+            System.out.println("File1 has " + line1 + " and File2 has " + line2 + " at line " + lineNum);
         }
 
         reader1.close();

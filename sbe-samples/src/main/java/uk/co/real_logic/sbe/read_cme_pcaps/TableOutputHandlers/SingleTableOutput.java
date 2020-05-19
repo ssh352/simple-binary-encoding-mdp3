@@ -38,11 +38,9 @@ public class SingleTableOutput {
         }
         this.writer.append(columnValues.toString());
         this.writer.append("\n");
-        //setLength clears stringbuilder buffer
         this.columnValues.setLength(0);
         this.writer.flush();
     }
-
 
     public void close() throws IOException {
         this.writer.close();

@@ -17,6 +17,8 @@ import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CleanTokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.TokenOutput;
+import uk.co.real_logic.sbe.tests.DirectoryComparison;
+import uk.co.real_logic.sbe.tests.ListFilesInDirectory;
 import uk.co.real_logic.sbe.xml.IrGenerator;
 import uk.co.real_logic.sbe.xml.MessageSchema;
 import uk.co.real_logic.sbe.xml.ParserOptions;
@@ -61,7 +63,7 @@ public class ReadPcaps {
         boolean compareToPreviousFiles=false;
         Writer residualOutWriter= new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
         ScopeTracker scopeTracker = new ScopeTracker();
-        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\", scopeTracker);
+        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\latestresults\\", scopeTracker);
 
 
 
@@ -106,7 +108,6 @@ public class ReadPcaps {
                 System.out.println("Read " + num_lines + " lines");
                 break;
             }
-            try {
 
 
                 bufferOffset = next_offset;
@@ -150,15 +151,13 @@ public class ReadPcaps {
                             tokenListener);
                 }
                 lines_read = lines_read + 1;
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("read next message failed");
-            }
 
 
         }
         tablesHandler.close();
         inChannel.close();
+        //test directory comparison by comparing same directory
+        DirectoryComparison.compareDirectories("C:/marketdata/testdata/separatetables/referencedirectory/", "C:/marketdata/testdata/separatetables/latestresults/");
         if (compareToPreviousFiles) {
             String reference_file="c:/marketdata/testdata/separatetables/residualoutput_5_27.txt";
             String latest_output = "c:/marketdata/testdata/separatetables/residualoutput.txt";
