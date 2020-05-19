@@ -68,7 +68,7 @@ public class TablesHandler {
     //            this.appendToResidual("GroupEntry\n");
                 this.appendToResidual("\n");
                 this.appendToResidual("group entry current scope string: ");
-                this.appendToResidual(scopeTracker.getCurrentScopeString());
+                this.appendToResidual(scopeTracker.getNonTerminalScope());
                 this.appendToResidual("\n");
                 this.appendToResidual(columnName);
                 this.appendToResidual("/");
@@ -128,7 +128,7 @@ public class TablesHandler {
 
     public void beginGroup(String tokenName) throws IOException {
         this.appendToResidual("tableshandler\nbegingroup\n " );
-        this.appendToResidual("currentScope: " + this.scopeTracker.getCurrentScopeString() + "/n");
+        this.appendToResidual("currentScope: " + this.scopeTracker.getNonTerminalScope() + "/n");
        this.addTable(this.scopeTracker.getNonTerminalScope());
        this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
