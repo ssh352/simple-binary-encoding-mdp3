@@ -33,10 +33,10 @@ public class CompactTokenListener implements TokenListener {
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
     private final byte[] tempBuffer = new byte[1024];
     boolean include_value_labels = true;
-    boolean print_full_scope;
+    final boolean print_full_scope;
     private int compositeLevel;
-    private TokenOutput tokenOutput;
-    private RowCounter row_counter;
+    private final TokenOutput tokenOutput;
+    private final RowCounter row_counter;
     final private PacketInfo packetInfo;
 
     public CompactTokenListener(final TokenOutput tokenOutput, RowCounter row_counter, PacketInfo packetInfo,   boolean include_value_labels) {

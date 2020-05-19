@@ -4,7 +4,7 @@ package uk.co.real_logic.sbe.read_cme_pcaps.counters;
 import java.util.HashMap;
 
 public class RowCounter {
-    private HashMap<CounterTypes, Counter> row_counters;
+    private final HashMap<CounterTypes, Counter> row_counters;
 
 
     public RowCounter() {

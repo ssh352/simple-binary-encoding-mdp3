@@ -9,14 +9,5 @@ public class PcapBufferManager {
         this.buffer = buffer;
     }
 
-    private UnsafeBuffer getBuffer() {
-        return this.buffer;
-    }
-
-
-    public boolean nextOffsetValid(int nextOffset) {
-        return nextOffset < this.buffer.capacity();
-    }
-
 
 }

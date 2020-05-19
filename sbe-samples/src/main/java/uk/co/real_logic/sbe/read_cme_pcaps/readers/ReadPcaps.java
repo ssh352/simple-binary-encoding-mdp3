@@ -61,7 +61,7 @@ public class ReadPcaps {
         boolean compareToPreviousFiles=false;
         Writer residualOutWriter= new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
         ScopeTracker scopeTracker = new ScopeTracker();
-        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\", residualOutWriter, scopeTracker);
+        TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\", scopeTracker);
         tablesHandler.addTable("packetheaders");
         tablesHandler.addTable("messageheaders");
         tablesHandler.addTable("groupheaders");
@@ -125,11 +125,11 @@ public class ReadPcaps {
 
 
                 tablesHandler.beginPacketHeader();
-                tablesHandler.appendToCurrentScope("message_size", String.valueOf(message_size));
-                tablesHandler.appendToCurrentScope("packet_sequence_number",  String.valueOf(packet_sequence_number));
-                tablesHandler.appendToCurrentScope("sendingTime", String.valueOf(sendingTime));
-                tablesHandler.appendToCurrentScope(" bufferOffset", String.valueOf(bufferOffset));
-                tablesHandler.appendToCurrentScope("next_offset", String.valueOf(message_size));
+                tablesHandler.appendColumnValue("message_size", String.valueOf(message_size));
+                tablesHandler.appendColumnValue("packet_sequence_number",  String.valueOf(packet_sequence_number));
+                tablesHandler.appendColumnValue("sendingTime", String.valueOf(sendingTime));
+                tablesHandler.appendColumnValue(" bufferOffset", String.valueOf(bufferOffset));
+                tablesHandler.appendColumnValue("next_offset", String.valueOf(message_size));
                 tablesHandler.completeRow("packetheaders");
                 tablesHandler.endPacketHeader();
 

@@ -3,6 +3,7 @@ package uk.co.real_logic.sbe.tests;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,11 +28,11 @@ public class CompareTextFiles
         {
 
 
-            byte[] line1Bytes = line1.getBytes("UTF-8");
-            String line1utf = new String(line1Bytes, "UTF-8");
+            byte[] line1Bytes = line1.getBytes(StandardCharsets.UTF_8);
+            String line1utf = new String(line1Bytes, StandardCharsets.UTF_8);
 
-            byte[] line2Bytes = line2.getBytes("UTF-8");
-            String line2utf = new String(line2Bytes, "UTF-8");
+            byte[] line2Bytes = line2.getBytes(StandardCharsets.UTF_8);
+            String line2utf = new String(line2Bytes, StandardCharsets.UTF_8);
 
             if(line1 == null || line2 == null)
             {
@@ -39,7 +40,6 @@ public class CompareTextFiles
 
                 break;
             }
-//            else if(! line1.equalsIgnoreCase(line2))
 
 
             else if(!line1utf.equals(line2utf))

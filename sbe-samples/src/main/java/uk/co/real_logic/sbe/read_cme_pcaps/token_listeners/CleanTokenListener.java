@@ -38,7 +38,7 @@ public class CleanTokenListener implements TokenListener {
     //todo: possible explicitly track lecel of depth/type of table
     private final byte[] tempBuffer = new byte[1024];
 
-    private ScopeTracker scopeTracker;
+    private final ScopeTracker scopeTracker;
     public CleanTokenListener(TablesHandler tablesHandler, ScopeTracker scopeTracker) {
         //todo: take tableshandler as additional input
         this.tablesHandler =tablesHandler;
@@ -65,7 +65,7 @@ public class CleanTokenListener implements TokenListener {
             final int actingVersion) {
         final CharSequence value = readEncodingAsString(buffer, index, typeToken, actingVersion);
 
-        this.tablesHandler.appendToCurrentScope(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name(), String.valueOf(value));
+        this.tablesHandler.appendColumnValue(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name(), String.valueOf(value));
     }
 
     public void onEnum(
@@ -93,7 +93,7 @@ public class CleanTokenListener implements TokenListener {
             }
         }
 
-        this.tablesHandler.appendToCurrentScope(this.determineName(0, fieldToken, tokens, beginIndex), value);
+        this.tablesHandler.appendColumnValue(this.determineName(0, fieldToken, tokens, beginIndex), value);
     }
 
     public void onBitSet(
@@ -116,7 +116,7 @@ public class CleanTokenListener implements TokenListener {
             final long bitPosition = tokens.get(i).encoding().constValue().longValue();
             final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
 
-            this.tablesHandler.appendToCurrentScope(tokens.get(i).name(), Boolean.toString(flag));
+            this.tablesHandler.appendColumnValue(tokens.get(i).name(), Boolean.toString(flag));
         }
     }
 
@@ -138,15 +138,15 @@ public class CleanTokenListener implements TokenListener {
         this.scopeTracker.pushScope(token.name());
         this.tablesHandler.beginGroupHeader();
         //todo: write all values of group header table
-        this.tablesHandler.appendToCurrentScope( "groupheadername", token.name());
+        this.tablesHandler.appendColumnValue( "groupheadername", token.name());
 //        this.tablesHandler.appendToResidual(token.name());
-        this.tablesHandler.appendToCurrentScope("numInGroup",Integer.toString(numInGroup));
+        this.tablesHandler.appendColumnValue("numInGroup",Integer.toString(numInGroup));
         this.tablesHandler.endGroupHeader();
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) throws IOException {
         this.scopeTracker.pushScope(token.name());
-        this.tablesHandler.beginGroup(token.name());
+        this.tablesHandler.beginGroup();
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) throws IOException {
@@ -173,7 +173,7 @@ public class CleanTokenListener implements TokenListener {
             return;
         }
 
-        this.tablesHandler.appendToCurrentScope(fieldToken.name(), value);
+        this.tablesHandler.appendColumnValue(fieldToken.name(), value);
     }
 
     @Override

@@ -3,11 +3,10 @@ package uk.co.real_logic.sbe.tests;
 
 //import org.apache.commons.io.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 
 public class FileComparison {
-    public static void main(final String[] args) throws Exception {
+    public static void main(final String[] args) {
 
     //    compare_files();
     }

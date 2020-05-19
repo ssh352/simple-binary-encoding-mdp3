@@ -9,8 +9,8 @@ import java.io.Writer;
 
 public class TokenOutput {
     private final Writer out;
-    boolean include_value_labels;
-    RowCounter row_counter;
+    final boolean include_value_labels;
+    final RowCounter row_counter;
     PacketInfo packetInfo;
 
     public TokenOutput(Writer out, RowCounter row_counter, boolean include_value_labels) {

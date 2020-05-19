@@ -6,10 +6,10 @@ import java.io.Writer;
 
 public class SingleTableOutput {
 
-    private Writer writer;
+    private final Writer writer;
     private boolean first_row=true;
-    private StringBuilder columnValues = new StringBuilder();
-    private StringBuilder columnHeaders = new StringBuilder();
+    private final StringBuilder columnValues = new StringBuilder();
+    private final StringBuilder columnHeaders = new StringBuilder();
 
     public SingleTableOutput(String path, String tableName) throws IOException {
         this.writer=new FileWriter(path + tableName);
@@ -43,10 +43,6 @@ public class SingleTableOutput {
         this.writer.flush();
     }
 
-
-   public void flush() throws IOException {
-        this.writer.flush();
-   }
 
     public void close() throws IOException {
         this.writer.close();
