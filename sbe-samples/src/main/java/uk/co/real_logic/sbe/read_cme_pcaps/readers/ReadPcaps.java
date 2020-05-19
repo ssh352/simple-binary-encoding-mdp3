@@ -62,9 +62,6 @@ public class ReadPcaps {
         Writer residualOutWriter= new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
         ScopeTracker scopeTracker = new ScopeTracker();
         TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\", scopeTracker);
-        tablesHandler.addTable("packetheaders");
-        tablesHandler.addTable("messageheaders");
-        tablesHandler.addTable("groupheaders");
 
 
 
@@ -124,14 +121,7 @@ public class ReadPcaps {
                 bufferOffset = bufferOffset + offsets.header_bytes;
 
 
-                tablesHandler.beginPacketHeader();
-                tablesHandler.appendColumnValue("message_size", String.valueOf(message_size));
-                tablesHandler.appendColumnValue("packet_sequence_number",  String.valueOf(packet_sequence_number));
-                tablesHandler.appendColumnValue("sendingTime", String.valueOf(sendingTime));
-                tablesHandler.appendColumnValue(" bufferOffset", String.valueOf(bufferOffset));
-                tablesHandler.appendColumnValue("next_offset", String.valueOf(message_size));
-                tablesHandler.completeRow("packetheaders");
-                tablesHandler.endPacketHeader();
+                tablesHandler.setPacketValues( bufferOffset, message_size, packet_sequence_number, sendingTime);
 
                 displayProgress(lines_read, sendingTime);
 

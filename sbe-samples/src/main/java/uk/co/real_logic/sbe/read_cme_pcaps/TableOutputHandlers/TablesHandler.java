@@ -12,9 +12,12 @@ public class TablesHandler {
     String currentTable;
     final String path;
     private final ScopeTracker scopeTracker;
-    public TablesHandler(String path, ScopeTracker scopeTracker){
+    public TablesHandler(String path, ScopeTracker scopeTracker) throws IOException {
         this.path=path;
         this.scopeTracker=scopeTracker;
+        this.addTable("packetheaders");
+        this.addTable("messageheaders");
+        this.addTable("groupheaders");
     }
 
     public void addTable( String tableName) throws IOException {
@@ -30,6 +33,8 @@ public class TablesHandler {
     public  void completeRow(String tableName) throws IOException {
         singleTablesOutput.get(tableName).completeRow();
     }
+
+
 
     public void appendColumnValue(String columnName, String value){
         switch(scopeTracker.getScopeLevel()){
@@ -87,12 +92,14 @@ public class TablesHandler {
         this.scopeTracker.clearAllButID();
     }
 
-    public void beginPacketHeader() {
+    public void setPacketValues(int bufferOffset, int message_size, long packet_sequence_number, long sendingTime) throws IOException {
         this.scopeTracker.scopeLevel= PACKET_HEADER;
-
-    }
-
-    public void endPacketHeader() {
+        this.appendColumnValue("message_size", String.valueOf(message_size));
+        this.appendColumnValue("packet_sequence_number",  String.valueOf(packet_sequence_number));
+        this.appendColumnValue("sendingTime", String.valueOf(sendingTime));
+        this.appendColumnValue(" bufferOffset", String.valueOf(bufferOffset));
+        this.appendColumnValue("next_offset", String.valueOf(message_size));
+        this.completeRow("packetheaders");
         this.scopeTracker.scopeLevel= UNKNOWN;
     }
 }
