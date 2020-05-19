@@ -44,15 +44,12 @@ public class TablesHandler {
         this.residualOutput.flush();
     }
 
-    public void flushAll() throws IOException {
-        for (SingleTableOutput singleTableOutput : singleTablesOutput.values()) {
-            singleTableOutput.flush();
-        }
-        this.residualOutput.flush();
-    }
 
 
     public void appendToCurrentScope(String columnName, String value){
+        if(value=="703408152454"){
+            boolean unfilled_row=true;
+        }
         switch(scopeTracker.getScopeLevel()){
             case PACKET_HEADER:
                 this.currentTable="packetheaders";
@@ -103,11 +100,11 @@ public class TablesHandler {
            singleTableOutput.close();
         }
     }
-
+/*
     public void appendScope() {
         this.appendToResidual(scopeTracker.getCurrentScopeString());
     }
-
+*/
     public void startMessageHeader(){
         this.scopeTracker.scopeLevel= MESSAGE_HEADER;
         this.scopeTracker.scopeName="messageheaders";

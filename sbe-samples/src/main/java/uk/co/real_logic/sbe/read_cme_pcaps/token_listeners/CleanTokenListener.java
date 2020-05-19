@@ -67,7 +67,6 @@ public class CleanTokenListener implements TokenListener {
             final int actingVersion) {
         final CharSequence value = readEncodingAsString(buffer, index, typeToken, actingVersion);
 
-        this.tablesHandler.appendScope();
         this.tablesHandler.appendToCurrentScope(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name(), String.valueOf(value));
     }
 
@@ -175,7 +174,6 @@ public class CleanTokenListener implements TokenListener {
             return;
         }
 
-        this.tablesHandler.appendScope();
         this.tablesHandler.appendToCurrentScope(fieldToken.name(), value);
     }
 
