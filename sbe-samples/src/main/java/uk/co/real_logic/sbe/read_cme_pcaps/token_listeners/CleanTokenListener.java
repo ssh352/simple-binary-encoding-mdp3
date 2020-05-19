@@ -46,7 +46,8 @@ public class CleanTokenListener implements TokenListener {
     }
 
     public void onBeginMessage(final Token token) {
-        //todo: put name of template into messageheaders tablea
+        //todo: put name of template into messageheaders tableaa
+        this.scopeTracker.clear();
         this.scopeTracker.pushScope(token.name());
         this.tablesHandler.startMessageHeader();
 
@@ -134,6 +135,7 @@ public class CleanTokenListener implements TokenListener {
 
     public void onGroupHeader(final Token token, final int numInGroup) throws IOException {
         this.tablesHandler.endMessageHeader();
+        this.scopeTracker.pushScope(token.name());
         this.tablesHandler.beginGroupHeader();
         //todo: write all values of group header table
         this.tablesHandler.appendToCurrentScope( "groupheadername", token.name());

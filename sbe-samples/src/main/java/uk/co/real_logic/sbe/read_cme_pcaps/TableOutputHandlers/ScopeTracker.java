@@ -53,9 +53,14 @@ public class ScopeTracker {
         return sb.toString();
     }
 */
-    public void clearGroups(){
+    public void clearAllButID(){
         while(nonTerminalScope.size()>1){
             nonTerminalScope.pop();
         }
+    }
+
+    public void clear() {
+
+        nonTerminalScope.clear();
     }
 }

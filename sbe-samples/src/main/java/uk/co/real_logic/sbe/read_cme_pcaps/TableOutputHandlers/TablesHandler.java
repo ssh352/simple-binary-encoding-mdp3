@@ -116,7 +116,7 @@ public class TablesHandler {
     public void endGroup() throws IOException {
         this.singleTablesOutput.get(this.currentTable).completeRow();
         this.scopeTracker.scopeName="unknown";
-        this.scopeTracker.clearGroups();
+        this.scopeTracker.clearAllButID();
     }
 
     public void beginPacketHeader() {
