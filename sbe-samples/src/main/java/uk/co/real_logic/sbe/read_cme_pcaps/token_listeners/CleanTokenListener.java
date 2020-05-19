@@ -69,7 +69,6 @@ public class CleanTokenListener implements TokenListener {
 
         this.tablesHandler.appendScope();
         this.tablesHandler.appendToCurrentScope(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name(), String.valueOf(value));
-        this.addNewLine();
     }
 
     public void onEnum(
@@ -111,7 +110,7 @@ public class CleanTokenListener implements TokenListener {
         final Token typeToken = tokens.get(beginIndex + 1);
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
-        this.tablesHandler.appendScope();
+//        this.tablesHandler.appendScope();
 //        this.tablesHandler.appendToCurrentScope(this.determineName(0, fieldToken, tokens, beginIndex));
 //        this.tablesHandler.appendToCurrentScope(":");
 
@@ -122,7 +121,6 @@ public class CleanTokenListener implements TokenListener {
 
             this.tablesHandler.appendToCurrentScope(tokens.get(i).name(), Boolean.toString(flag));
         }
-        this.addNewLine();
     }
 
     public void onBeginComposite(
@@ -142,9 +140,9 @@ public class CleanTokenListener implements TokenListener {
         this.tablesHandler.endMessageHeader();
         this.tablesHandler.beginGroupHeader();
         //todo: write all values of group header table
-        this.tablesHandler.appendToTable("groupheaders", "groupheadername", token.name());
+        this.tablesHandler.appendToCurrentScope( "groupheadername", token.name());
 //        this.tablesHandler.appendToResidual(token.name());
-        this.tablesHandler.appendToTable("groupheaders","numInGroup",Integer.toString(numInGroup));
+        this.tablesHandler.appendToCurrentScope("numInGroup",Integer.toString(numInGroup));
         this.tablesHandler.endGroupHeader();
     }
 
@@ -153,9 +151,8 @@ public class CleanTokenListener implements TokenListener {
         this.tablesHandler.beginGroup(token.name());
     }
 
-    public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) {
+    public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) throws IOException {
         this.tablesHandler.endGroup();
-        this.scopeTracker.popScope();
     }
 
     public void onVarData(
@@ -244,7 +241,4 @@ public class CleanTokenListener implements TokenListener {
         return null;
     }
 
-    private void addNewLine() {
-        this.tablesHandler.appendToResidual("\n");
-    }
 }

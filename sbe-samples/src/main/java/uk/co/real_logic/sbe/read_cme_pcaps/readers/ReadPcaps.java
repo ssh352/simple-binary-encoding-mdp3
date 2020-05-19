@@ -125,11 +125,11 @@ public class ReadPcaps {
 
 
                 tablesHandler.beginPacketHeader();
-                tablesHandler.appendToTable("packetheaders","message_size", String.valueOf(message_size));
-                tablesHandler.appendToTable("packetheaders","packet_sequence_number",  String.valueOf(packet_sequence_number));
-                tablesHandler.appendToTable("packetheaders","sendingTime", String.valueOf(sendingTime));
-                tablesHandler.appendToTable("packetheaders"," bufferOffset", String.valueOf(bufferOffset));
-                tablesHandler.appendToTable("packetheaders","next_offset", String.valueOf(message_size));
+                tablesHandler.appendToCurrentScope("message_size", String.valueOf(message_size));
+                tablesHandler.appendToCurrentScope("packet_sequence_number",  String.valueOf(packet_sequence_number));
+                tablesHandler.appendToCurrentScope("sendingTime", String.valueOf(sendingTime));
+                tablesHandler.appendToCurrentScope(" bufferOffset", String.valueOf(bufferOffset));
+                tablesHandler.appendToCurrentScope("next_offset", String.valueOf(message_size));
                 tablesHandler.completeRow("packetheaders");
                 tablesHandler.endPacketHeader();
 

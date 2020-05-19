@@ -23,7 +23,14 @@ public class ScopeTracker {
         this.nonTerminalScope.pop();
     }
 
-    public ScopeLevel getCurrentScope(){
+    public String getScopeHeader(){
+        return nonTerminalScope.peekFirst();
+    }
+
+    public String getScopeTail(){
+        return nonTerminalScope.peekLast();
+    }
+    public ScopeLevel getScopeLevel(){
         return scopeLevel;
     }
 
@@ -32,8 +39,14 @@ public class ScopeTracker {
         final Iterator<String> i = nonTerminalScope.descendingIterator();
         while (i.hasNext()) {
             sb.append(i.next());
-            sb.append(".");
+            if(i.hasNext()){
+                sb.append(".");
+            }
         }
         return sb.toString();
+    }
+
+    public void clearScope(){
+        this.nonTerminalScope.clear();
     }
 }

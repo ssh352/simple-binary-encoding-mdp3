@@ -10,6 +10,7 @@ import static uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.ScopeLevel.*;
 
 public class TablesHandler {
     HashMap<String, SingleTableOutput> singleTablesOutput= new HashMap<>();
+    String currentTable;
     String path;
     Writer residualOutput;
     private ScopeTracker scopeTracker;
@@ -31,8 +32,8 @@ public class TablesHandler {
 
     }
 
-    public void appendToTable(String tableName, String columnName, String value){
-        singleTablesOutput.get(tableName).append(columnName, value);
+    private void appendToTable(String columnName, String value){
+        singleTablesOutput.get(this.currentTable).append(columnName, value);
     }
 
     public  void completeRow(String tableName) throws IOException {
@@ -43,23 +44,40 @@ public class TablesHandler {
         this.residualOutput.flush();
     }
 
+    public void flushAll() throws IOException {
+        for (SingleTableOutput singleTableOutput : singleTablesOutput.values()) {
+            singleTableOutput.flush();
+        }
+        this.residualOutput.flush();
+    }
+
+
     public void appendToCurrentScope(String columnName, String value){
-        switch(scopeTracker.getCurrentScope()){
+        switch(scopeTracker.getScopeLevel()){
             case PACKET_HEADER:
-                this.appendToTable("packetheaders", columnName, value);
+                this.currentTable="packetheaders";
+                this.appendToTable( columnName, value);
                 break;
             case MESSAGE_HEADER:
-                this.appendToTable("messageheaders", columnName, value);
+                this.currentTable="messageheaders";
+                this.appendToTable( columnName, value);
                 break;
             case GROUP_HEADER:
-                this.appendToTable("groupheaders", columnName, value);
+                this.currentTable="groupheaders";
+                this.appendToTable(columnName, value);
                 break;
             case GROUP_ENTRIES:
-                this.appendToResidual("GroupEntry\n");
+                this.currentTable=scopeTracker.getScopeTail();
+    //            this.appendToResidual("GroupEntry\n");
+                this.appendToResidual("\n");
+                this.appendToResidual("group entry current scope string: ");
+                this.appendToResidual(scopeTracker.getCurrentScopeString());
+                this.appendToResidual("\n");
                 this.appendToResidual(columnName);
                 this.appendToResidual("/");
                 this.appendToResidual(value);
                 this.appendToResidual("\n");
+                this.appendToTable( columnName,value);
             case UNKNOWN:
                 this.appendToResidual("Unknown\n");
                 this.appendToResidual(columnName);
@@ -111,16 +129,18 @@ public class TablesHandler {
 
     public void beginGroup(String tokenName) throws IOException {
         this.appendToResidual("tableshandler\nbegingroup\n " );
-        this.appendToResidual(this.scopeTracker.getCurrentScopeString());
-//       this.addTable(tokenName);
-//       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
+        this.appendToResidual("currentScope: " + this.scopeTracker.getCurrentScopeString() + "/n");
+       this.addTable(this.scopeTracker.getScopeHeader());
+       this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
     }
 
-    public void endGroup(){
+    public void endGroup() throws IOException {
         this.appendToResidual("tableshandler\nendgroup\n " );
 //        this.scopeTracker.scopeLevel=ScopeLevel.UNKNOWN;
-//        this.scopeTracker.scopeName="unknown";
+        this.singleTablesOutput.get(this.currentTable).completeRow();
+        this.scopeTracker.scopeName="unknown";
+        this.scopeTracker.clearScope();
     }
 
     public void beginPacketHeader() {

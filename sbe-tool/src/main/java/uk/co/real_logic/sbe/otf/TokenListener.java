@@ -140,7 +140,7 @@ public interface TokenListener
      * @param groupIndex index for the repeat count of the group.
      * @param numInGroup number of times the group will be repeated.
      */
-    void onEndGroup(Token token, int groupIndex, int numInGroup);
+    void onEndGroup(Token token, int groupIndex, int numInGroup) throws IOException;
 
     /**
      * Var data field encountered.

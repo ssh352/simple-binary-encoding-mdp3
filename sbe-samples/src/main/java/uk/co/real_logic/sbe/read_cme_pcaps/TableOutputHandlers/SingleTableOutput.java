@@ -44,6 +44,10 @@ public class SingleTableOutput {
     }
 
 
+   public void flush() throws IOException {
+        this.writer.flush();
+   }
+
     public void close() throws IOException {
         this.writer.close();
     }
