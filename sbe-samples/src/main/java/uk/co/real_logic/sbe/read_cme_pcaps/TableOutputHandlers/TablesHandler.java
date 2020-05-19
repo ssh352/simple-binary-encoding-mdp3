@@ -129,7 +129,7 @@ public class TablesHandler {
     public void beginGroup(String tokenName) throws IOException {
         this.appendToResidual("tableshandler\nbegingroup\n " );
         this.appendToResidual("currentScope: " + this.scopeTracker.getCurrentScopeString() + "/n");
-       this.addTable(this.scopeTracker.getScopeHeader());
+       this.addTable(this.scopeTracker.getNonTerminalScope());
        this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
 //       this.scopeTracker.scopeName=tokenName;
     }
