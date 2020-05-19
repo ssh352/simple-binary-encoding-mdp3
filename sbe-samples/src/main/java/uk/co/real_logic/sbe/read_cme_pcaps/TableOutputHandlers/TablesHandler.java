@@ -78,12 +78,14 @@ public class TablesHandler {
                 this.appendToResidual(value);
                 this.appendToResidual("\n");
                 this.appendToTable( columnName,value);
+                break;
             case UNKNOWN:
                 this.appendToResidual("Unknown\n");
                 this.appendToResidual(columnName);
                 this.appendToResidual("/");
                 this.appendToResidual(value);
                 this.appendToResidual("\n");
+                break;
         }
     }
 
