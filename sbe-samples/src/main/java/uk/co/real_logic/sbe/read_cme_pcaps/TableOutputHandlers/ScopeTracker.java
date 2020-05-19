@@ -27,8 +27,13 @@ public class ScopeTracker {
         return nonTerminalScope.peekFirst();
     }
 
-    public String getScopeTail(){
-        return nonTerminalScope.peekLast();
+    public String getNonTerminalScope(){
+        StringBuilder sb = new StringBuilder();
+        final Iterator<String> i = nonTerminalScope.descendingIterator();
+        sb.append(i.next());
+        sb.append(".");
+        sb.append(i.next());
+        return sb.toString();
     }
     public ScopeLevel getScopeLevel(){
         return scopeLevel;

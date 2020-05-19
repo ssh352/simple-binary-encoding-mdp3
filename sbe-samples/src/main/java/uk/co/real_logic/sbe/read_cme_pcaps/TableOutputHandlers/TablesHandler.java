@@ -64,7 +64,7 @@ public class TablesHandler {
                 this.appendToTable(columnName, value);
                 break;
             case GROUP_ENTRIES:
-                this.currentTable=scopeTracker.getScopeTail();
+                this.currentTable=scopeTracker.getNonTerminalScope();
     //            this.appendToResidual("GroupEntry\n");
                 this.appendToResidual("\n");
                 this.appendToResidual("group entry current scope string: ");

@@ -47,7 +47,9 @@ public class CleanTokenListener implements TokenListener {
 
     public void onBeginMessage(final Token token) {
         //todo: put name of template into messageheaders tablea
+        this.scopeTracker.pushScope(token.name());
         this.tablesHandler.startMessageHeader();
+
 
     }
 
