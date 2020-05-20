@@ -7,7 +7,6 @@ import uk.co.real_logic.sbe.ir.Token;
 import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.OtfMessageDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
-import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.ScopeTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
@@ -15,7 +14,6 @@ import uk.co.real_logic.sbe.read_cme_pcaps.helpers.LineCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CleanTokenListener;
-import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.TokenOutput;
 import uk.co.real_logic.sbe.tests.DirectoryComparison;
 
 import java.io.*;
@@ -74,10 +72,11 @@ public class ReadPcaps {
 
             final int headerLength = headerDecoder.encodedLength();
 
-            final int captureOffset = nextCaptureOffset;
-            final int packetOffset = captureOffset;
-            final int headerStartOffset = captureOffset + offsets.header_bytes;
-            final int messageOffset = headerStartOffset + headerLength;
+            PacketOffsets packetOffsets = new PacketOffsets(offsets, nextCaptureOffset, headerLength).invoke();
+            int captureOffset = packetOffsets.getCaptureOffset();
+            int packetOffset = packetOffsets.getPacketOffset();
+            int headerStartOffset = packetOffsets.getHeaderStartOffset();
+            int messageOffset = packetOffsets.getMessageOffset();
 
 
             int message_size = buffer.getShort(packetOffset + offsets.size_offset, offsets.message_size_endianness);
@@ -119,5 +118,44 @@ public class ReadPcaps {
     }
 
 
+    private static class PacketOffsets {
+        private DataOffsets offsets;
+        private int nextCaptureOffset;
+        private int headerLength;
+        private int captureOffset;
+        private int packetOffset;
+        private int headerStartOffset;
+        private int messageOffset;
+
+        public PacketOffsets(DataOffsets offsets, int nextCaptureOffset, int headerLength) {
+            this.offsets = offsets;
+            this.nextCaptureOffset = nextCaptureOffset;
+            this.headerLength = headerLength;
+        }
+
+        public int getCaptureOffset() {
+            return captureOffset;
+        }
+
+        public int getPacketOffset() {
+            return packetOffset;
+        }
+
+        public int getHeaderStartOffset() {
+            return headerStartOffset;
+        }
+
+        public int getMessageOffset() {
+            return messageOffset;
+        }
+
+        public PacketOffsets invoke() {
+            captureOffset = nextCaptureOffset;
+            packetOffset = captureOffset;
+            headerStartOffset = captureOffset + offsets.header_bytes;
+            messageOffset = headerStartOffset + headerLength;
+            return this;
+        }
+    }
 }
 
