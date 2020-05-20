@@ -105,7 +105,7 @@ public class ReadPcaps {
 
             final List<Token> msgTokens = ir.getMessage(templateId);
 
-            if (bufferOffset + blockLength >= fileSize) {
+            if (messageOffset+ blockLength >= fileSize) {
                 break;
             } else {
 
@@ -113,7 +113,7 @@ public class ReadPcaps {
                 TokenListener tokenListener = new CleanTokenListener(tablesHandler, scopeTracker);
                 OtfMessageDecoder.decode(
                         buffer,
-                        bufferOffset,
+                        messageOffset,
                         actingVersion,
                         blockLength,
                         msgTokens,
