@@ -12,9 +12,11 @@ public class TablesHandler {
     String currentTable;
     final String path;
     private final ScopeTracker scopeTracker;
-    public TablesHandler(String path, ScopeTracker scopeTracker) throws IOException {
+
+
+    public TablesHandler(String path) throws IOException {
         this.path=path;
-        this.scopeTracker=scopeTracker;
+        this.scopeTracker=new ScopeTracker();
         this.addTable("packetheaders");
         this.addTable("messageheaders");
         this.addTable("groupheaders");
@@ -65,11 +67,14 @@ public class TablesHandler {
            singleTableOutput.close();
         }
     }
-    public void startMessageHeader(){
+    public void startMessageHeader(String tokenName){
+        this.scopeTracker.clear();
+        this.scopeTracker.pushScope(tokenName);
         this.scopeTracker.scopeLevel= MESSAGE_HEADER;
     }
 
-    public void endMessageHeader() throws IOException {
+    public void endMessageHeader(String tokenName) throws IOException {
+        this.scopeTracker.pushScope(tokenName);
         this.singleTablesOutput.get("messageheaders").completeRow();
         this.scopeTracker.scopeLevel= UNKNOWN;
     }
@@ -82,7 +87,8 @@ public class TablesHandler {
         this.singleTablesOutput.get("groupheaders").completeRow();
     }
 
-    public void beginGroup() throws IOException {
+    public void beginGroup(String tokenName) throws IOException {
+       this.scopeTracker.pushScope(tokenName);
        this.addTable(this.scopeTracker.getNonTerminalScope());
        this.scopeTracker.scopeLevel=ScopeLevel.GROUP_ENTRIES;
     }
@@ -101,5 +107,13 @@ public class TablesHandler {
         this.appendColumnValue("next_offset", String.valueOf(message_size));
         this.completeRow("packetheaders");
         this.scopeTracker.scopeLevel= UNKNOWN;
+    }
+
+   public void pushScope(String name) {
+        this.scopeTracker.pushScope(name);
+   }
+
+    public void popScope() {
+        this.scopeTracker.popScope();
     }
 }

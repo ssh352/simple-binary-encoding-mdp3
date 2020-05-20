@@ -38,18 +38,14 @@ public class CleanTokenListener implements TokenListener {
     //todo: possible explicitly track lecel of depth/type of table
     private final byte[] tempBuffer = new byte[1024];
 
-    private final ScopeTracker scopeTracker;
-    public CleanTokenListener(TablesHandler tablesHandler, ScopeTracker scopeTracker) {
+    public CleanTokenListener(TablesHandler tablesHandler) {
         //todo: take tableshandler as additional input
         this.tablesHandler =tablesHandler;
-        this.scopeTracker=scopeTracker;
     }
 
     public void onBeginMessage(final Token token) {
         //todo: put name of template into messageheaders tableaa
-        this.scopeTracker.clear();
-        this.scopeTracker.pushScope(token.name());
-        this.tablesHandler.startMessageHeader();
+        this.tablesHandler.startMessageHeader(token.name());
 
 
     }
@@ -124,18 +120,16 @@ public class CleanTokenListener implements TokenListener {
             final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
         ++this.compositeLevel;
 
-        this.scopeTracker.pushScope(this.determineName(1, fieldToken, tokens, fromIndex));
+        this.tablesHandler.pushScope(this.determineName(1, fieldToken, tokens, fromIndex));
     }
 
     public void onEndComposite(final Token fieldToken, final List<Token> tokens, final int fromIndex, final int toIndex) {
         --this.compositeLevel;
-
-        this.scopeTracker.popScope();
+        this.tablesHandler.popScope();
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) throws IOException {
-        this.tablesHandler.endMessageHeader();
-        this.scopeTracker.pushScope(token.name());
+        this.tablesHandler.endMessageHeader(token.name());
         this.tablesHandler.beginGroupHeader();
         //todo: write all values of group header table
         this.tablesHandler.appendColumnValue( "groupheadername", token.name());
@@ -145,8 +139,7 @@ public class CleanTokenListener implements TokenListener {
     }
 
     public void onBeginGroup(final Token token, final int groupIndex, final int numInGroup) throws IOException {
-        this.scopeTracker.pushScope(token.name());
-        this.tablesHandler.beginGroup();
+        this.tablesHandler.beginGroup(token.name());
     }
 
     public void onEndGroup(final Token token, final int groupIndex, final int numInGroup) throws IOException {
