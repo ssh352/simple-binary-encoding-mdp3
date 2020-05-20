@@ -73,33 +73,27 @@ public class ReadPcaps {
             lineCounter.incrementLinesRead();
 
             final int captureOffset = nextCaptureOffset;
-            bufferOffset = nextCaptureOffset;
-
             final int packetOffset=captureOffset;
+            final int headerStartOffset = captureOffset + offsets.header_bytes;
+            final int messageOffset = headerStartOffset + headerDecoder.encodedLength();
+
+
+
             int message_size = buffer.getShort(packetOffset + offsets.size_offset, offsets.message_size_endianness);
             long packet_sequence_number = buffer.getInt(packetOffset + offsets.packet_sequence_number_offset);
             long sendingTime = buffer.getLong(packetOffset + offsets.sending_time_offset);
 
             nextCaptureOffset = message_size + captureOffset + offsets.packet_size_padding;
 
-
-            final int headerStartOffset = captureOffset + offsets.header_bytes;
-
-
-
             tablesHandler.setPacketValues(headerStartOffset, message_size, packet_sequence_number, sendingTime);
 
             final int templateId = headerDecoder.getTemplateId(buffer, headerStartOffset);
             final int actingVersion = headerDecoder.getSchemaVersion(buffer, headerStartOffset);
             final int blockLength = headerDecoder.getBlockLength(buffer, headerStartOffset);
-            final int messageOffset = headerStartOffset + headerDecoder.encodedLength();
 
 
             final List<Token> msgTokens = ir.getMessage(templateId);
 
-            if (messageOffset+ blockLength >= fileSize) {
-                break;
-            } else {
 
 
                 TokenListener tokenListener = new CleanTokenListener(tablesHandler, scopeTracker);
@@ -110,7 +104,6 @@ public class ReadPcaps {
                         blockLength,
                         msgTokens,
                         tokenListener);
-            }
 
 
 
