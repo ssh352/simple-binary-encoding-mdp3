@@ -25,7 +25,6 @@ public class ReadPcaps {
         boolean compareToPreviousFiles = false;
 
         BinaryDataHandler binaryDataHandler = new BinaryDataHandler(prop);
-        FileChannel inChannel = binaryDataHandler.getInChannel();
 
         TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\latestresults\\");
         TokenListener cleanTokenListener = new CleanTokenListener(tablesHandler);
@@ -33,7 +32,6 @@ public class ReadPcaps {
         PacketReader packetReader =new PacketReader(prop, binaryDataHandler);
         packetReader.readPackets(cleanTokenListener, tablesHandler);
 
-        inChannel.close();
         //test directory comparison by comparing same directory
         testRunEquality();
     }
