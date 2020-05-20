@@ -6,7 +6,8 @@ import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 
 import java.io.IOException;
 
-public class PacketOffsets {
+public class PacketDecoder {
+    private final UnsafeBuffer buffer;
     private DataOffsets offsets;
     private int headerLength;
     private int packetCapturePosition;
@@ -17,18 +18,23 @@ public class PacketOffsets {
     long packetSequenceNumber;
     long sendingTime;
 
-    public PacketOffsets(DataOffsets offsets, UnsafeBuffer buffer, int packetCapturePosition,   int headerLength) {
+    public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer) {
         this.offsets = offsets;
+        this.buffer=buffer;
+    }
+
+    public void setNewOffsets(int packetCapturePosition, int headerLength) {
         this.packetCapturePosition=packetCapturePosition;
         this.headerLength = headerLength;
         this.headerStartOffset = this.packetCapturePosition + offsets.header_bytes;
         this.messageStartPosition= headerStartOffset + headerLength;
-        this.decodePacketInfo(buffer);
+        this.decodePacketInfo();
     }
-    private void decodePacketInfo(UnsafeBuffer buffer) {
-        this.messageSize = buffer.getShort(this.packetCapturePosition + this.offsets.size_offset, offsets.message_size_endianness);
-        this.packetSequenceNumber = buffer.getInt(this.packetCapturePosition + this.offsets.packet_sequence_number_offset);
-        this.sendingTime = buffer.getLong(this.packetCapturePosition + this.offsets.sending_time_offset);
+    private void decodePacketInfo() {
+        //todo: reduce duplication by making a method for getting the offset that includes packetCapture
+        this.messageSize = this.buffer.getShort(this.packetCapturePosition + this.offsets.size_offset, offsets.message_size_endianness);
+        this.packetSequenceNumber = this.buffer.getInt(this.packetCapturePosition + this.offsets.packet_sequence_number_offset);
+        this.sendingTime = this.buffer.getLong(this.packetCapturePosition + this.offsets.sending_time_offset);
     }
 
     public int getNextPacketOffset() {
@@ -61,5 +67,6 @@ public class PacketOffsets {
     public void setPacketValues(TablesHandler tablesHandler) throws IOException {
          tablesHandler.setPacketValues(this.messageSize, this.packetSequenceNumber, this.sendingTime);
     }
+
 }
 

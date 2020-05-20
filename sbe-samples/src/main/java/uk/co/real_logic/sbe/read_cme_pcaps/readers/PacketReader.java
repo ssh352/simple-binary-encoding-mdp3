@@ -38,19 +38,20 @@ public class PacketReader {
         int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
         int nextPacketCapturePosition = bufferOffset;
         int packetCapturePosition = bufferOffset;
+        PacketDecoder packetDecoder = new PacketDecoder(offsets,buffer);
         while (nextPacketCapturePosition < this.buffer.capacity()) {
             final int headerLength = this.headerDecoder.encodedLength();
 
             packetCapturePosition = nextPacketCapturePosition;
 
-            PacketOffsets packetOffsets = new PacketOffsets(offsets,buffer, packetCapturePosition,   headerLength);
-            nextPacketCapturePosition = packetOffsets.getNextPacketOffset();
-            packetOffsets.setPacketValues(tablesHandler);
-            final int messageStartPosition=packetOffsets.getMessageStartPosition();
+            packetDecoder.setNewOffsets(packetCapturePosition,   headerLength);
+            nextPacketCapturePosition = packetDecoder.getNextPacketOffset();
+            packetDecoder.setPacketValues(tablesHandler);
+            final int messageStartPosition= packetDecoder.getMessageStartPosition();
 
-            final int templateId = headerDecoder.getTemplateId(buffer, packetOffsets.getHeaderStartOffset());
-            final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetOffsets.getHeaderStartOffset());
-            final int blockLength = headerDecoder.getBlockLength(buffer, packetOffsets.getHeaderStartOffset());
+            final int templateId = headerDecoder.getTemplateId(buffer, packetDecoder.getHeaderStartOffset());
+            final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetDecoder.getHeaderStartOffset());
+            final int blockLength = headerDecoder.getBlockLength(buffer, packetDecoder.getHeaderStartOffset());
 
             final List<Token> msgTokens = ir.getMessage(templateId);
 
@@ -63,7 +64,7 @@ public class PacketReader {
                     tokenListener);
 
 
-            this.lineCounter.incrementLinesRead(String.valueOf(packetOffsets.getSendingTime()));
+            this.lineCounter.incrementLinesRead(String.valueOf(packetDecoder.getSendingTime()));
         }
         tablesHandler.close();
     }
