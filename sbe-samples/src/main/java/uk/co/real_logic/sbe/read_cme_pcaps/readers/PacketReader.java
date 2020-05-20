@@ -18,22 +18,30 @@ import java.util.List;
 public class PacketReader {
 
     private final DataOffsets offsets;
-    private final TablesHandler tablesHandler;
     private final LineCounter lineCounter;
+    private final BinaryDataHandler binaryDataHandler;
+    private final Ir ir;
+    private final OtfHeaderDecoder headerDecoder;
+    private final UnsafeBuffer buffer;
 
-    public PacketReader(ReadPcapProperties prop) throws IOException {
+
+    public PacketReader(ReadPcapProperties prop, BinaryDataHandler binaryDataHandler) throws IOException {
+        this.binaryDataHandler = binaryDataHandler;
+        this.ir = binaryDataHandler.getIr();
+        this.headerDecoder = binaryDataHandler.getHeaderDecoder();
+        this.buffer = binaryDataHandler.getBuffer();
         this.offsets = new DataOffsets(prop.data_source);
-        this.tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\latestresults\\");
         this.lineCounter = new LineCounter(prop.run_short);
     }
 
-    protected void readPackets(Ir ir, OtfHeaderDecoder headerDecoder, UnsafeBuffer buffer) throws IOException {
+    //todo: figure out how to set packet values without passing in tablesHandler
+    protected void readPackets(TokenListener tokenListener, TablesHandler tablesHandler) throws IOException {
         int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
         int nextCaptureOffset = bufferOffset;
 
-        while (nextCaptureOffset < buffer.capacity()) {
+        while (nextCaptureOffset < this.buffer.capacity()) {
             this.lineCounter.incrementLinesRead();
-            final int headerLength = headerDecoder.encodedLength();
+            final int headerLength = this.headerDecoder.encodedLength();
             PacketOffsets packetOffsets = new PacketOffsets(offsets, nextCaptureOffset, headerLength).invoke();
 
             int message_size = buffer.getShort(packetOffsets.getPacketOffset() + this.offsets.size_offset, offsets.message_size_endianness);
@@ -49,7 +57,6 @@ public class PacketReader {
 
             final List<Token> msgTokens = ir.getMessage(templateId);
 
-            TokenListener tokenListener = new CleanTokenListener(tablesHandler);
             OtfMessageDecoder.decode(
                     buffer,
                     packetOffsets.getMessageOffset(),
