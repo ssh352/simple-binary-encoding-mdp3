@@ -67,10 +67,12 @@ public class TablesHandler {
            singleTableOutput.close();
         }
     }
-    public void startMessageHeader(String tokenName){
+    public void startMessageHeader(String tokenName, int tokenId){
         this.scopeTracker.clear();
         this.scopeTracker.pushScope(tokenName);
         this.scopeTracker.scopeLevel= MESSAGE_HEADER;
+        this.appendColumnValue("MessageId", String.valueOf(tokenId));
+        this.appendColumnValue("MessageName", tokenName);
     }
 
     public void endMessageHeader(String tokenName) throws IOException {

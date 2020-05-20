@@ -37,8 +37,9 @@ public class PacketReader {
     protected void readPackets(TokenListener tokenListener, TablesHandler tablesHandler) throws IOException {
         int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
         int nextPacketCapturePosition = bufferOffset;
-        int packetCapturePosition = bufferOffset;
+        int packetCapturePosition;
         PacketDecoder packetDecoder = new PacketDecoder(offsets,buffer);
+
         while (nextPacketCapturePosition < this.buffer.capacity()) {
             final int headerLength = this.headerDecoder.encodedLength();
 
@@ -48,25 +49,30 @@ public class PacketReader {
             nextPacketCapturePosition = packetDecoder.getNextPacketOffset();
             packetDecoder.setPacketValues(tablesHandler);
             final int messageStartPosition= packetDecoder.getMessageStartPosition();
-
-            final int templateId = headerDecoder.getTemplateId(buffer, packetDecoder.getHeaderStartOffset());
-            final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetDecoder.getHeaderStartOffset());
-            final int blockLength = headerDecoder.getBlockLength(buffer, packetDecoder.getHeaderStartOffset());
-
-            final List<Token> msgTokens = ir.getMessage(templateId);
-
-            OtfMessageDecoder.decode(
-                    buffer,
-                    messageStartPosition,
-                    actingVersion,
-                    blockLength,
-                    msgTokens,
-                    tokenListener);
-
-
+            decodeMessage(tokenListener, messageStartPosition, packetDecoder);
             this.lineCounter.incrementLinesRead(String.valueOf(packetDecoder.getSendingTime()));
+
         }
         tablesHandler.close();
+    }
+
+    private void decodeMessage(TokenListener tokenListener, int messageStartPosition, PacketDecoder packetDecoder) throws IOException {
+
+        final int templateId = headerDecoder.getTemplateId(buffer, packetDecoder.getHeaderStartOffset());
+        final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetDecoder.getHeaderStartOffset());
+        final int blockLength = headerDecoder.getBlockLength(buffer, packetDecoder.getHeaderStartOffset());
+
+        final List<Token> msgTokens = ir.getMessage(templateId);
+
+        //todo: wrap decoder in a different, and simpler, function
+        OtfMessageDecoder.decode(
+                buffer,
+                messageStartPosition,
+                actingVersion,
+                blockLength,
+                msgTokens,
+                tokenListener);
+
     }
 
 

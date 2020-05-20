@@ -43,8 +43,8 @@ public class CleanTokenListener implements TokenListener {
     }
 
     public void onBeginMessage(final Token token) {
-        //todo: put name of template into messageheaders tableaa
-        this.tablesHandler.startMessageHeader(token.name());
+        //todo: see if there is information in token to do fixed length fields (potential speed improvement)
+        this.tablesHandler.startMessageHeader(token.name(), token.id());
     }
 
     public void onEndMessage(final Token token) {
