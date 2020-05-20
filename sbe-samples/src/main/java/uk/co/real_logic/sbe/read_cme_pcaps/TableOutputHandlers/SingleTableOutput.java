@@ -6,10 +6,11 @@ import java.io.Writer;
 
 public class SingleTableOutput {
 
+    private static final int STRINGBUILDER_CAPACITY = 10000 * 1024;
     private final Writer writer;
     private boolean first_row=true;
-    private final StringBuilder columnValues = new StringBuilder();
-    private final StringBuilder columnHeaders = new StringBuilder();
+    private final StringBuilder columnValues = new StringBuilder(STRINGBUILDER_CAPACITY);
+    private final StringBuilder columnHeaders = new StringBuilder(STRINGBUILDER_CAPACITY);
 
     public SingleTableOutput(String path, String tableName) throws IOException {
         this.writer=new FileWriter(path + tableName);

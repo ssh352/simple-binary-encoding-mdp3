@@ -48,7 +48,7 @@ public class PacketReader {
             long sendingTime = buffer.getLong(packetOffsets.getPacketOffset()+ this.offsets.sending_time_offset);
 
             nextCaptureOffset = message_size + packetOffsets.getCaptureOffset() + this.offsets.packet_size_padding;
-            tablesHandler.setPacketValues(packetOffsets.getHeaderStartOffset(), message_size, packet_sequence_number, sendingTime);
+            tablesHandler.setPacketValues( message_size, packet_sequence_number, sendingTime);
 
             final int templateId = headerDecoder.getTemplateId(buffer, packetOffsets.getHeaderStartOffset());
             final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetOffsets.getHeaderStartOffset());

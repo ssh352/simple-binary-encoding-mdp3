@@ -98,13 +98,11 @@ public class TablesHandler {
         this.scopeTracker.clearAllButID();
     }
 
-    public void setPacketValues(int bufferOffset, int message_size, long packet_sequence_number, long sendingTime) throws IOException {
+    public void setPacketValues(int message_size, long packet_sequence_number, long sendingTime) throws IOException {
         this.scopeTracker.scopeLevel= PACKET_HEADER;
         this.appendColumnValue("message_size", String.valueOf(message_size));
         this.appendColumnValue("packet_sequence_number",  String.valueOf(packet_sequence_number));
         this.appendColumnValue("sendingTime", String.valueOf(sendingTime));
-        this.appendColumnValue(" bufferOffset", String.valueOf(bufferOffset));
-        this.appendColumnValue("next_offset", String.valueOf(message_size));
         this.completeRow("packetheaders");
         this.scopeTracker.scopeLevel= UNKNOWN;
     }

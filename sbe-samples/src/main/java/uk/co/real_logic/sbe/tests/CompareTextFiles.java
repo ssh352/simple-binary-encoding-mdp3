@@ -9,14 +9,18 @@ import java.util.List;
 
 public class CompareTextFiles
 {
+
+
+    private static final int BUFFERED_READER_CAPACITY = 10000 * 1024;
+
     public static boolean CompareTextFiles(String filename1, String filename2) throws IOException {
         BufferedReader reader1;
         BufferedReader reader2;
         System.out.println("opening file1: " + filename1);
-        reader1 = new BufferedReader(new FileReader(filename1));
+        reader1 = new BufferedReader(new FileReader(filename1), BUFFERED_READER_CAPACITY );
 
         System.out.println("opening file2: " + filename2);
-        reader2 = new BufferedReader(new FileReader(filename2));
+        reader2 = new BufferedReader(new FileReader(filename2), BUFFERED_READER_CAPACITY );
 
 
         String line1 = reader1.readLine();
