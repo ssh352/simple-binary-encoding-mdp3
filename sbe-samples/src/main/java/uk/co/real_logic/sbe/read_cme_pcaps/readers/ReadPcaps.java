@@ -73,30 +73,26 @@ public class ReadPcaps {
             final int headerLength = headerDecoder.encodedLength();
 
             PacketOffsets packetOffsets = new PacketOffsets(offsets, nextCaptureOffset, headerLength).invoke();
-            int captureOffset = packetOffsets.getCaptureOffset();
-            int packetOffset = packetOffsets.getPacketOffset();
-            int headerStartOffset = packetOffsets.getHeaderStartOffset();
-            int messageOffset = packetOffsets.getMessageOffset();
 
 
-            int message_size = buffer.getShort(packetOffset + offsets.size_offset, offsets.message_size_endianness);
-            long packet_sequence_number = buffer.getInt(packetOffset + offsets.packet_sequence_number_offset);
-            long sendingTime = buffer.getLong(packetOffset + offsets.sending_time_offset);
+            int message_size = buffer.getShort(packetOffsets.getPacketOffset() + offsets.size_offset, offsets.message_size_endianness);
+            long packet_sequence_number = buffer.getInt(packetOffsets.getPacketOffset() + offsets.packet_sequence_number_offset);
+            long sendingTime = buffer.getLong(packetOffsets.getPacketOffset()+ offsets.sending_time_offset);
 
-            nextCaptureOffset = message_size + captureOffset + offsets.packet_size_padding;
+            nextCaptureOffset = message_size + packetOffsets.getCaptureOffset() + offsets.packet_size_padding;
 
-            tablesHandler.setPacketValues(headerStartOffset, message_size, packet_sequence_number, sendingTime);
+            tablesHandler.setPacketValues(packetOffsets.getHeaderStartOffset(), message_size, packet_sequence_number, sendingTime);
 
-            final int templateId = headerDecoder.getTemplateId(buffer, headerStartOffset);
-            final int actingVersion = headerDecoder.getSchemaVersion(buffer, headerStartOffset);
-            final int blockLength = headerDecoder.getBlockLength(buffer, headerStartOffset);
+            final int templateId = headerDecoder.getTemplateId(buffer, packetOffsets.getHeaderStartOffset());
+            final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetOffsets.getHeaderStartOffset());
+            final int blockLength = headerDecoder.getBlockLength(buffer, packetOffsets.getHeaderStartOffset());
 
             final List<Token> msgTokens = ir.getMessage(templateId);
 
             TokenListener tokenListener = new CleanTokenListener(tablesHandler, scopeTracker);
             OtfMessageDecoder.decode(
                     buffer,
-                    messageOffset,
+                    packetOffsets.getMessageOffset()j,
                     actingVersion,
                     blockLength,
                     msgTokens,
