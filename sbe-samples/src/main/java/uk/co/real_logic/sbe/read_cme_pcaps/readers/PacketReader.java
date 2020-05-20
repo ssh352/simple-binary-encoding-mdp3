@@ -36,19 +36,17 @@ public class PacketReader {
     //todo: figure out how to set packet values without passing in tablesHandler
     protected void readPackets(TokenListener tokenListener, TablesHandler tablesHandler) throws IOException {
         int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
-        int nextCaptureOffset = bufferOffset;
-
-        while (nextCaptureOffset < this.buffer.capacity()) {
-            this.lineCounter.incrementLinesRead();
+        int nextPacketCapturePosition = bufferOffset;
+        int packetCapturePosition = bufferOffset;
+        while (nextPacketCapturePosition < this.buffer.capacity()) {
             final int headerLength = this.headerDecoder.encodedLength();
-            PacketOffsets packetOffsets = new PacketOffsets(offsets, nextCaptureOffset, headerLength).invoke();
 
-            int message_size = buffer.getShort(packetOffsets.getPacketOffset() + this.offsets.size_offset, offsets.message_size_endianness);
-            long packet_sequence_number = buffer.getInt(packetOffsets.getPacketOffset() + this.offsets.packet_sequence_number_offset);
-            long sendingTime = buffer.getLong(packetOffsets.getPacketOffset()+ this.offsets.sending_time_offset);
+            packetCapturePosition = nextPacketCapturePosition;
 
-            nextCaptureOffset = message_size + packetOffsets.getCaptureOffset() + this.offsets.packet_size_padding;
-            tablesHandler.setPacketValues( message_size, packet_sequence_number, sendingTime);
+            PacketOffsets packetOffsets = new PacketOffsets(offsets,buffer, packetCapturePosition,   headerLength);
+            nextPacketCapturePosition = packetOffsets.getNextPacketOffset();
+            packetOffsets.setPacketValues(tablesHandler);
+            final int messageStartPosition=packetOffsets.getMessageStartPosition();
 
             final int templateId = headerDecoder.getTemplateId(buffer, packetOffsets.getHeaderStartOffset());
             final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetOffsets.getHeaderStartOffset());
@@ -58,13 +56,14 @@ public class PacketReader {
 
             OtfMessageDecoder.decode(
                     buffer,
-                    packetOffsets.getMessageOffset(),
+                    messageStartPosition,
                     actingVersion,
                     blockLength,
                     msgTokens,
                     tokenListener);
 
 
+            this.lineCounter.incrementLinesRead(String.valueOf(packetOffsets.getSendingTime()));
         }
         tablesHandler.close();
     }

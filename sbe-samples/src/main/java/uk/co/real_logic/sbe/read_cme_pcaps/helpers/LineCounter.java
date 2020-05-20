@@ -2,14 +2,18 @@ package uk.co.real_logic.sbe.read_cme_pcaps.helpers;
 
 public class LineCounter {
     private long linesRead=0;
-
     public LineCounter(boolean runShort) {
         linesRead = 0;
     }
 
-    public void incrementLinesRead(){
+    public void incrementLinesRead(String extraDisplay){
         this.linesRead++;
-        this.displayProgress();
+        this.displayProgress(extraDisplay);
+    }
+
+
+    public void incrementLinesRead(){
+        this.incrementLinesRead("");
     }
 
     private boolean nextLineAllowed(){
@@ -18,9 +22,10 @@ public class LineCounter {
         return linesRead< numLinesShort;
     }
 
-    private void displayProgress() {
+    private void displayProgress(String extraInfo) {
         if ((this.linesRead * 1.0 / 10000 == this.linesRead / 10000)) {
-            System.out.println(this.linesRead);
+            System.out.println(this.linesRead + " " + extraInfo);
         }
     }
+
 }
