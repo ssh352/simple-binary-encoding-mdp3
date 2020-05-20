@@ -84,20 +84,21 @@ public class ReadPcaps {
             nextCaptureOffset = message_size + captureOffset + offsets.packet_size_padding;
 
 
-            final int messageBodyOffset = captureOffset + offsets.header_bytes;
+            final int headerStartOffset = captureOffset + offsets.header_bytes;
             bufferOffset = captureOffset + offsets.header_bytes;
 
 
 
-            tablesHandler.setPacketValues(messageBodyOffset, message_size, packet_sequence_number, sendingTime);
+            tablesHandler.setPacketValues(headerStartOffset, message_size, packet_sequence_number, sendingTime);
 
-            final int templateId = headerDecoder.getTemplateId(buffer, messageBodyOffset);
+            final int templateId = headerDecoder.getTemplateId(buffer, headerStartOffset);
 
 
-            final int actingVersion = headerDecoder.getSchemaVersion(buffer, messageBodyOffset);
+            final int actingVersion = headerDecoder.getSchemaVersion(buffer, headerStartOffset);
 
-            blockLength = headerDecoder.getBlockLength(buffer, messageBodOffset);
+            blockLength = headerDecoder.getBlockLength(buffer, headerStartOffset);
 
+            final int messageOffset = headerStartOffset + headerDecoder.encodedLength();
             bufferOffset += headerDecoder.encodedLength();
             Integer count = messageTypeMap.getOrDefault(templateId, 0);
             messageTypeMap.put(templateId, count + 1);
