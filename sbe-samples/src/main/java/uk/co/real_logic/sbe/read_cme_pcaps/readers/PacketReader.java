@@ -10,7 +10,6 @@ import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 import uk.co.real_logic.sbe.read_cme_pcaps.helpers.LineCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
-import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CleanTokenListener;
 
 import java.io.IOException;
 import java.util.List;

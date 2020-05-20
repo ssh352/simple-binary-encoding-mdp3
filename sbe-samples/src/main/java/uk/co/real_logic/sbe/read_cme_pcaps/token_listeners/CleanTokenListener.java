@@ -39,15 +39,12 @@ public class CleanTokenListener implements TokenListener {
     private final byte[] tempBuffer = new byte[1024];
 
     public CleanTokenListener(TablesHandler tablesHandler) {
-        //todo: take tableshandler as additional input
         this.tablesHandler =tablesHandler;
     }
 
     public void onBeginMessage(final Token token) {
         //todo: put name of template into messageheaders tableaa
         this.tablesHandler.startMessageHeader(token.name());
-
-
     }
 
     public void onEndMessage(final Token token) {
@@ -60,7 +57,6 @@ public class CleanTokenListener implements TokenListener {
             final Token typeToken,
             final int actingVersion) {
         final CharSequence value = readEncodingAsString(buffer, index, typeToken, actingVersion);
-
         this.tablesHandler.appendColumnValue(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name(), String.valueOf(value));
     }
 
@@ -104,7 +100,6 @@ public class CleanTokenListener implements TokenListener {
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
         for (int i = beginIndex + 1; i < endIndex; i++) {
-
             final long bitPosition = tokens.get(i).encoding().constValue().longValue();
             final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
 

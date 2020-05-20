@@ -15,7 +15,7 @@ import java.nio.channels.FileChannel;
 public class BinaryDataHandler {
 
 
-    private static final int SCHEMA_BUFFER_CAPACITY = 5000000 * 1024;
+    private static final int SCHEMA_BUFFER_CAPACITY = 50000 * 1024;
 
     private ReadPcapProperties prop;
     private FileChannel inChannel;
@@ -39,9 +39,6 @@ public class BinaryDataHandler {
         buffer = new UnsafeBuffer(encodedMsgBuffer);
     }
 
-    public FileChannel getInChannel() {
-        return inChannel;
-    }
 
     public Ir getIr() {
         return ir;
