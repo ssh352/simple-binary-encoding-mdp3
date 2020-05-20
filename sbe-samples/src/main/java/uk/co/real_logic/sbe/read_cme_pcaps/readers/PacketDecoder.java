@@ -13,28 +13,32 @@ public class PacketDecoder {
     private int packetCapturePosition;
     private int headerStartOffset;
     private int messageStartPosition;
+    private TablesHandler tablesHandler;
+
 
     int messageSize;
     long packetSequenceNumber;
     long sendingTime;
 
-    public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer) {
+    public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer, TablesHandler tablesHandler) {
         this.offsets = offsets;
         this.buffer=buffer;
+        this.tablesHandler=tablesHandler;
     }
 
-    public void setNewOffsets(int packetCapturePosition, int headerLength) {
+    public void setNewOffsets(int packetCapturePosition, int headerLength) throws IOException {
         this.packetCapturePosition=packetCapturePosition;
         this.headerLength = headerLength;
         this.headerStartOffset = this.packetCapturePosition + offsets.header_bytes;
         this.messageStartPosition= headerStartOffset + headerLength;
         this.decodePacketInfo();
     }
-    private void decodePacketInfo() {
+    private void decodePacketInfo() throws IOException {
         //todo: reduce duplication by making a method for getting the offset that includes packetCapture
         this.messageSize = this.buffer.getShort(this.packetCapturePosition + this.offsets.size_offset, offsets.message_size_endianness);
         this.packetSequenceNumber = this.buffer.getInt(this.packetCapturePosition + this.offsets.packet_sequence_number_offset);
         this.sendingTime = this.buffer.getLong(this.packetCapturePosition + this.offsets.sending_time_offset);
+        this.setPacketValues();
     }
 
     public int getNextPacketOffset() {
@@ -64,7 +68,7 @@ public class PacketDecoder {
     }
 
 
-    public void setPacketValues(TablesHandler tablesHandler) throws IOException {
+    public void setPacketValues() throws IOException {
          tablesHandler.setPacketValues(this.messageSize, this.packetSequenceNumber, this.sendingTime);
     }
 

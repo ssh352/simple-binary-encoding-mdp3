@@ -38,29 +38,32 @@ public class PacketReader {
         int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
         int nextPacketCapturePosition = bufferOffset;
         int packetCapturePosition;
-        PacketDecoder packetDecoder = new PacketDecoder(offsets,buffer);
+        //todo put starting position in declaration
+        PacketDecoder packetDecoder = new PacketDecoder(offsets,buffer, tablesHandler);
 
         while (nextPacketCapturePosition < this.buffer.capacity()) {
             final int headerLength = this.headerDecoder.encodedLength();
 
             packetCapturePosition = nextPacketCapturePosition;
-
+            //todo make simpler process new message
             packetDecoder.setNewOffsets(packetCapturePosition,   headerLength);
-            nextPacketCapturePosition = packetDecoder.getNextPacketOffset();
-            packetDecoder.setPacketValues(tablesHandler);
-            final int messageStartPosition= packetDecoder.getMessageStartPosition();
-            decodeMessage(tokenListener, messageStartPosition, packetDecoder);
+            decodeMessage(tokenListener, packetDecoder);
+
+            //todo make some type of incrementer here
             this.lineCounter.incrementLinesRead(String.valueOf(packetDecoder.getSendingTime()));
+            nextPacketCapturePosition = packetDecoder.getNextPacketOffset();
 
         }
         tablesHandler.close();
     }
 
-    private void decodeMessage(TokenListener tokenListener, int messageStartPosition, PacketDecoder packetDecoder) throws IOException {
+    private void decodeMessage(TokenListener tokenListener, PacketDecoder packetDecoder) throws IOException {
 
         final int templateId = headerDecoder.getTemplateId(buffer, packetDecoder.getHeaderStartOffset());
         final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetDecoder.getHeaderStartOffset());
         final int blockLength = headerDecoder.getBlockLength(buffer, packetDecoder.getHeaderStartOffset());
+
+        final int messageStartPosition= packetDecoder.getMessageStartPosition();
 
         final List<Token> msgTokens = ir.getMessage(templateId);
 
