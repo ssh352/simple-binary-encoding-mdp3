@@ -66,7 +66,6 @@ public class ReadPcaps {
         final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
 
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
-        int blockLength;
 
         LineCounter lineCounter = new LineCounter(prop.run_short);
 
@@ -85,23 +84,16 @@ public class ReadPcaps {
 
 
             final int headerStartOffset = captureOffset + offsets.header_bytes;
-            bufferOffset = captureOffset + offsets.header_bytes;
 
 
 
             tablesHandler.setPacketValues(headerStartOffset, message_size, packet_sequence_number, sendingTime);
 
             final int templateId = headerDecoder.getTemplateId(buffer, headerStartOffset);
-
-
             final int actingVersion = headerDecoder.getSchemaVersion(buffer, headerStartOffset);
-
-            blockLength = headerDecoder.getBlockLength(buffer, headerStartOffset);
-
+            final int blockLength = headerDecoder.getBlockLength(buffer, headerStartOffset);
             final int messageOffset = headerStartOffset + headerDecoder.encodedLength();
-            bufferOffset += headerDecoder.encodedLength();
-            Integer count = messageTypeMap.getOrDefault(templateId, 0);
-            messageTypeMap.put(templateId, count + 1);
+
 
             final List<Token> msgTokens = ir.getMessage(templateId);
 
