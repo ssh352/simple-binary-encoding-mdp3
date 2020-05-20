@@ -11,6 +11,7 @@ import uk.co.real_logic.sbe.read_cme_pcaps.PacketInfo.PacketInfo;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.ScopeTracker;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
+import uk.co.real_logic.sbe.read_cme_pcaps.helpers.LineCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.DataOffsets;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CleanTokenListener;
@@ -38,7 +39,6 @@ public class ReadPcaps {
         DataOffsets offsets = new DataOffsets(prop.data_source);
 
         boolean compareToPreviousFiles = false;
-        Writer residualOutWriter = new FileWriter("C:\\marketdata\\testdata\\separatetables\\residualoutput.txt");
         ScopeTracker scopeTracker = new ScopeTracker();
         TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\latestresults\\", scopeTracker);
 
@@ -60,7 +60,7 @@ public class ReadPcaps {
         // Now we have IR we can read the message header
 
         int bufferOffset = offsets.starting_offset; //skip leading bytes before message capture proper
-        int next_offset = bufferOffset;
+        int nextCaptureOffset = bufferOffset;
 
 
         final UnsafeBuffer buffer = new UnsafeBuffer(encodedMsgBuffer);
@@ -68,36 +68,33 @@ public class ReadPcaps {
         Map<Integer, Integer> messageTypeMap = new HashMap<Integer, Integer>();
         int blockLength;
 
+        LineCounter lineCounter = new LineCounter(prop.run_short);
 
-        long num_lines = 500000000;
-        int num_lines_short = 500000; //only run through part of buffer for debugging purposes
-        if (prop.run_short) {
-            num_lines = num_lines_short;
-        }
+        while (nextCaptureOffset < buffer.capacity()) {
+            lineCounter.incrementLinesRead();
 
-        int lines_read = 0;
+            final int captureOffset = nextCaptureOffset;
+            bufferOffset = nextCaptureOffset;
 
-        while (next_offset < buffer.capacity()) {
+            final int packetOffset=captureOffset;
+            int message_size = buffer.getShort(packetOffset + offsets.size_offset, offsets.message_size_endianness);
+            long packet_sequence_number = buffer.getInt(packetOffset + offsets.packet_sequence_number_offset);
+            long sendingTime = buffer.getLong(packetOffset + offsets.sending_time_offset);
+
+            nextCaptureOffset = message_size + captureOffset + offsets.packet_size_padding;
 
 
-
-            bufferOffset = next_offset;
-            int message_size = buffer.getShort(bufferOffset + offsets.size_offset, offsets.message_size_endianness);
-            long packet_sequence_number = buffer.getInt(bufferOffset + offsets.packet_sequence_number_offset);
-            long sendingTime = buffer.getLong(bufferOffset + offsets.sending_time_offset);
-            next_offset = message_size + bufferOffset + offsets.packet_size_padding;
             bufferOffset = bufferOffset + offsets.header_bytes;
 
 
 
             tablesHandler.setPacketValues(bufferOffset, message_size, packet_sequence_number, sendingTime);
 
-
             final int templateId = headerDecoder.getTemplateId(buffer, bufferOffset);
-            PacketInfo packetInfo = new PacketInfo(templateId, packet_sequence_number, sendingTime);
 
 
             final int actingVersion = headerDecoder.getSchemaVersion(buffer, bufferOffset);
+
             blockLength = headerDecoder.getBlockLength(buffer, bufferOffset);
 
             bufferOffset += headerDecoder.encodedLength();
@@ -105,9 +102,12 @@ public class ReadPcaps {
             messageTypeMap.put(templateId, count + 1);
 
             final List<Token> msgTokens = ir.getMessage(templateId);
+
             if (bufferOffset + blockLength >= fileSize) {
                 break;
             } else {
+
+
                 TokenListener tokenListener = new CleanTokenListener(tablesHandler, scopeTracker);
                 OtfMessageDecoder.decode(
                         buffer,
@@ -118,13 +118,6 @@ public class ReadPcaps {
                         tokenListener);
             }
 
-
-            if (lines_read >= num_lines) {
-                System.out.println("Read " + num_lines + " lines");
-                break;
-            }
-            displayProgress(lines_read, sendingTime);
-            lines_read = lines_read + 1;
 
 
         }
@@ -141,12 +134,6 @@ public class ReadPcaps {
  */
     }
 
-    private static void displayProgress(int lines_read, long sendingTime) {
-        if ((lines_read * 1.0 / 10000 == lines_read / 10000)) {
-            System.out.println(lines_read);
-            System.out.println("sending_time: " + sendingTime);
-        }
-    }
 
 
 }
