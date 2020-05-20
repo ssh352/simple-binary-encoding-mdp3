@@ -72,11 +72,12 @@ public class ReadPcaps {
         while (nextCaptureOffset < buffer.capacity()) {
             lineCounter.incrementLinesRead();
 
-            final int captureOffset = nextCaptureOffset;
-            final int packetOffset=captureOffset;
-            final int headerStartOffset = captureOffset + offsets.header_bytes;
-            final int messageOffset = headerStartOffset + headerDecoder.encodedLength();
+            final int headerLength = headerDecoder.encodedLength();
 
+            final int captureOffset = nextCaptureOffset;
+            final int packetOffset = captureOffset;
+            final int headerStartOffset = captureOffset + offsets.header_bytes;
+            final int messageOffset = headerStartOffset + headerLength;
 
 
             int message_size = buffer.getShort(packetOffset + offsets.size_offset, offsets.message_size_endianness);
@@ -91,20 +92,16 @@ public class ReadPcaps {
             final int actingVersion = headerDecoder.getSchemaVersion(buffer, headerStartOffset);
             final int blockLength = headerDecoder.getBlockLength(buffer, headerStartOffset);
 
-
             final List<Token> msgTokens = ir.getMessage(templateId);
 
-
-
-                TokenListener tokenListener = new CleanTokenListener(tablesHandler, scopeTracker);
-                OtfMessageDecoder.decode(
-                        buffer,
-                        messageOffset,
-                        actingVersion,
-                        blockLength,
-                        msgTokens,
-                        tokenListener);
-
+            TokenListener tokenListener = new CleanTokenListener(tablesHandler, scopeTracker);
+            OtfMessageDecoder.decode(
+                    buffer,
+                    messageOffset,
+                    actingVersion,
+                    blockLength,
+                    msgTokens,
+                    tokenListener);
 
 
         }
@@ -120,7 +117,6 @@ public class ReadPcaps {
 
  */
     }
-
 
 
 }
