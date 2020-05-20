@@ -103,10 +103,6 @@ public class CleanTokenListener implements TokenListener {
         final Token typeToken = tokens.get(beginIndex + 1);
         final long encodedValue = readEncodingAsLong(buffer, bufferIndex, typeToken, actingVersion);
 
-//        this.tablesHandler.appendScope();
-//        this.tablesHandler.appendToCurrentScope(this.determineName(0, fieldToken, tokens, beginIndex));
-//        this.tablesHandler.appendToCurrentScope(":");
-
         for (int i = beginIndex + 1; i < endIndex; i++) {
 
             final long bitPosition = tokens.get(i).encoding().constValue().longValue();
@@ -169,10 +165,6 @@ public class CleanTokenListener implements TokenListener {
         this.tablesHandler.appendColumnValue(fieldToken.name(), value);
     }
 
-    @Override
-    public void writeString(String output) {
-
-    }
 
 
 

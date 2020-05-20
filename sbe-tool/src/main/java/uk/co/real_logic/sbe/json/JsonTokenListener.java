@@ -197,10 +197,6 @@ public class JsonTokenListener implements TokenListener
         }
     }
 
-    @Override
-    public void writeString(String output) {
-
-    }
 
     private static boolean isLastGroup(final int groupIndex, final int numInGroup)
     {

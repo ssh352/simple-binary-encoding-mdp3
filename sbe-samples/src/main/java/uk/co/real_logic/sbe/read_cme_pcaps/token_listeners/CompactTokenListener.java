@@ -204,11 +204,6 @@ public class CompactTokenListener implements TokenListener {
         this.tokenOutput.writeFieldValue(fieldToken.name(), value);
     }
 
-    @Override
-    public void writeString(String output) {
-
-    }
-
     private String determineName(
             final Token fieldToken, final List<Token> tokens, final int fromIndex) {
         if (this.compositeLevel > 1) {

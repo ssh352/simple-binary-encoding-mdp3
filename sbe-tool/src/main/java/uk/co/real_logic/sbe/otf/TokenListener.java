@@ -153,5 +153,4 @@ public interface TokenListener
      */
     void onVarData(Token fieldToken, DirectBuffer buffer, int bufferIndex, int length, Token typeToken) throws IOException;
 
-    void writeString(String output);
 }

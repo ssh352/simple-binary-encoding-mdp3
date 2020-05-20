@@ -102,10 +102,6 @@ public class OtfMessageDecoder
         while (i < numTokens)
         //loopthrough tokens.
         {
-            listener.writeString("writing from decode fields ");
-            listener.writeString("i=" + i + " ");
-            listener.writeString("buffer offset " + bufferOffset + " ");
-            listener.writeString("\n");
             final Token fieldToken = tokens.get(i);
             // read all fields in the current scope
             if (BEGIN_FIELD != fieldToken.signal())
@@ -173,10 +169,6 @@ public class OtfMessageDecoder
         final TokenListener listener) throws IOException {
         while (tokenIdx < numTokens)
         {
-            listener.writeString("writing from decode groups ");
-            listener.writeString("tokenidx=" + tokenIdx + " ");
-            listener.writeString("buffer offset " + bufferOffset + " ");
-            listener.writeString("\n");
             final Token token = tokens.get(tokenIdx);
             //only want to process starting at beginning of group
             //possibly these fields pop up and down from headers, to group headers, to group elements
@@ -218,18 +210,13 @@ public class OtfMessageDecoder
             for (int i = 0; i < numInGroup; i++)
             {
                 listener.onBeginGroup(token, i, numInGroup);
-                listener.writeString("\notf message decoder: before decode fields\n");
                 final int afterFieldsIdx = decodeFields(
                     buffer, bufferOffset, actingVersion, tokens, beginFieldsIdx, numTokens, listener);
                 bufferOffset += blockLength;
 
-                listener.writeString("otf message decoder: after decode fields\n");
-                listener.writeString("otf message decoder: before  decode groups\n");
                 final long packedValues = decodeGroups(
                     buffer, bufferOffset, actingVersion, tokens, afterFieldsIdx, numTokens, listener);
 
-                listener.writeString("otf message decoder: after  decode groups\n");
-                listener.writeString("otf message decoder: before  decode datas\n");
                 bufferOffset = decodeData(
                     buffer,
                     bufferOffset(packedValues),
@@ -239,10 +226,7 @@ public class OtfMessageDecoder
                     actingVersion,
                     listener);
 
-                listener.writeString("otf message decoder: after  decode datas\n");
-                listener.writeString("otf message decoder: before end group\n");
                 listener.onEndGroup(token, i, numInGroup);
-                listener.writeString("otf message decoder: after end group\n");
             }
 
             tokenIdx += token.componentTokenCount();

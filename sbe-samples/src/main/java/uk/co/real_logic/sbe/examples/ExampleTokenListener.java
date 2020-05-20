@@ -176,10 +176,6 @@ public class ExampleTokenListener implements TokenListener {
                 .println();
     }
 
-    @Override
-    public void writeString(String output) {
-
-    }
 
     private String determineName(
             final int thresholdLevel, final Token fieldToken, final List<Token> tokens, final int fromIndex) {
