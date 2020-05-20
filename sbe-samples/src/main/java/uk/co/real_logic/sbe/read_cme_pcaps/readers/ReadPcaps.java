@@ -84,7 +84,7 @@ public class ReadPcaps {
             nextCaptureOffset = message_size + captureOffset + offsets.packet_size_padding;
 
 
-            bufferOffset = bufferOffset + offsets.header_bytes;
+            bufferOffset = captureOffset + offsets.header_bytes;
 
 
 
