@@ -38,8 +38,7 @@ public class PacketReader {
         int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
 //        int nextPacketCapturePosition = bufferOffset;
         //todo put starting position in declaration
-        PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, tablesHandler);
-        packetDecoder.nextPacketStartPosition = bufferOffset;
+        PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, bufferOffset, tablesHandler);
 
 //        while (nextPacketCapturePosition < this.buffer.capacity()) {
         while (packetDecoder.hasNextPacket()) {

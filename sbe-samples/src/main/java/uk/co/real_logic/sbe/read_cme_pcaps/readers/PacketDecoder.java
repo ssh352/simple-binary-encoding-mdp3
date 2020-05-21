@@ -20,10 +20,11 @@ public class PacketDecoder {
     long packetSequenceNumber;
     long sendingTime;
 
-    public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer, TablesHandler tablesHandler) {
+    public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer, int bufferOffset, TablesHandler tablesHandler) {
         this.offsets = offsets;
         this.buffer=buffer;
         this.tablesHandler=tablesHandler;
+        this.nextPacketStartPosition=bufferOffset;
     }
 
     public void setNewOffsets(int headerLength) throws IOException {
