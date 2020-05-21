@@ -46,7 +46,7 @@ public class PacketReader {
             packetDecoder.headerLength = this.headerDecoder.encodedLength();
 
             //todo make simpler process new message
-            packetDecoder.setNewOffsets(packetDecoder.nextPacketStartPosition, packetDecoder.headerLength);
+            packetDecoder.setNewOffsets();
             decodeMessage(tokenListener, packetDecoder);
 
             //todo make some type of incrementer here
