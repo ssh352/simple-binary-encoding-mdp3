@@ -37,16 +37,15 @@ public class PacketReader {
     protected void readPackets(TokenListener tokenListener, TablesHandler tablesHandler) throws IOException {
         int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
         int nextPacketCapturePosition = bufferOffset;
-        int packetCapturePosition;
         //todo put starting position in declaration
         PacketDecoder packetDecoder = new PacketDecoder(offsets,buffer, tablesHandler);
 
         while (nextPacketCapturePosition < this.buffer.capacity()) {
             final int headerLength = this.headerDecoder.encodedLength();
 
-            packetCapturePosition = nextPacketCapturePosition;
+            packetDecoder.packetCapturePosition = nextPacketCapturePosition;
             //todo make simpler process new message
-            packetDecoder.setNewOffsets(packetCapturePosition,   headerLength);
+            packetDecoder.setNewOffsets(packetDecoder.packetCapturePosition,   headerLength);
             decodeMessage(tokenListener, packetDecoder);
 
             //todo make some type of incrementer here

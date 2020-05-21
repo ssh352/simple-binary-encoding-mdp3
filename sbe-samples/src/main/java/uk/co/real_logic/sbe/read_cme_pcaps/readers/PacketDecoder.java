@@ -10,7 +10,7 @@ public class PacketDecoder {
     private final UnsafeBuffer buffer;
     private DataOffsets offsets;
     private int headerLength;
-    private int packetCapturePosition;
+    public int packetCapturePosition;
     private int headerStartOffset;
     private int messageStartPosition;
     private TablesHandler tablesHandler;
@@ -49,6 +49,10 @@ public class PacketDecoder {
         return this.messageStartPosition;
     }
 
+
+    public boolean hasNextPacket() {
+        return getNextPacketOffset() < buffer.capacity();
+    }
 
     public int getHeaderStartOffset() {
         return headerStartOffset;
