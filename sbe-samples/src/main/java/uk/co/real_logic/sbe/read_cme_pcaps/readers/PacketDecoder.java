@@ -9,7 +9,6 @@ import java.io.IOException;
 public class PacketDecoder {
     private final UnsafeBuffer buffer;
     private DataOffsets offsets;
-    public int headerLength;
     int packetStartPosition;
     private int headerStartOffset;
     private int messageStartPosition;
@@ -27,9 +26,9 @@ public class PacketDecoder {
         this.nextPacketStartPosition=bufferOffset;
     }
 
+
     public void setNewOffsets(int headerLength) throws IOException {
         this.packetStartPosition =nextPacketStartPosition;
-        this.headerLength = headerLength;
         this.headerStartOffset = this.packetStartPosition + offsets.header_bytes;
         this.messageStartPosition= headerStartOffset + headerLength;
         this.decodePacketInfo();
