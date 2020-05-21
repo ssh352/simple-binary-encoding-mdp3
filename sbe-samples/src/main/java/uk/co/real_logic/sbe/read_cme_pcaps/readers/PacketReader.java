@@ -43,10 +43,9 @@ public class PacketReader {
 
 //        while (nextPacketCapturePosition < this.buffer.capacity()) {
         while (packetDecoder.hasNextPacket()) {
-            packetDecoder.headerLength = this.headerDecoder.encodedLength();
 
             //todo make simpler process new message
-            packetDecoder.setNewOffsets();
+            packetDecoder.setNewOffsets(this.headerDecoder.encodedLength());
             decodeMessage(tokenListener, packetDecoder);
 
             //todo make some type of incrementer here

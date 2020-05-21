@@ -26,7 +26,7 @@ public class PacketDecoder {
         this.tablesHandler=tablesHandler;
     }
 
-    public void setNewOffsets() throws IOException {
+    public void setNewOffsets(int headerLength) throws IOException {
         this.packetStartPosition =nextPacketStartPosition;
         this.headerLength = headerLength;
         this.headerStartOffset = this.packetStartPosition + offsets.header_bytes;
