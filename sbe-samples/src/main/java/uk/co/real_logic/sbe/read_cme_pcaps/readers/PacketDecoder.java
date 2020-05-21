@@ -9,7 +9,7 @@ import java.io.IOException;
 public class PacketDecoder {
     private final UnsafeBuffer buffer;
     private DataOffsets offsets;
-    private int headerLength;
+    public int headerLength;
     int packetStartPosition;
     private int headerStartOffset;
     private int messageStartPosition;
