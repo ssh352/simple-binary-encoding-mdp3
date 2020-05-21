@@ -41,6 +41,10 @@ public class PacketDecoder {
         this.setPacketValues();
     }
 
+    public void setNextPacketStartPosition(int newPosition){
+        this.nextPacketStartPosition=newPosition;
+    }
+
     public int getNextPacketOffset() {
         return this.messageSize + this.packetStartPosition + this.offsets.packet_size_padding;
 

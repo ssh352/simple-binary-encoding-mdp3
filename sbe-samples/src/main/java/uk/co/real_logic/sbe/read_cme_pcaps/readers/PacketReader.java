@@ -45,14 +45,13 @@ public class PacketReader {
         while (packetDecoder.hasNextPacket()) {
             final int headerLength = this.headerDecoder.encodedLength();
 
-            packetDecoder.packetStartPosition = packetDecoder.nextPacketStartPosition;
             //todo make simpler process new message
             packetDecoder.setNewOffsets(packetDecoder.nextPacketStartPosition, headerLength);
             decodeMessage(tokenListener, packetDecoder);
 
             //todo make some type of incrementer here
             this.lineCounter.incrementLinesRead(String.valueOf(packetDecoder.getSendingTime()));
-            packetDecoder.nextPacketStartPosition = packetDecoder.getNextPacketOffset();
+            packetDecoder.setNextPacketStartPosition(packetDecoder.getNextPacketOffset());
 
         }
         tablesHandler.close();
