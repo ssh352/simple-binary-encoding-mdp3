@@ -10,11 +10,11 @@ public class PacketDecoder {
     private final UnsafeBuffer buffer;
     private DataOffsets offsets;
     private int headerLength;
-    public int packetCapturePosition;
+    int packetStartPosition;
     private int headerStartOffset;
     private int messageStartPosition;
     private TablesHandler tablesHandler;
-
+    public int nextPacketStartPosition;
 
     int messageSize;
     long packetSequenceNumber;
@@ -27,22 +27,22 @@ public class PacketDecoder {
     }
 
     public void setNewOffsets(int packetCapturePosition, int headerLength) throws IOException {
-        this.packetCapturePosition=packetCapturePosition;
+        this.packetStartPosition =packetCapturePosition;
         this.headerLength = headerLength;
-        this.headerStartOffset = this.packetCapturePosition + offsets.header_bytes;
+        this.headerStartOffset = this.packetStartPosition + offsets.header_bytes;
         this.messageStartPosition= headerStartOffset + headerLength;
         this.decodePacketInfo();
     }
     private void decodePacketInfo() throws IOException {
         //todo: reduce duplication by making a method for getting the offset that includes packetCapture
-        this.messageSize = this.buffer.getShort(this.packetCapturePosition + this.offsets.size_offset, offsets.message_size_endianness);
-        this.packetSequenceNumber = this.buffer.getInt(this.packetCapturePosition + this.offsets.packet_sequence_number_offset);
-        this.sendingTime = this.buffer.getLong(this.packetCapturePosition + this.offsets.sending_time_offset);
+        this.messageSize = this.buffer.getShort(this.packetStartPosition + this.offsets.size_offset, offsets.message_size_endianness);
+        this.packetSequenceNumber = this.buffer.getInt(this.packetStartPosition + this.offsets.packet_sequence_number_offset);
+        this.sendingTime = this.buffer.getLong(this.packetStartPosition + this.offsets.sending_time_offset);
         this.setPacketValues();
     }
 
     public int getNextPacketOffset() {
-        return this.messageSize + this.packetCapturePosition + this.offsets.packet_size_padding;
+        return this.messageSize + this.packetStartPosition + this.offsets.packet_size_padding;
 
     }
         public int getMessageStartPosition() {

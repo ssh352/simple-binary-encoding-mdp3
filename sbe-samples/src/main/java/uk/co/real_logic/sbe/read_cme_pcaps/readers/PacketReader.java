@@ -36,21 +36,23 @@ public class PacketReader {
     //todo: figure out how to set packet values without passing in tablesHandler
     protected void readPackets(TokenListener tokenListener, TablesHandler tablesHandler) throws IOException {
         int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
-        int nextPacketCapturePosition = bufferOffset;
+//        int nextPacketCapturePosition = bufferOffset;
         //todo put starting position in declaration
-        PacketDecoder packetDecoder = new PacketDecoder(offsets,buffer, tablesHandler);
+        PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, tablesHandler);
+        packetDecoder.nextPacketStartPosition = bufferOffset;
 
-        while (nextPacketCapturePosition < this.buffer.capacity()) {
+//        while (nextPacketCapturePosition < this.buffer.capacity()) {
+        while (packetDecoder.hasNextPacket()) {
             final int headerLength = this.headerDecoder.encodedLength();
 
-            packetDecoder.packetCapturePosition = nextPacketCapturePosition;
+            packetDecoder.packetStartPosition = packetDecoder.nextPacketStartPosition;
             //todo make simpler process new message
-            packetDecoder.setNewOffsets(packetDecoder.packetCapturePosition,   headerLength);
+            packetDecoder.setNewOffsets(packetDecoder.nextPacketStartPosition, headerLength);
             decodeMessage(tokenListener, packetDecoder);
 
             //todo make some type of incrementer here
             this.lineCounter.incrementLinesRead(String.valueOf(packetDecoder.getSendingTime()));
-            nextPacketCapturePosition = packetDecoder.getNextPacketOffset();
+            packetDecoder.nextPacketStartPosition = packetDecoder.getNextPacketOffset();
 
         }
         tablesHandler.close();
@@ -62,7 +64,7 @@ public class PacketReader {
         final int actingVersion = headerDecoder.getSchemaVersion(buffer, packetDecoder.getHeaderStartOffset());
         final int blockLength = headerDecoder.getBlockLength(buffer, packetDecoder.getHeaderStartOffset());
 
-        final int messageStartPosition= packetDecoder.getMessageStartPosition();
+        final int messageStartPosition = packetDecoder.getMessageStartPosition();
 
         final List<Token> msgTokens = ir.getMessage(templateId);
 
