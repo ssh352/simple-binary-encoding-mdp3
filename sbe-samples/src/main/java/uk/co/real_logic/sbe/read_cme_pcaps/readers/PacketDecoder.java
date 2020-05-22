@@ -33,6 +33,7 @@ public class PacketDecoder {
         this.headerStartOffset = this.packetStartPosition + offsets.header_bytes;
         this.messageStartPosition= headerStartOffset + headerLength;
         this.decodePacketInfo();
+        this.setNextPacketStartPosition();
     }
     private void decodePacketInfo() throws IOException {
         //todo: reduce duplication by making a method for getting the offset that includes packetCapture

@@ -45,7 +45,7 @@ public class PacketReader {
 
             //todo make some type of incrementer here
             this.lineCounter.incrementLinesRead(String.valueOf(packetDecoder.getSendingTime()));
-            packetDecoder.setNextPacketStartPosition();
+//            packetDecoder.setNextPacketStartPosition();
 
         }
         tablesHandler.close();
