@@ -18,14 +18,12 @@ public class PacketReader {
 
     private final DataOffsets offsets;
     private final LineCounter lineCounter;
-    private final BinaryDataHandler binaryDataHandler;
     private final Ir ir;
     private final OtfHeaderDecoder headerDecoder;
     private final UnsafeBuffer buffer;
 
 
-    public PacketReader(ReadPcapProperties prop, BinaryDataHandler binaryDataHandler) throws IOException {
-        this.binaryDataHandler = binaryDataHandler;
+    public PacketReader(ReadPcapProperties prop, BinaryDataHandler binaryDataHandler)  {
         this.ir = binaryDataHandler.getIr();
         this.headerDecoder = binaryDataHandler.getHeaderDecoder();
         this.buffer = binaryDataHandler.getBuffer();
@@ -38,14 +36,10 @@ public class PacketReader {
         PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, tablesHandler);
 
         while (packetDecoder.hasNextPacket()) {
-
-            //todo make simpler process new message
-            packetDecoder.setNewOffsets(this.headerDecoder.encodedLength());
+            packetDecoder.processOffsets(this.headerDecoder.encodedLength());
             decodeMessage(tokenListener, packetDecoder);
 
-            //todo make some type of incrementer here
             this.lineCounter.incrementLinesRead(String.valueOf(packetDecoder.getSendingTime()));
-//            packetDecoder.setNextPacketStartPosition();
 
         }
         tablesHandler.close();

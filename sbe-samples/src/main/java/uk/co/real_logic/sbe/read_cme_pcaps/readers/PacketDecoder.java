@@ -28,27 +28,26 @@ public class PacketDecoder {
     }
 
 
-    public void setNewOffsets(int headerLength) throws IOException {
+    public void processOffsets(int headerLength) throws IOException {
         this.packetStartPosition =nextPacketStartPosition;
         this.headerStartOffset = this.packetStartPosition + offsets.header_bytes;
         this.messageStartPosition= headerStartOffset + headerLength;
         this.decodePacketInfo();
-        this.setNextPacketStartPosition();
+
+        this.nextPacketStartPosition=this.getNextPacketOffset();
+
     }
     private void decodePacketInfo() throws IOException {
         //todo: reduce duplication by making a method for getting the offset that includes packetCapture
-        this.messageSize = this.buffer.getShort(this.packetStartPosition + this.offsets.size_offset, offsets.message_size_endianness);
-        this.packetSequenceNumber = this.buffer.getInt(this.packetStartPosition + this.offsets.packet_sequence_number_offset);
-        this.sendingTime = this.buffer.getLong(this.packetStartPosition + this.offsets.sending_time_offset);
-        this.setPacketValues();
+        messageSize = this.buffer.getShort(this.packetStartPosition + this.offsets.size_offset, offsets.message_size_endianness);
+        packetSequenceNumber = this.buffer.getInt(this.packetStartPosition + this.offsets.packet_sequence_number_offset);
+        sendingTime = this.buffer.getLong(this.packetStartPosition + this.offsets.sending_time_offset);
+        this.setPacketValues(messageSize, packetSequenceNumber, sendingTime);
     }
 
-    private void setNextPacketStartPosition(){
-        this.nextPacketStartPosition=this.getNextPacketOffset();
-    }
 
-    public void setPacketValues() throws IOException {
-        tablesHandler.setPacketValues(this.messageSize, this.packetSequenceNumber, this.sendingTime);
+    public void setPacketValues(int messageSize, long packetSequenceNumber, long sendingTime) throws IOException {
+        tablesHandler.setPacketValues(messageSize, packetSequenceNumber, sendingTime);
     }
 
     public int getNextPacketOffset() {
