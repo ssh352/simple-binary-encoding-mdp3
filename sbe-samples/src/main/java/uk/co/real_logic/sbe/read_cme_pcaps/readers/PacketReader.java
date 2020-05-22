@@ -21,19 +21,20 @@ public class PacketReader {
     private final Ir ir;
     private final OtfHeaderDecoder headerDecoder;
     private final UnsafeBuffer buffer;
+    private TablesHandler tablesHandler;
 
-
-    public PacketReader(ReadPcapProperties prop, BinaryDataHandler binaryDataHandler)  {
+    public PacketReader(ReadPcapProperties prop, BinaryDataHandler binaryDataHandler, TablesHandler tablesHandler)  {
         this.ir = binaryDataHandler.getIr();
         this.headerDecoder = binaryDataHandler.getHeaderDecoder();
         this.buffer = binaryDataHandler.getBuffer();
         this.offsets = new DataOffsets(prop.data_source);
         this.lineCounter = new LineCounter(prop.run_short);
+        this.tablesHandler=tablesHandler;
     }
 
     //todo: figure out how to set packet values without passing in tablesHandler
-    protected void readPackets(TokenListener tokenListener, TablesHandler tablesHandler) throws IOException {
-        PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, tablesHandler);
+    protected void readPackets(TokenListener tokenListener) throws IOException {
+        PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, this.tablesHandler);
 
         while (packetDecoder.hasNextPacket()) {
             packetDecoder.processOffsets(this.headerDecoder.encodedLength());
@@ -42,8 +43,11 @@ public class PacketReader {
             this.lineCounter.incrementLinesRead(String.valueOf(packetDecoder.getSendingTime()));
 
         }
-        tablesHandler.close();
     }
+    protected void endPacketsCollection() throws IOException {
+        this.tablesHandler.close();
+    }
+
 
     private void decodeMessage(TokenListener tokenListener, PacketDecoder packetDecoder) throws IOException {
 

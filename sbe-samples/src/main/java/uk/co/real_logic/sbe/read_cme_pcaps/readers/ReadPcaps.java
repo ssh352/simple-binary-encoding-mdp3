@@ -1,9 +1,6 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.readers;
 
 
-import org.agrona.concurrent.UnsafeBuffer;
-import uk.co.real_logic.sbe.ir.Ir;
-import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
@@ -11,9 +8,6 @@ import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CleanTokenListener;
 import uk.co.real_logic.sbe.tests.DirectoryComparison;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 
 
 public class ReadPcaps {
@@ -29,9 +23,9 @@ public class ReadPcaps {
         TablesHandler tablesHandler = new TablesHandler("C:\\marketdata\\testdata\\separatetables\\latestresults\\");
         TokenListener cleanTokenListener = new CleanTokenListener(tablesHandler);
 
-        PacketReader packetReader =new PacketReader(prop, binaryDataHandler);
-        packetReader.readPackets(cleanTokenListener, tablesHandler);
-
+        PacketReader packetReader =new PacketReader(prop, binaryDataHandler, tablesHandler);
+        packetReader.readPackets(cleanTokenListener);
+        packetReader.endPacketsCollection();
         //test directory comparison by comparing same directory
         testRunEquality();
     }
