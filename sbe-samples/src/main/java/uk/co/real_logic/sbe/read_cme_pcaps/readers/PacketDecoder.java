@@ -43,7 +43,7 @@ public class PacketDecoder {
         this.setPacketValues();
     }
 
-    public void setNextPacketStartPosition(){
+    private void setNextPacketStartPosition(){
         this.nextPacketStartPosition=this.getNextPacketOffset();
     }
 
