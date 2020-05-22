@@ -18,12 +18,13 @@ public class PacketDecoder {
     int messageSize;
     long packetSequenceNumber;
     long sendingTime;
+    private int nextPacketOffset;
 
-    public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer, int bufferOffset, TablesHandler tablesHandler) {
+    public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer, TablesHandler tablesHandler) {
         this.offsets = offsets;
         this.buffer=buffer;
         this.tablesHandler=tablesHandler;
-        this.nextPacketStartPosition=bufferOffset;
+        this.nextPacketStartPosition=this.offsets.starting_offset; //skip leading bytes before message capture proper
     }
 
 
@@ -43,43 +44,34 @@ public class PacketDecoder {
 
     public void setNextPacketStartPosition(){
         this.nextPacketStartPosition=this.getNextPacketOffset();
+    }
 
+    public void setPacketValues() throws IOException {
+        tablesHandler.setPacketValues(this.messageSize, this.packetSequenceNumber, this.sendingTime);
     }
 
     public int getNextPacketOffset() {
-        return this.messageSize + this.packetStartPosition + this.offsets.packet_size_padding;
-
+        this.nextPacketOffset = this.messageSize + this.packetStartPosition + this.offsets.packet_size_padding;
+        return this.nextPacketOffset;
     }
+
         public int getMessageStartPosition() {
         return this.messageStartPosition;
     }
 
-
     public boolean hasNextPacket() {
         return getNextPacketOffset() < buffer.capacity();
-    }
+}
 
     public int getHeaderStartOffset() {
         return headerStartOffset;
     }
 
 
-    public int getMessageSize() {
-        return messageSize;
-    }
-
-    public long getPacketSequenceNumber() {
-        return packetSequenceNumber;
-    }
-
     public long  getSendingTime() {
         return sendingTime;
     }
 
-
-    public void setPacketValues() throws IOException {
-         tablesHandler.setPacketValues(this.messageSize, this.packetSequenceNumber, this.sendingTime);
-    }
 
 }
 

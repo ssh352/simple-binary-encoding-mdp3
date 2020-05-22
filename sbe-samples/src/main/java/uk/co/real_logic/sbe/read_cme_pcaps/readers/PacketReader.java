@@ -35,8 +35,7 @@ public class PacketReader {
 
     //todo: figure out how to set packet values without passing in tablesHandler
     protected void readPackets(TokenListener tokenListener, TablesHandler tablesHandler) throws IOException {
-        int bufferOffset = this.offsets.starting_offset; //skip leading bytes before message capture proper
-        PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, bufferOffset, tablesHandler);
+        PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, tablesHandler);
 
         while (packetDecoder.hasNextPacket()) {
 
