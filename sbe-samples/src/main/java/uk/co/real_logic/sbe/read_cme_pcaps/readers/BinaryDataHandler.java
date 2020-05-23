@@ -30,8 +30,11 @@ public class BinaryDataHandler {
         EncoderDecoders.encodeSchema(encodedSchemaBuffer, prop.schema_file);
         RandomAccessFile aFile = new RandomAccessFile(prop.in_file, "rw");
         inChannel = aFile.getChannel();
+
+
         MappedByteBuffer encodedMsgBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
         encodedMsgBuffer.flip();  //make buffer ready for read
+
         // Now lets decode the schema IR so we have IR objects.
         encodedSchemaBuffer.flip();
         ir = EncoderDecoders.decodeIr(encodedSchemaBuffer);
@@ -47,6 +50,8 @@ public class BinaryDataHandler {
     public OtfHeaderDecoder getHeaderDecoder() {
         return headerDecoder;
     }
+
+
 
     public UnsafeBuffer getBuffer() {
         return buffer;

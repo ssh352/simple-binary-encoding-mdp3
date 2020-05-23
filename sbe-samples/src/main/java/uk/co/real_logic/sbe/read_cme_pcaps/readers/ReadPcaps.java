@@ -4,6 +4,8 @@ package uk.co.real_logic.sbe.read_cme_pcaps.readers;
 import uk.co.real_logic.sbe.otf.TokenListener;
 import uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers.TablesHandler;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
+import uk.co.real_logic.sbe.read_cme_pcaps.readers.BinaryDataHandler;
+import uk.co.real_logic.sbe.read_cme_pcaps.readers.PacketReader;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.CleanTokenListener;
 import uk.co.real_logic.sbe.tests.DirectoryComparison;
 
@@ -15,7 +17,11 @@ public class ReadPcaps {
 
     public static void main(final String[] args) throws Exception {
 //        ReadPcapProperties prop = new ReadPcapProperties(args[0]);
-        ReadPcapProperties prop = new ReadPcapProperties("C:\\marketdata\\testdata\\configs\\cleanlistener.config");
+        runJob("C:\\marketdata\\testdata\\configs\\cleanlistener.config");
+    }
+
+    private static void runJob(String configFile) throws Exception {
+        ReadPcapProperties prop = new ReadPcapProperties(configFile);
         boolean compareToPreviousFiles = false;
 
         BinaryDataHandler binaryDataHandler = new BinaryDataHandler(prop);

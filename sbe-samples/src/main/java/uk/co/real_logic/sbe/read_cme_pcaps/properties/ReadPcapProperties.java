@@ -36,7 +36,6 @@ public class ReadPcapProperties {
             ex.printStackTrace();
         }
         this.os_string = prop.getProperty("reader.os");
-        this.in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
         this.out_file = Paths.get(prop.getProperty("reader.out_file")).toString();
 
         this.schema_file = Paths.get(prop.getProperty("reader.schema_file")).toString();
@@ -45,5 +44,7 @@ public class ReadPcapProperties {
 
         this.write_to_file = Boolean.parseBoolean(write_to_file_string);
         this.data_source = prop.getProperty("reader.data_source");
+        this.in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
+
     }
 }

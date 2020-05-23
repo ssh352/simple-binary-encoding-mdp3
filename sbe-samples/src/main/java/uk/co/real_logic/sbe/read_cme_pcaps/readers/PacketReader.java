@@ -33,7 +33,7 @@ public class PacketReader {
     }
 
     //todo: figure out how to set packet values without passing in tablesHandler
-    protected void readPackets(TokenListener tokenListener) throws IOException {
+    public void readPackets(TokenListener tokenListener) throws IOException {
         PacketDecoder packetDecoder = new PacketDecoder(offsets, buffer, this.tablesHandler);
 
         while (packetDecoder.hasNextPacket()) {
@@ -44,7 +44,7 @@ public class PacketReader {
 
         }
     }
-    protected void endPacketsCollection() throws IOException {
+    public void endPacketsCollection() throws IOException {
         this.tablesHandler.close();
     }
 
