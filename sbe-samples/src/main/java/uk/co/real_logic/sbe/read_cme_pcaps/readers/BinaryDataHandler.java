@@ -5,7 +5,6 @@ import uk.co.real_logic.sbe.ir.Ir;
 import uk.co.real_logic.sbe.otf.OtfHeaderDecoder;
 import uk.co.real_logic.sbe.read_cme_pcaps.properties.ReadPcapProperties;
 
-import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -23,12 +22,12 @@ public class BinaryDataHandler {
     private OtfHeaderDecoder headerDecoder;
     private UnsafeBuffer buffer;
 
-    public BinaryDataHandler(ReadPcapProperties prop) throws Exception {
+    public BinaryDataHandler(ReadPcapProperties prop, String in_file) throws Exception {
 
         this.prop = prop;
         final ByteBuffer encodedSchemaBuffer = ByteBuffer.allocateDirect(SCHEMA_BUFFER_CAPACITY);
-        EncoderDecoders.encodeSchema(encodedSchemaBuffer, prop.schema_file);
-        RandomAccessFile aFile = new RandomAccessFile(prop.in_file, "rw");
+        EncoderDecoders.encodeSchema(encodedSchemaBuffer, prop.schemaFile);
+        RandomAccessFile aFile = new RandomAccessFile(in_file, "rw");
         inChannel = aFile.getChannel();
 
 

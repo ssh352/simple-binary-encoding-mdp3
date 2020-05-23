@@ -27,8 +27,8 @@ public class PacketReader {
         this.ir = binaryDataHandler.getIr();
         this.headerDecoder = binaryDataHandler.getHeaderDecoder();
         this.buffer = binaryDataHandler.getBuffer();
-        this.offsets = new DataOffsets(prop.data_source);
-        this.lineCounter = new LineCounter(prop.run_short);
+        this.offsets = new DataOffsets(prop.dataSourceType);
+        this.lineCounter = new LineCounter(prop.runShort);
         this.tablesHandler=tablesHandler;
     }
 

@@ -5,16 +5,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Properties;
 
 public class ReadPcapProperties {
-    public final String os_string;
-    public final String in_file;
-    public final String out_file;
-    public final String data_source;
-    public final String schema_file;
-    public final boolean run_short;
-    public final boolean write_to_file;
+    public final String osString;
+    public ArrayList<String> inFiles;
+    public final String outFile;
+    public final String dataSourceType;
+    public final String schemaFile;
+    public final boolean runShort;
+    public final boolean writeToFile;
 
 
     public ReadPcapProperties(String fileName) {
@@ -35,16 +36,24 @@ public class ReadPcapProperties {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        this.os_string = prop.getProperty("reader.os");
-        this.out_file = Paths.get(prop.getProperty("reader.out_file")).toString();
+        this.osString = prop.getProperty("reader.os");
+        this.outFile = Paths.get(prop.getProperty("reader.outFile")).toString();
 
-        this.schema_file = Paths.get(prop.getProperty("reader.schema_file")).toString();
-        this.run_short = Boolean.getBoolean(prop.getProperty("reader.run_short"));
-        String write_to_file_string = prop.getProperty("reader.write_to_file");
+        this.schemaFile = Paths.get(prop.getProperty("reader.schemaFile")).toString();
+        this.runShort = Boolean.getBoolean(prop.getProperty("reader.runShort"));
+        String writeToFileString = prop.getProperty("reader.writeToFile");
 
-        this.write_to_file = Boolean.parseBoolean(write_to_file_string);
-        this.data_source = prop.getProperty("reader.data_source");
-        this.in_file = Paths.get(prop.getProperty("reader.in_file")).toString();
+        this.writeToFile = Boolean.parseBoolean(writeToFileString);
 
+        String in_files_string = prop.getProperty("inputSources.inFiles");
+        String[] inFileStringsTemp =  in_files_string.split(",");
+        ArrayList<String> inFiles = new ArrayList<>();
+        for(String inFileString: inFileStringsTemp){
+            String path =Paths.get(inFileString).toString();
+           inFiles.add(path);
+        }
+        this.inFiles =inFiles;
+
+        this.dataSourceType = prop.getProperty("reader.dataSourceType");
     }
 }
