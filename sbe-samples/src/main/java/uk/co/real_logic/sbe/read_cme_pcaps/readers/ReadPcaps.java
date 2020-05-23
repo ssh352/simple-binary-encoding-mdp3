@@ -34,6 +34,7 @@ public class ReadPcaps {
         packetReader.endPacketsCollection();
         //test directory comparison by comparing same directory
         testRunEquality();
+
     }
 
     private static void testRunEquality() throws IOException {
