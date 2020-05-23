@@ -17,7 +17,8 @@ public class ReadPcaps {
 
     public static void main(final String[] args) throws Exception {
 //        ReadPcapProperties prop = new ReadPcapProperties(args[0]);
-        runJob("C:\\marketdata\\testdata\\configs\\cleanlistener.config");
+        runJob("C:\\marketdata\\testdata\\configs\\sourcefile1.config");
+        runJob("C:\\marketdata\\testdata\\configs\\sourcefile2.config");
     }
 
     private static void runJob(String configFile) throws Exception {
