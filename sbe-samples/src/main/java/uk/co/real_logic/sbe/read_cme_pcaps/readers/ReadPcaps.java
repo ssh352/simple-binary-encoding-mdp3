@@ -70,7 +70,6 @@ public class ReadPcaps {
             PacketReader packetReader = new PacketReader(prop, binaryDataHandler, tablesHandler);
             packetReader.readPackets(cleanTokenListener);
 
-
         }
         tablesHandler.close();
         //test directory comparison by comparing same directory
