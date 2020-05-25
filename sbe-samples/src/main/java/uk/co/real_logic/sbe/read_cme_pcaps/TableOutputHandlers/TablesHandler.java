@@ -1,5 +1,6 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers;
 
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.ScopeLevel;
 
 import java.io.IOException;
@@ -12,11 +13,13 @@ public class TablesHandler {
     String currentTable;
     final String path;
     private final ScopeTracker scopeTracker;
+    RowCounter rowCounter;
 
 
     public TablesHandler(String path) throws IOException {
         this.path = path;
         this.scopeTracker = new ScopeTracker();
+        this.rowCounter=new RowCounter();
         this.addTable("packetheaders");
         this.addTable("messageheaders");
         this.addTable("groupheaders");
@@ -24,7 +27,7 @@ public class TablesHandler {
 
     public void addTable(String tableName) throws IOException {
         if (!singleTablesOutput.containsKey(tableName)) {
-            SingleTableOutput newTableOutput = new SingleTableOutput(this.path, tableName);
+            SingleTableOutput newTableOutput = new SingleTableOutput(this.path, tableName, this.rowCounter);
             singleTablesOutput.put(tableName, newTableOutput);
         }
     }
