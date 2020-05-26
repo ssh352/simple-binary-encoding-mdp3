@@ -26,9 +26,6 @@ public class SingleTableOutput {
         if(this.first_row){
             this.appendColumn(this.columnHeaders, columnName);
         }
-        if(this.firstColumn){
-            this.appendColumn(columnValues, String.valueOf(this.rowCounter.get_count(CounterTypes.EVENT_COUNT)));
-        }
         this.appendColumn(this.columnValues, columnValue);
     }
 

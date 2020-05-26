@@ -47,7 +47,7 @@ public class PacketDecoder {
 
 
     public void setPacketValues(int messageSize, long packetSequenceNumber, long sendingTime) throws IOException {
-        tablesHandler.setPacketValues(messageSize, packetSequenceNumber, sendingTime);
+        tablesHandler.onBeginPacket(messageSize, packetSequenceNumber, sendingTime);
     }
 
     public int getNextPacketOffset() {

@@ -74,10 +74,15 @@ public class TablesHandler {
     }
 
     public void startMessageHeader(String tokenName, int tokenId) {
-        this.beginEntry();
+        //todo: it seams like not all message headers are alike..
+        //separate into common message headers, and per message type header
         this.scopeTracker.clear();
         this.scopeTracker.pushScope(tokenName);
         this.scopeTracker.scopeLevel = MESSAGE_HEADER;
+        //todo: somehow enforce that begin entry happens after scope change.
+        //perhaps separate each start into cope changes, row headers
+        //perhaps have begin entry with an argument for entry type.. have a case switch
+        this.beginEntry();
         this.appendColumnValue("MessageId", String.valueOf(tokenId));
         this.appendColumnValue("MessageName", tokenName);
     }
@@ -90,8 +95,8 @@ public class TablesHandler {
 
 
     public void beginGroupHeader() {
-        this.beginEntry();
         this.scopeTracker.scopeLevel = GROUP_HEADER;
+        this.beginEntry();
     }
 
     public void endGroupHeader() throws IOException {
@@ -100,10 +105,10 @@ public class TablesHandler {
     }
 
     public void beginGroup(String tokenName) throws IOException {
-        this.beginEntry();
         this.scopeTracker.pushScope(tokenName);
         this.addTable(this.scopeTracker.getNonTerminalScope());
         this.scopeTracker.scopeLevel = ScopeLevel.GROUP_ENTRIES;
+        this.beginEntry();
     }
 
     public void endGroup() throws IOException {
@@ -111,8 +116,9 @@ public class TablesHandler {
         this.scopeTracker.clearAllButID();
     }
 
-    public void setPacketValues(int message_size, long packet_sequence_number, long sendingTime) throws IOException {
+    public void onBeginPacket(int message_size, long packet_sequence_number, long sendingTime) throws IOException {
         this.scopeTracker.scopeLevel = PACKET_HEADER;
+        this.beginEntry();
         this.appendColumnValue("message_size", String.valueOf(message_size));
         this.appendColumnValue("packet_sequence_number", String.valueOf(packet_sequence_number));
         this.appendColumnValue("sendingTime", String.valueOf(sendingTime));
@@ -125,6 +131,7 @@ public class TablesHandler {
        // without manunually inserting it on each one
        //todo: see if there ar other common elements that can bet put into this. ScopeLevel?
         this.rowCounter.increment_count(CounterTypes.EVENT_COUNT);
+        this.appendColumnValue("EntryCount", String.valueOf(this.rowCounter.get_count(CounterTypes.EVENT_COUNT)));
    }
 
     public void pushScope(String name) {
