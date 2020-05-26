@@ -1,5 +1,6 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.TableOutputHandlers;
 
+import uk.co.real_logic.sbe.read_cme_pcaps.counters.CounterTypes;
 import uk.co.real_logic.sbe.read_cme_pcaps.counters.RowCounter;
 import uk.co.real_logic.sbe.read_cme_pcaps.token_listeners.ScopeLevel;
 
@@ -73,6 +74,7 @@ public class TablesHandler {
     }
 
     public void startMessageHeader(String tokenName, int tokenId) {
+        this.beginEntry();
         this.scopeTracker.clear();
         this.scopeTracker.pushScope(tokenName);
         this.scopeTracker.scopeLevel = MESSAGE_HEADER;
@@ -87,6 +89,7 @@ public class TablesHandler {
     }
 
     public void beginGroupHeader() {
+        this.beginEntry();
         this.scopeTracker.scopeLevel = GROUP_HEADER;
     }
 
@@ -96,6 +99,7 @@ public class TablesHandler {
     }
 
     public void beginGroup(String tokenName) throws IOException {
+        this.beginEntry();
         this.scopeTracker.pushScope(tokenName);
         this.addTable(this.scopeTracker.getNonTerminalScope());
         this.scopeTracker.scopeLevel = ScopeLevel.GROUP_ENTRIES;
@@ -114,6 +118,13 @@ public class TablesHandler {
         this.completeRow("packetheaders");
         this.scopeTracker.scopeLevel = UNKNOWN;
     }
+
+   private void beginEntry(){
+        //todo: figure out how to do this at beginning of beginMessage/groupheader/groupelement
+       // without manunually inserting it on each one
+       //todo: see if there ar other common elements that can bet put into this. ScopeLevel?
+        this.rowCounter.increment_count(CounterTypes.EVENT_COUNT);
+   }
 
     public void pushScope(String name) {
         this.scopeTracker.pushScope(name);

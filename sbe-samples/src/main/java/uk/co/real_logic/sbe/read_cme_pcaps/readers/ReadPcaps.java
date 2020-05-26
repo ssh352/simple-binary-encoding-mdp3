@@ -25,7 +25,7 @@ public class ReadPcaps {
 
        ArrayList<String> inFiles=getFilesFromProperties(prop) ;
         //todo: figure out why loop doesn't work when stated with colon
-        String filesPath = "C:\\marketdata\\testdata\\20191006\\";
+        String filesPath = "C:\\marketdata\\testdata\\20191010\\";
         inFiles=getFilesFromDirectoryName(filesPath);
         runJob(prop, inFiles);
     }
