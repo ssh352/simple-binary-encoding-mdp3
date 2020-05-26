@@ -88,6 +88,7 @@ public class TablesHandler {
         this.scopeTracker.scopeLevel = UNKNOWN;
     }
 
+
     public void beginGroupHeader() {
         this.beginEntry();
         this.scopeTracker.scopeLevel = GROUP_HEADER;
