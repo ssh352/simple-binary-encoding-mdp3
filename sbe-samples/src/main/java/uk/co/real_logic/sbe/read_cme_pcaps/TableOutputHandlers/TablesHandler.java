@@ -116,6 +116,7 @@ public class TablesHandler {
         this.scopeTracker.clearAllButID();
     }
 
+
     public void onBeginPacket(int message_size, long packet_sequence_number, long sendingTime) throws IOException {
         this.scopeTracker.scopeLevel = PACKET_HEADER;
         this.beginEntry();
