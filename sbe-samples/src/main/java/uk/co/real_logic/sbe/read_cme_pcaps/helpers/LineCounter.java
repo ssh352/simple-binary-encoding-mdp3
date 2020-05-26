@@ -2,6 +2,7 @@ package uk.co.real_logic.sbe.read_cme_pcaps.helpers;
 
 public class LineCounter {
     private long linesRead=0;
+    //todo: consider this taking in row counter and just doing display rather than counting
     public LineCounter(boolean runShort) {
         linesRead = 0;
     }
