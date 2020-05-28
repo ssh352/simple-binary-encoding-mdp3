@@ -22,21 +22,22 @@ public class PacketDecoder {
 
     public PacketDecoder(DataOffsets offsets, UnsafeBuffer buffer, TablesHandler tablesHandler) {
         this.offsets = offsets;
-        this.buffer=buffer;
-        this.tablesHandler=tablesHandler;
-        this.nextPacketStartPosition=this.offsets.starting_offset; //skip leading bytes before message capture proper
+        this.buffer = buffer;
+        this.tablesHandler = tablesHandler;
+        this.nextPacketStartPosition = this.offsets.starting_offset; //skip leading bytes before message capture proper
     }
 
 
     public void processOffsets(int headerLength) throws IOException {
-        this.packetStartPosition =nextPacketStartPosition;
+        this.packetStartPosition = nextPacketStartPosition;
         this.headerStartOffset = this.absoluteOffset(offsets.header_bytes);
-        this.messageStartPosition= headerStartOffset + headerLength;
+        this.messageStartPosition = headerStartOffset + headerLength;
         this.decodePacketInfo();
 
-        this.nextPacketStartPosition=this.getNextPacketOffset();
+        this.nextPacketStartPosition = this.getNextPacketOffset();
 
     }
+
     private void decodePacketInfo() throws IOException {
         //todo: reduce duplication by making a method for getting the offset that includes packetCapture
         messageSize = this.buffer.getShort(this.absoluteOffset(this.offsets.size_offset), offsets.message_size_endianness);
@@ -51,28 +52,28 @@ public class PacketDecoder {
     }
 
     public int getNextPacketOffset() {
-        this.nextPacketOffset = this.absoluteOffset(this.messageSize +this.offsets.packet_size_padding);
+        this.nextPacketOffset = this.absoluteOffset(this.messageSize + this.offsets.packet_size_padding);
         return this.nextPacketOffset;
     }
 
-        public int getMessageStartPosition() {
+    public int getMessageStartPosition() {
         return this.messageStartPosition;
     }
 
     public boolean hasNextPacket() {
         return getNextPacketOffset() < buffer.capacity();
-}
+    }
 
     public int getHeaderStartOffset() {
         return headerStartOffset;
     }
 
 
-    public long  getSendingTime() {
+    public long getSendingTime() {
         return sendingTime;
     }
 
-    public int absoluteOffset(int relativeOffset){
+    public int absoluteOffset(int relativeOffset) {
         return this.packetStartPosition + relativeOffset;
     }
 

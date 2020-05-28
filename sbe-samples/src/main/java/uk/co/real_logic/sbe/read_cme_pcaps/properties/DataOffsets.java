@@ -1,7 +1,6 @@
 package uk.co.real_logic.sbe.read_cme_pcaps.properties;
 
 import java.nio.ByteOrder;
-
 public class DataOffsets {
     //number of leading bytes for the whole file
     public final int starting_offset;
