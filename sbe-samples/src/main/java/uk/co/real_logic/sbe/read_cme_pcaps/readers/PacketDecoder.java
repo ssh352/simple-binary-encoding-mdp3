@@ -30,7 +30,7 @@ public class PacketDecoder {
 
     public void processOffsets(int headerLength) throws IOException {
         this.packetStartPosition =nextPacketStartPosition;
-        this.headerStartOffset = this.packetStartPosition + offsets.header_bytes;
+        this.headerStartOffset = this.absoluteOffset(offsets.header_bytes);
         this.messageStartPosition= headerStartOffset + headerLength;
         this.decodePacketInfo();
 
@@ -39,9 +39,9 @@ public class PacketDecoder {
     }
     private void decodePacketInfo() throws IOException {
         //todo: reduce duplication by making a method for getting the offset that includes packetCapture
-        messageSize = this.buffer.getShort(this.packetStartPosition + this.offsets.size_offset, offsets.message_size_endianness);
-        packetSequenceNumber = this.buffer.getInt(this.packetStartPosition + this.offsets.packet_sequence_number_offset);
-        sendingTime = this.buffer.getLong(this.packetStartPosition + this.offsets.sending_time_offset);
+        messageSize = this.buffer.getShort(this.absoluteOffset(this.offsets.size_offset), offsets.message_size_endianness);
+        packetSequenceNumber = this.buffer.getInt(this.absoluteOffset(this.offsets.packet_sequence_number_offset));
+        sendingTime = this.buffer.getLong(this.absoluteOffset(this.offsets.sending_time_offset));
         this.setPacketValues(messageSize, packetSequenceNumber, sendingTime);
     }
 
@@ -51,7 +51,7 @@ public class PacketDecoder {
     }
 
     public int getNextPacketOffset() {
-        this.nextPacketOffset = this.messageSize + this.packetStartPosition + this.offsets.packet_size_padding;
+        this.nextPacketOffset = this.absoluteOffset(this.messageSize +this.offsets.packet_size_padding);
         return this.nextPacketOffset;
     }
 
@@ -70,6 +70,10 @@ public class PacketDecoder {
 
     public long  getSendingTime() {
         return sendingTime;
+    }
+
+    public int absoluteOffset(int relativeOffset){
+        return this.packetStartPosition + relativeOffset;
     }
 
 
