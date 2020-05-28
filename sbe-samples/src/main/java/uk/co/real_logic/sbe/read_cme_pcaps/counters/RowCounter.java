@@ -4,15 +4,13 @@ package uk.co.real_logic.sbe.read_cme_pcaps.counters;
 import java.util.HashMap;
 
 public class RowCounter {
-    private final HashMap<CounterTypes, Counter> row_counters;
-
+    private final HashMap<CounterTypes, Counter> row_counters= new HashMap<>();
 
     public RowCounter() {
-        this.row_counters = new HashMap<>();
-        this.row_counters.put(CounterTypes.MESSAGE_COUNT, new Counter());
-        this.row_counters.put(CounterTypes.GROUP_HEADER_COUNT, new Counter());
-        this.row_counters.put(CounterTypes.GROUP_ELEMENT_COUNT, new Counter());
-        this.row_counters.put(CounterTypes.EVENT_COUNT, new Counter());
+        this.addCounter(CounterTypes.MESSAGE_COUNT);
+        this.addCounter(CounterTypes.GROUP_HEADER_COUNT);
+        this.addCounter(CounterTypes.GROUP_ELEMENT_COUNT);
+        this.addCounter(CounterTypes.EVENT_COUNT);
     }
 
     public void increment_count(CounterTypes counter_type) {
@@ -43,6 +41,10 @@ public class RowCounter {
 
     public void onBitSetEnd() {
         this.increment_count(CounterTypes.EVENT_COUNT);
+    }
+
+    private void addCounter(CounterTypes counterType){
+        this.row_counters.put(counterType, new Counter());
     }
 }
 

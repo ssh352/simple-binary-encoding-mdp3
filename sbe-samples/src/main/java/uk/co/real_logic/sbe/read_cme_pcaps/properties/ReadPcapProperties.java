@@ -16,44 +16,39 @@ public class ReadPcapProperties {
     public final String schemaFile;
     public final boolean runShort;
     public final boolean writeToFile;
+    private final Properties prop = new Properties();
 
+    public ReadPcapProperties(String fileName) throws IOException {
+        InputStream is = new FileInputStream(fileName);
+        this.prop.load(is);
 
-    public ReadPcapProperties(String fileName) {
-        Properties prop = new Properties();
-        // the configuration file name
-        InputStream is = null;
-        try {
-            is = new FileInputStream(fileName);
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        }
-        // load the properties file
-        try {
-            prop.load(is);
-            System.out.println(prop.getProperty("reader.name"));
-            // get the value for app.version key
-            System.out.println(prop.getProperty("reader.version"));
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        this.osString = prop.getProperty("reader.os");
-        this.outFile = Paths.get(prop.getProperty("reader.outFile")).toString();
+        this.osString = getProperty("reader.os");
+        this.outFile = this.getPath("reader.outFile");
 
-        this.schemaFile = Paths.get(prop.getProperty("reader.schemaFile")).toString();
-        this.runShort = Boolean.getBoolean(prop.getProperty("reader.runShort"));
-        String writeToFileString = prop.getProperty("reader.writeToFile");
+        this.schemaFile = this.getPath("reader.schemaFile");
+        this.runShort = Boolean.getBoolean(getProperty("reader.runShort"));
+        String writeToFileString = getProperty("reader.writeToFile");
 
         this.writeToFile = Boolean.parseBoolean(writeToFileString);
 
-        String in_files_string = prop.getProperty("inputSources.inFiles");
-        String[] inFileStringsTemp =  in_files_string.split(",");
+        String in_files_string = getProperty("inputSources.inFiles");
+        String[] inFileStringsTemp = in_files_string.split(",");
         ArrayList<String> inFiles = new ArrayList<>();
-        for(String inFileString: inFileStringsTemp){
-            String path =Paths.get(inFileString).toString();
-           inFiles.add(path);
+        for (String inFileString : inFileStringsTemp) {
+            String path = Paths.get(inFileString).toString();
+            inFiles.add(path);
         }
-        this.inFiles =inFiles;
+        this.inFiles = inFiles;
 
-        this.dataSourceType = prop.getProperty("reader.dataSourceType");
+        this.dataSourceType = getProperty("reader.dataSourceType");
+    }
+
+    private String getProperty(String property) {
+        return this.prop.getProperty(property);
+    }
+
+    private String getPath(String pathName){
+        return Paths.get(getProperty(pathName)).toString();
+
     }
 }

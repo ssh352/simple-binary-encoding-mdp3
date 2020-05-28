@@ -29,8 +29,8 @@ public class ScopeTracker {
         final Iterator<String> i = nonTerminalScope.descendingIterator();
         sb.append(i.next());
         if(i.hasNext()){
-        sb.append(".");
-        sb.append(i.next());}
+        sb.append(".").append(i.next());
+        }
 
         return sb.toString();
     }

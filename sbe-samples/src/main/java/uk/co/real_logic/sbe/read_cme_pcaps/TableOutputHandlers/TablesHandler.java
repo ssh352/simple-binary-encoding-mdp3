@@ -42,6 +42,10 @@ public class TablesHandler {
     }
 
 
+   public void appendColumnValue(String columnName, Object value){
+       this.appendColumnValue(columnName, String.valueOf(value) );
+   }
+
     public void appendColumnValue(String columnName, String value) {
         switch (scopeTracker.getScopeLevel()) {
             case PACKET_HEADER:
@@ -57,6 +61,7 @@ public class TablesHandler {
                 this.appendToTable(columnName, value);
                 break;
             case GROUP_ENTRIES:
+                //todo: see if there is more efficent way to keep track of tables than strings
                 this.currentTable = scopeTracker.getNonTerminalScope();
                 //            this.appendToResidual("GroupEntry\n");
                 this.appendToTable(columnName, value);
@@ -83,7 +88,7 @@ public class TablesHandler {
         //perhaps separate each start into cope changes, row headers
         //perhaps have begin entry with an argument for entry type.. have a case switch
         this.beginEntry();
-        this.appendColumnValue("MessageId", String.valueOf(tokenId));
+        this.appendColumnValue("MessageId", tokenId);
         this.appendColumnValue("MessageName", tokenName);
     }
 
@@ -120,9 +125,9 @@ public class TablesHandler {
     public void onBeginPacket(int message_size, long packet_sequence_number, long sendingTime) throws IOException {
         this.scopeTracker.scopeLevel = PACKET_HEADER;
         this.beginEntry();
-        this.appendColumnValue("message_size", String.valueOf(message_size));
-        this.appendColumnValue("packet_sequence_number", String.valueOf(packet_sequence_number));
-        this.appendColumnValue("sendingTime", String.valueOf(sendingTime));
+        this.appendColumnValue("message_size", message_size);
+        this.appendColumnValue("packet_sequence_number", packet_sequence_number);
+        this.appendColumnValue("sendingTime", sendingTime);
         this.completeRow("packetheaders");
         this.scopeTracker.scopeLevel = UNKNOWN;
     }
@@ -132,7 +137,7 @@ public class TablesHandler {
        // without manunually inserting it on each one
        //todo: see if there ar other common elements that can bet put into this. ScopeLevel?
         this.rowCounter.increment_count(CounterTypes.EVENT_COUNT);
-        this.appendColumnValue("EntryCount", String.valueOf(this.rowCounter.get_count(CounterTypes.EVENT_COUNT)));
+        this.appendColumnValue("EntryCount", this.rowCounter.get_count(CounterTypes.EVENT_COUNT));
    }
 
     public void pushScope(String name) {

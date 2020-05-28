@@ -25,9 +25,11 @@ public class ReadPcaps {
 
        ArrayList<String> inFiles=getFilesFromProperties(prop) ;
         //todo: figure out why loop doesn't work when stated with colon
-        String filesPath = "C:\\marketdata\\testdata\\20191010\\";
-        inFiles=getFilesFromDirectoryName(filesPath);
+//        String filesPath = "C:\\marketdata\\testdata\\prodreferencedata\\";
+//        String filesPath = "C:\\marketdata\\testdata\\20191010\\";
+//        inFiles=getFilesFromDirectoryName(filesPath);
         runJob(prop, inFiles);
+        testRunEquality();
     }
 
 
@@ -77,7 +79,8 @@ public class ReadPcaps {
     }
 
     private static void testRunEquality() throws IOException {
-        DirectoryComparison.compareDirectories("C:/marketdata/testdata/separatetables/referencedirectory/", "C:/marketdata/testdata/separatetables/latestresults/");
+//        DirectoryComparison.compareDirectories("C:/marketdata/testdata/separatetables/referencedirectory/", "C:/marketdata/testdata/separatetables/latestresults/");
+        DirectoryComparison.compareDirectories("C:/marketdata/testdata/separatetables/referencedirectory2/", "C:/marketdata/testdata/separatetables/latestresults/");
 /*        if (compareToPreviousFiles) {
             String reference_file="c:/marketdata/testdata/separatetables/residualoutput_5_27.txt";
             String latest_output = "c:/marketdata/testdata/separatetables/residualoutput.txt";
