@@ -119,8 +119,8 @@ public class CleanTokenListener implements TokenListener {
     }
 
     public void onGroupHeader(final Token token, final int numInGroup) throws IOException {
-        this.tablesHandler.endMessageHeader(token.name());
-        this.tablesHandler.beginGroupHeader();
+        this.tablesHandler.endMessageHeader();
+        this.tablesHandler.beginGroupHeader(token.name());
         //todo: write all values of group header table
         this.tablesHandler.appendColumnValue( "groupheadername", token.name());
 //        this.tablesHandler.appendToResidual(token.name());

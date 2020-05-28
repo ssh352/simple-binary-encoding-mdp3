@@ -15,6 +15,7 @@ public class TablesHandler {
     private static final ScopeTracker scopeTracker = new ScopeTracker();
     RowCounter rowCounter;
 
+//todo:  remove references to pushing, poping, clearing scope etc into ScopeTracker
 
     public TablesHandler(String path) throws IOException {
         this.path = path;
@@ -63,13 +64,14 @@ public class TablesHandler {
         this.appendColumnValue("MessageName", tokenName);
     }
 
-    public void endMessageHeader(String tokenName) throws IOException {
-        this.scopeTracker.pushScope(tokenName);
+    public void endMessageHeader() throws IOException {
+//        this.scopeTracker.pushScope(tokenName);
         this.singleTablesOutput.get("messageheaders").completeRow();
     }
 
 
-    public void beginGroupHeader() {
+    public void beginGroupHeader(String tokenName) {
+        this.scopeTracker.pushScope(tokenName);
         this.newTableEntry(GROUP_HEADER);
     }
 
