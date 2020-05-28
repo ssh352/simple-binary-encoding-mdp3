@@ -80,9 +80,9 @@ public class TablesHandler {
 
     public void beginGroup(String tokenName) throws IOException {
         this.scopeTracker.pushScope(tokenName);
-   //     this.addTable(this.scopeTracker.getNonTerminalScope());
-             this.addTable(currentTable());
-        this.newEntry(GROUP_ENTRIES, tokenName);
+        this.addTable(this.scopeTracker.getNonTerminalScope());
+//        this.scopeTracker.setScopeLevel(GROUP_ENTRIES);
+        this.newEntry(GROUP_ENTRIES);
     }
 
     public void endGroup() throws IOException {
@@ -93,7 +93,6 @@ public class TablesHandler {
 
     private void newEntry(ScopeLevel scopeLevel, String newLabel) throws IOException {
         this.scopeTracker.pushScope(newLabel);
-        this.addTable(currentTable());
         this.newEntry(scopeLevel);
     }
 
