@@ -59,7 +59,7 @@ public class TablesHandler {
         //todo: somehow enforce that begin entry happens after scope change.
         //perhaps separate each start into cope changes, row headers
         //perhaps have begin entry with an argument for entry type.. have a case switch
-        this.newTableEntry(MESSAGE_HEADER);
+        this.newEntry(MESSAGE_HEADER);
         this.appendColumnValue("MessageId", tokenId);
         this.appendColumnValue("MessageName", tokenName);
     }
@@ -70,9 +70,8 @@ public class TablesHandler {
     }
 
 
-    public void beginGroupHeader(String tokenName) {
-        this.scopeTracker.pushScope(tokenName);
-        this.newTableEntry(GROUP_HEADER);
+    public void beginGroupHeader(String tokenName) throws IOException {
+        this.newEntry(GROUP_HEADER, tokenName);
     }
 
     public void endGroupHeader() throws IOException {
@@ -81,8 +80,9 @@ public class TablesHandler {
 
     public void beginGroup(String tokenName) throws IOException {
         this.scopeTracker.pushScope(tokenName);
-        this.addTable(this.scopeTracker.getNonTerminalScope());
-        this.newTableEntry(GROUP_ENTRIES);
+   //     this.addTable(this.scopeTracker.getNonTerminalScope());
+             this.addTable(currentTable());
+        this.newEntry(GROUP_ENTRIES, tokenName);
     }
 
     public void endGroup() throws IOException {
@@ -90,26 +90,28 @@ public class TablesHandler {
         this.scopeTracker.clearAllButID();
     }
 
-    private void newTableEntry(ScopeLevel scopeLevel){
+
+    private void newEntry(ScopeLevel scopeLevel, String newLabel) throws IOException {
+        this.scopeTracker.pushScope(newLabel);
+        this.addTable(currentTable());
+        this.newEntry(scopeLevel);
+    }
+
+    private void newEntry(ScopeLevel scopeLevel){
         this.scopeTracker.setScopeLevel(scopeLevel);
-        this.beginEntry();
+        this.rowCounter.increment_count(CounterTypes.EVENT_COUNT);
+        this.appendColumnValue("EntryCount", this.rowCounter.get_count(CounterTypes.EVENT_COUNT));
     }
 
     public void onBeginPacket(int message_size, long packet_sequence_number, long sendingTime) throws IOException {
-        this.newTableEntry(PACKET_HEADER);
+        this.newEntry(PACKET_HEADER);
         this.appendColumnValue("message_size", message_size);
         this.appendColumnValue("packet_sequence_number", packet_sequence_number);
         this.appendColumnValue("sendingTime", sendingTime);
         this.completeRow("packetheaders");
     }
 
-   private void beginEntry(){
-        //todo: figure out how to do this at beginning of beginMessage/groupheader/groupelement
-       // without manunually inserting it on each one
-       //todo: see if there ar other common elements that can bet put into this. ScopeLevel?
-        this.rowCounter.increment_count(CounterTypes.EVENT_COUNT);
-        this.appendColumnValue("EntryCount", this.rowCounter.get_count(CounterTypes.EVENT_COUNT));
-   }
+
 
     public void pushScope(String name) {
         this.scopeTracker.pushScope(name);
