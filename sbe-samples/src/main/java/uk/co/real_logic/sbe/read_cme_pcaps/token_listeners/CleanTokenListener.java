@@ -57,7 +57,7 @@ public class CleanTokenListener implements TokenListener {
             final Token typeToken,
             final int actingVersion) {
         final CharSequence value = readEncodingAsString(buffer, index, typeToken, actingVersion);
-        this.tablesHandler.appendColumnValue(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name(), String.valueOf(value));
+        this.tablesHandler.appendColumnValue(this.compositeLevel > 0 ? typeToken.name() : fieldToken.name(), value);
     }
 
     public void onEnum(
