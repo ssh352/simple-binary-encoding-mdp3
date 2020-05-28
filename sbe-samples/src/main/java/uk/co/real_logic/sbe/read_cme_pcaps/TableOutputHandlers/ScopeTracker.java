@@ -30,7 +30,9 @@ public class ScopeTracker {
     public String getNonTerminalScope(){
         StringBuilder sb = new StringBuilder();
         final Iterator<String> i = nonTerminalScope.descendingIterator();
-        sb.append(i.next());
+        if(i.hasNext()) {
+            sb.append(i.next());
+        }
         if(i.hasNext()){
         sb.append(".").append(i.next());
         }

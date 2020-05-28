@@ -80,6 +80,8 @@ public class TablesHandler {
 
     public void beginGroup(String tokenName) throws IOException {
         this.scopeTracker.pushScope(tokenName);
+        System.out.println("tablenamesonbegingroup\n" + scopeTracker.getCurrentTable()+ "\n"+ scopeTracker.getNonTerminalScope());
+
         this.addTable(this.scopeTracker.getNonTerminalScope());
 //        this.scopeTracker.setScopeLevel(GROUP_ENTRIES);
         this.newEntry(GROUP_ENTRIES);
@@ -121,6 +123,7 @@ public class TablesHandler {
     }
 
     private String currentTable(){
+        System.out.println("tablenames\n" + scopeTracker.getCurrentTable()+ "\n"+ scopeTracker.getNonTerminalScope());
         return scopeTracker.getCurrentTable();
     }
 }
