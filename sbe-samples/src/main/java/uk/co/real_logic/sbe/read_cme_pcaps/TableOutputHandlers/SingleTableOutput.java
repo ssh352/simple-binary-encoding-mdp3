@@ -14,9 +14,11 @@ public class SingleTableOutput {
     private final boolean firstColumn=true;
     private final StringBuilder columnValues = new StringBuilder(STRINGBUILDER_CAPACITY);
     private final StringBuilder columnHeaders = new StringBuilder(STRINGBUILDER_CAPACITY);
+    private final String tableName;
 
     public SingleTableOutput(String path, String tableName, RowCounter rowCounter) throws IOException {
         this.writer=new FileWriter(path + tableName);
+        this.tableName=tableName;
     }
 
     public void append(String columnName, String columnValue)  {

@@ -17,7 +17,7 @@ public class ReadPcaps {
 
     public static void main(final String[] args) throws Exception {
 //        ReadPcapProperties prop = new ReadPcapProperties(args[0]);
-        String sourceConfig = "C:\\marketdata\\testdata\\configs\\multiplefiles.config";
+        String sourceConfig = "C:\\marketdata\\testdata\\configs\\singlefile.config";
         //todo: make multiple properties objects for different types of properties
         //todo: use different prefixes for these different objects. Pass only what is needed
         ReadPcapProperties prop = new ReadPcapProperties(sourceConfig);
@@ -29,7 +29,7 @@ public class ReadPcaps {
 //        String filesPath = "C:\\marketdata\\testdata\\20191010\\";
 //        inFiles=getFilesFromDirectoryName(filesPath);
         runJob(prop, inFiles);
-        testRunEquality();
+//        testRunEquality();
     }
 
 
@@ -75,12 +75,12 @@ public class ReadPcaps {
         }
         tablesHandler.close();
         //test directory comparison by comparing same directory
-        //testRunEquality();
+        testRunEquality();
     }
 
     private static void testRunEquality() throws IOException {
 //        DirectoryComparison.compareDirectories("C:/marketdata/testdata/separatetables/referencedirectory/", "C:/marketdata/testdata/separatetables/latestresults/");
-        DirectoryComparison.compareDirectories("C:/marketdata/testdata/separatetables/referencedirectory2/", "C:/marketdata/testdata/separatetables/latestresults/");
+        DirectoryComparison.compareDirectories("C:/marketdata/testdata/separatetables/singlefilereference/", "C:/marketdata/testdata/separatetables/latestresults/");
 /*        if (compareToPreviousFiles) {
             String reference_file="c:/marketdata/testdata/separatetables/residualoutput_5_27.txt";
             String latest_output = "c:/marketdata/testdata/separatetables/residualoutput.txt";

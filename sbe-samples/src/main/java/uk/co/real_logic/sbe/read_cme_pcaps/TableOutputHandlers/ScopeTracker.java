@@ -9,10 +9,9 @@ import java.util.Iterator;
 public class ScopeTracker {
 
     private final Deque<String> nonTerminalScope = new ArrayDeque<>();
-    public ScopeLevel scopeLevel;
+    private ScopeLevel scopeLevel;
 
     public ScopeTracker(){
-
     }
 
     public void pushScope(String name) {
@@ -21,6 +20,10 @@ public class ScopeTracker {
 
     public void popScope() {
         this.nonTerminalScope.pop();
+    }
+
+    void setScopeLevel(ScopeLevel scopeLevel){
+        this.scopeLevel = scopeLevel;
     }
 
 
@@ -41,9 +44,10 @@ public class ScopeTracker {
         }
     }
 
-    public void clear() {
 
+    public void newToken(String tokenName) {
         nonTerminalScope.clear();
+        this.pushScope(tokenName);
     }
 
     String getCurrentTable() {
@@ -51,6 +55,7 @@ public class ScopeTracker {
         switch (this.scopeLevel) {
             case PACKET_HEADER:
                 currentTable = "packetheaders";
+                break;
             case MESSAGE_HEADER:
                 currentTable = "messageheaders";
                 break;
@@ -63,7 +68,7 @@ public class ScopeTracker {
                 //            this.appendToResidual("GroupEntry\n");
                 break;
             case UNKNOWN:
-                break;
+                throw new IllegalStateException("Unexpected value: " + this.scopeLevel);
         }
         return currentTable;
     }
