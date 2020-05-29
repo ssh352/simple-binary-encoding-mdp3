@@ -123,7 +123,6 @@ public class CleanTokenListener implements TokenListener {
         this.tablesHandler.beginGroupHeader(token.name());
         //todo: write all values of group header table
         this.tablesHandler.appendColumnValue( "groupheadername", token.name());
-//        this.tablesHandler.appendToResidual(token.name());
         this.tablesHandler.appendColumnValue("numInGroup",Integer.toString(numInGroup));
         this.tablesHandler.endGroupHeader();
     }
