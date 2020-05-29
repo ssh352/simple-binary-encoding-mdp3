@@ -12,6 +12,7 @@ public class ScopeTracker {
     private ScopeLevel scopeLevel;
 
     public ScopeTracker(){
+        this.scopeLevel=ScopeLevel.PACKET_HEADER;
     }
 
     public void pushScope(String name) {
@@ -38,6 +39,20 @@ public class ScopeTracker {
         }
 
         return sb.toString();
+    }
+
+    public String getCompleteScope() {
+        StringBuilder sb = new StringBuilder();
+        final Iterator<String> i = nonTerminalScope.descendingIterator();
+        if (i.hasNext()) {
+            sb.append(i.next());
+        }
+        while(i.hasNext()){
+            sb.append(".").append(i.next());
+        }
+        return sb.toString();
+
+
     }
 
     public void clearAllButID(){

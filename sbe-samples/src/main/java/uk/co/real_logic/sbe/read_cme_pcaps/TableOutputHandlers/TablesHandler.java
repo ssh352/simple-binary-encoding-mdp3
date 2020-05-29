@@ -76,16 +76,23 @@ public class TablesHandler {
 
     public void endGroupHeader() throws IOException {
         this.singleTablesOutput.get("groupheaders").completeRow();
+        this.scopeTracker.popScope();
     }
 
     public void beginGroup(String tokenName) throws IOException {
+        this.printNames("tablenames start of begingroup\n");
         this.scopeTracker.pushScope(tokenName);
         this.scopeTracker.setScopeLevel(GROUP_ENTRIES);
-//        System.out.println("tablenamesonbegingroup\n" + scopeTracker.getCurrentTable()+ "\n"+ scopeTracker.getNonTerminalScope());
+        this.printNames("tablenames onbegingroup\n");
 
         this.addTable(currentTable());
 //        this.scopeTracker.setScopeLevel(GROUP_ENTRIES);
         this.newEntry(GROUP_ENTRIES);
+    }
+
+    private void printNames(String label) {
+//        System.out.println(label);
+ //       System.out.println(scopeTracker.getCurrentTable()+ "\n"+ scopeTracker.getNonTerminalScope() + "\n" + scopeTracker.getCompleteScope());
     }
 
     public void endGroup() throws IOException {
@@ -99,7 +106,9 @@ public class TablesHandler {
     }
 
     private void newEntry(ScopeLevel scopeLevel){
+
         this.scopeTracker.setScopeLevel(scopeLevel);
+        this.printNames("tablenames newEntry");
         this.rowCounter.increment_count(CounterTypes.EVENT_COUNT);
         this.appendColumnValue("EntryCount", this.rowCounter.get_count(CounterTypes.EVENT_COUNT));
     }
